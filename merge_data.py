@@ -1,0 +1,138 @@
+#!/usr/bin/env python2
+import logging
+import argparse
+import numpy as np
+
+def check_done(lines):
+    ends = [l == "" for l in lines]
+    if any(ends):
+        if all(ends):
+            return True
+        else:
+            raise ValueError("Files are not the same length")
+    return False
+
+def allEqual(lst):
+     return not lst or lst.count(lst[0]) == len(lst)
+
+
+
+def check_control_lines(lines, data_info):
+    infoline = [l.startswith((":","-","=")) for l in lines]
+    if any(infoline):
+        if not allEqual(lines):
+            raise ValueError("Lines don't contain the same correlators")
+
+        fline = lines[0]        # Only need one of the lines if they are all equal
+
+        if fline.startswith(":"):
+            description = fline.strip("\n :")
+            data_info["flavor"] = description.split()[0]
+            try:
+                snk,src = description.split()[-1].strip("()").split(",")
+                data_info["snk"] = snk
+                data_info["src"] = src
+            except ValueError:
+                logging.info("heavy-heavy has only one sink,src")
+                data_info["snk"] = 0
+                data_info["src"] = 0
+            return True
+        elif fline.startswith("="):
+            logging.info("line just says the hadron type, skipping")
+            return True
+        elif fline.startswith("-"):
+            correlatortype = fline.strip("\n -")
+            data_info["correlatortype"] = correlatortype
+            return True
+    return False
+
+class filewriter:
+    def __init__(self,data_info, shift):
+        self.flavor = data_info["flavor"]
+        self.snk = data_info["snk"]
+        self.src = data_info["src"]
+        self.correlatortype = data_info["correlatortype"]
+        self.shift = shift
+        self.data = {}
+
+    def add_data(self,line,fromfile):
+
+        if fromfile not in self.data.keys():
+            self.data[fromfile] = []
+
+        time = int(line.strip().split()[0])
+        data = ", ".join(line.strip().split()[1:])
+        print time
+        print data
+
+        self.data[fromfile].append((time, data) )
+
+    def write(self):
+        ofile_name = "{}_{}_{}-{}_{}".format(args.output_stub, self.flavor, self.snk, self.src, self.correlatortype)
+        logging.info("opening file {}".format(ofile_name))
+        ofile = open(ofile_name, "w")
+        logging.info("writing data")
+
+        def index(i):
+            if i >= self.shift:
+                return i-self.shift
+            else:
+                return i+self.shift
+
+
+        for cfg, data in self.data.iteritems():
+            ddata = dict(data)
+            print ddata
+            for i in range(max(ddata.keys())):
+                ofile.write("{}, {}".format(i,ddata[index(i)]))
+                ofile.write("\n")
+
+
+def split_data(args):
+
+    ofile = None
+
+    infiles = [open(fname) for fname in args.files]
+
+    data_info = {"flavor":None, "snk":None, "src":None, "correlatortype":None}
+    fw = filewriter(data_info, args.shift)
+    while True:
+        lines = [f.readline() for f in infiles]
+        logging.debug(lines[0])
+        if check_done(lines):
+            break
+        if check_control_lines(lines, data_info):
+            logging.info("control line found info updated")
+            logging.debug("{}".format(repr(data_info)))
+            if fw.data:
+                fw.write()
+            fw = filewriter(data_info, args.shift)
+        else:
+            # logging.debug("is a data line")
+            for line,f in zip(lines,args.files):
+                fw.add_data(line,f)
+
+    logging.info("Done!")
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description="parse iroiro correlator files")
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="increase output verbosity")
+    parser.add_argument("-o", "--output-stub", type=str, default="out", required=False,
+                        help="stub of name to write output to")
+    parser.add_argument("-s", "--shift", type=int, default=0, required=False,
+                        help="shift the times on the data")
+    parser.add_argument('files', metavar='f', type=str, nargs='+',
+                        help='files to plot')
+
+    args = parser.parse_args()
+
+    if args.verbose:
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+        logging.debug("Verbose debuging mode activated")
+    else:
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+
+
+    split_data(args)
