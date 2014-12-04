@@ -83,7 +83,7 @@ class filewriter:
         for cfg, data in self.data.iteritems():
             ddata = dict(data)
             print ddata
-            for i in range(max(ddata.keys())):
+            for i in range(max(ddata.keys())+1):
                 ofile.write("{}, {}".format(i,ddata[index(i)]))
                 ofile.write("\n")
 
