@@ -20,6 +20,7 @@ def allEqual(lst):
 def check_control_lines(lines, data_info):
     infoline = [l.startswith((":","-","=")) for l in lines]
     if any(infoline):
+        lines = [l.replace("heaby", "heavy") for l in lines]
         if not allEqual(lines):
             raise ValueError("Lines don't contain the same correlators")
 
@@ -62,8 +63,6 @@ class filewriter:
 
         time = int(line.strip().split()[0])
         data = ", ".join(line.strip().split()[1:])
-        print time
-        print data
 
         self.data[fromfile].append((time, data) )
 
@@ -82,7 +81,6 @@ class filewriter:
 
         for cfg, data in self.data.iteritems():
             ddata = dict(data)
-            print ddata
             for i in range(max(ddata.keys())+1):
                 ofile.write("{}, {}".format(i,ddata[index(i)]))
                 ofile.write("\n")
