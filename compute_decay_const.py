@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import re
 import readinput
+import os
 
 def lines_without_comments(filename, comment="#"):
     from cStringIO import StringIO
@@ -69,8 +70,9 @@ def decay_constant(filename, options):
     smearing = re.search("([0-2]_[0-2])", filename).group(1)
     print(masses)
 
+    print filename
     beta = re.search("_b(4\.[0-9]*)_", filename).group(1)
-
+    size = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
 
     if beta == "4.35":
         heavy_masses = {"m0": 0.12, "m1": 0.24, "m2": 0.36}
@@ -85,7 +87,8 @@ def decay_constant(filename, options):
                         (0.0035, 0.040): 0.00039,
                         (0.008, 0.018): 0.00000, (0.008, 0.025): 0.00000,
                         (0.012, 0.018): 0.000053, (0.012, 0.025): 0.000032,
-                        (0.0042, 0.018): 0.00000, (0.0042, 0.025): 0.00000 }
+                        (0.0042, 0.018): 0.00000, (0.0042, 0.025): 0.00000 ,
+                        (0.0030, 0.0150): 0.00000}
 
     print masses["s"]
     print masses["ud"]
@@ -104,11 +107,15 @@ def decay_constant(filename, options):
 
     print quarkmass1, quarkmass2
 
+    print options.function
+
     if options.function == "axial":
         decay_constant = np.sqrt(2*df.amp)
-    if options.function == "simul":
+    if options.function == "simul01-11":
         decay_constant = (quarkmass1 + quarkmass2) * np.sqrt(2*(df.amp1**2 / df.amp2) / (df.mass**3))
-    else:
+    if options.function == "simul00-11" or options.function == "simul00-01":
+        decay_constant = (quarkmass1 + quarkmass2) * np.sqrt(2*df.amp1 / (df.mass**3))
+    if options.function == "standard":
         decay_constant = (quarkmass1 + quarkmass2) * np.sqrt(2*df.amp / (df.mass**3))
 
     if options.out_stub:
@@ -117,7 +124,7 @@ def decay_constant(filename, options):
         logging.info("Writing bootstraped decay constants to {}".format(outfilename))
         decay_constant.to_csv(outfilename, sep=" ", index=False, header=False)
         logging.info("Writing average decay constants to {}".format(outfilename))
-        outfilename = "{}_{}_{}_b{}_mud{}_ms{}_decayconstant_{}-{}.out".format(options.out_stub, heavyness, smearing, beta, masses["ud"], masses["s"],
+        outfilename = "{}_{}_{}_{}_b{}_mud{}_ms{}_decayconstant_{}-{}.out".format(options.out_stub, size, heavyness, smearing, beta, masses["ud"], masses["s"],
                                                                      quarktype1, quarktype2)
         with open(outfilename, 'w') as outfile:
             outfile.write("{}, {}, {}\n".format(masses["ud"]+resisdual_masses[(masses["ud"], masses["s"])], decay_constant.mean(), decay_constant.std()))
@@ -126,7 +133,7 @@ def decay_constant(filename, options):
         print("{}, {}, {}\n".format(masses["ud"]+resisdual_masses[(masses["ud"], masses["s"])], decay_constant.mean(), decay_constant.std()))
 
 if __name__ == "__main__":
-    functs = ["axial", "standard", "simul"]
+    functs = ["axial", "standard", "simul00-01", "simul00-11", "simul01-11"]
     parser = argparse.ArgumentParser(description="average data files")
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="increase output verbosity")
@@ -148,6 +155,13 @@ if __name__ == "__main__":
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
     logging.info("Computing decay constants for: {}".format("\n".join(args.files)))
+
+    outdir = os.path.dirname(args.out_stub)
+    if not os.path.exists(outdir):
+        logging.info("directory for output {} does not exist, atempting to create".format(outdir))
+        if outdir is not "":
+            os.makedirs(outdir)
+
 
     for f in args.files:
         decay_constant(f, args)
