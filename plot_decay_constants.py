@@ -36,6 +36,14 @@ def plot_decay_constant(options):
     heavy_color = {"m0": 'b', "m1": 'r', 'm2': 'm'}
 
     beta = determine_beta(options.files)
+    if beta == "4.47":
+        heavy_masses = {"m0": 0.15, "m1": 0.206, "m2": 0.250}
+        circle = mlines.Line2D([], [], color='black', marker='o', mfc='white', mew=3, lw=0,
+                               markersize=15, label='$m_s=0.015$')
+        cross = mlines.Line2D([], [], color='black', marker='D', lw=0,
+                              markersize=15, label='$m_s=0.025$')
+        s_mass_cutoff = 0.02
+        scale = 4600
     if beta == "4.35":
         heavy_masses = {"m0": 0.12, "m1": 0.24, "m2": 0.36}
         circle = mlines.Line2D([], [], color='black', marker='o', mfc='white', mew=3, lw=0,
@@ -86,8 +94,12 @@ def plot_decay_constant(options):
                 legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(heavy_masses[heavyness])))
                 added_handles.append(heavyness)
 
-        if "48x96x12" in f or "64x128x08" in f:
-            color = 'k'
+        if "48x96x12" in f:
+            color = 'g'
+            latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", f).group(1)
+            if latsize not in added_handles:
+                legend_handles.append(mpatches.Patch(color=color, label=latsize))
+                added_handles.append(latsize)
 
         mark = 'o'
         mfc='white'
@@ -159,5 +171,13 @@ if __name__ == "__main__":
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
     logging.info("Computing decay constants for: {}".format("\n".join(args.files)))
+
+    if args.output_stub:
+        outdir = os.path.dirname(args.output_stub)
+        if not os.path.exists(outdir):
+            logging.info("directory for output {} does not exist, atempting to create".format(outdir))
+            if outdir is not "":
+                os.makedirs(outdir)
+
 
     plot_decay_constant(args)
