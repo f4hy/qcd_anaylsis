@@ -15,59 +15,66 @@ import numpy as np
 import re
 
 
-def determine_beta(files):
+def all_same_beta(files):
     logging.info("Determining beta")
     beta_filesnames = [re.search("_b([0-9]\.[0-9]*)_", f).group(1) for f in files]
-    if allEqual(beta_filesnames):
-        return beta_filesnames[0]
-    else:
-        raise RuntimeError("Not all betas are the same")
+    return allEqual(beta_filesnames)
 
 
 def allEqual(lst):
     return not lst or lst.count(lst[0]) == len(lst)
 
+def round5(x):
+    return int(5 * np.around(x/5.0))
+
+def round(x,y):
+    log = np.log10(y-x)
+    scale = 1
+    if log < 0:
+        digits = -np.floor(log)
+        scale = 10**(digits+1)
+        return round5(np.floor(x*scale))/scale, round5(np.ceil(y*scale))/scale
+    return x,y
+
+
+def auto_fit_range(minval, maxval, zero=False, buff=0.4):
+    spread = maxval - minval
+    if zero:
+        fitrange = (0, maxval+spread*buff)
+    else:
+        fitrange = round(minval-spread*buff, maxval+spread*buff)
+    logging.info("setting range to {}".format(fitrange))
+    return fitrange
+
 
 def plot_decay_constant(options):
-    flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs"}
-    markers = ['o', "D", "^", "<", ">", "v", "x", "p", "8"]
+    flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH"}
+    markers = ['o', "D", "^", "<", ">", "v", "x", "p", "8", 'o', "D"]
     colors = ['b', 'r', 'k', 'm', 'c', 'y']
     flavor_color = {"\pi": 'b', "K": 'r', '\eta': 'm', "Hl": 'c', "Hs": 'y'}
     heavy_color = {"m0": 'b', "m1": 'r', 'm2': 'm'}
+    heavy_colors = {}
 
-    beta = determine_beta(options.files)
-    if beta == "4.47":
-        heavy_masses = {"m0": 0.15, "m1": 0.206, "m2": 0.250}
-        circle = mlines.Line2D([], [], color='black', marker='o', mfc='white', mew=3, lw=0,
-                               markersize=15, label='$m_s=0.015$')
-        cross = mlines.Line2D([], [], color='black', marker='D', lw=0,
-                              markersize=15, label='$m_s=0.025$')
-        s_mass_cutoff = 0.02
-        scale = 4600
-    if beta == "4.35":
-        heavy_masses = {"m0": 0.12, "m1": 0.24, "m2": 0.36}
-        circle = mlines.Line2D([], [], color='black', marker='o', mfc='white', mew=3, lw=0,
-                               markersize=15, label='$m_s=0.025$')
-        cross = mlines.Line2D([], [], color='black', marker='D', lw=0,
-                              markersize=15, label='$m_s=0.018$')
-        s_mass_cutoff = 0.02
-        scale = 3600
-    if beta == "4.17":
-        heavy_masses = {"m0": 0.2, "m1": 0.4, "m2": 0.6}
-        circle = mlines.Line2D([], [], color='black', marker='o', mfc='white', mew=3, lw=0,
-                               markersize=15, label='$m_s=0.04$')
-        cross = mlines.Line2D([], [], color='black', marker='D', lw=0,
-                              markersize=15, label='$m_s=0.03$')
-        s_mass_cutoff = 0.035
-        scale = 2450
+    scale = {"4.17": 2450, "4.35": 3600, "4.47": 4600}
+    s_mass_cutoff = {"4.17": 0.035, "4.35": 0.02, "4.47": 0.02}
+    beta_colors = {"4.17": 'b', "4.35": 'r', "4.47": 'k'}
+
+    #plt.rc('text', usetex=True)
+
+    xmax = ymax = -10000
+    ymin = 10000
 
     fontsettings = dict(fontsize=30)
 
     flavor_patches = [mpatches.Patch(color=c, label='${}$'.format(l)) for l,c in flavor_color.iteritems() ]
     heavy_patches = [mpatches.Patch(color=c, label='${}$'.format(l)) for l,c in flavor_color.iteritems() ]
 
-    legend_handles = [circle, cross]
+    legend_handles = []
     added_handles = []
+
+    s_mass_marks = {}
+
+    one_beta = all_same_beta(options.files)
 
     data = {}
     index = 0
@@ -75,65 +82,139 @@ def plot_decay_constant(options):
     for f in options.files:
         ud_mass = float(re.search("mud([0-9]\.[0-9]*)_", f).group(1))
         s_mass = float(re.search("ms([0-9]\.[0-9]*)", f).group(1))
-        flavor = flavor_map[re.search("_([a-z][a-z]*-[a-z][a-z]??).out", f).group(1)]
+        beta = re.search("_b([0-9]\.[0-9]*)_", f).group(1)
+
+        if s_mass == 0.03 or s_mass == 0.025:
+            continue
+
+
+        flavor = flavor_map[re.search("_([a-z][a-z]*-[a-z][a-z]*).boot", f).group(1)]
+        rawflavor = re.search("_([a-z][a-z]*-[a-z][a-z]*).boot", f).group(1)
         heavyness = re.search("_([a-z][a-z0-9])_", f).group(1)
+        if heavyness != "ll":
+            heavymass = re.search("_heavy(0.[0-9]*)_", f).group(1)
         label = "$f_{}$ s{}".format(flavor, s_mass)
         with open(f) as datafile:
-            x,y,e = [float(i.strip()) for i in datafile.read().split(",")]
-        mark = markers[index % len(markers)]
-        color = colors[index % len(colors)]
+            datastring = datafile.readline().strip("#").split(",")
+            x,y,e = [float(i.strip()) for i in datastring]
+            datatxt = datafile.read()
+            logging.info("x,y,e:".format(x,y,e))
 
-        if heavyness == "ll":
-            color = flavor_color[flavor]
-            if flavor not in added_handles:
-                legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(flavor)))
-                added_handles.append(flavor)
+        df = pd.read_csv(f,comment='#', names=["decay"])
+
+
+
+        mark = markers[index % len(markers)]
+        # color = colors[index % len(colors)]
+
+
+        mfc = 'white'
+        if s_mass not in added_handles:
+            s_mass_marks[s_mass] = markers.pop()
+            mark = s_mass_marks[s_mass]
+            smass_leg = mlines.Line2D([], [], color='black', marker=s_mass_marks[s_mass], mfc='white', mew=3, lw=0,
+                                      markersize=18, label='$m_s={}$'.format(s_mass))
+            legend_handles.append(smass_leg)
+            added_handles.append(s_mass)
         else:
-            color = heavy_color[heavyness]
-            if heavyness not in added_handles:
-                legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(heavy_masses[heavyness])))
-                added_handles.append(heavyness)
+            mark = s_mass_marks[s_mass]
+
+        if heavyness != "ll":
+            if heavymass not in added_handles:
+                heavy_colors[heavymass] = colors.pop()
+                color = heavy_colors[heavymass]
+                legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(heavymass)))
+                added_handles.append(heavymass)
+            else:
+                color = heavy_colors[heavymass]
+
+        if one_beta:
+            if heavyness == "ll":
+                color = flavor_color[flavor]
+                if flavor not in added_handles:
+                    legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(flavor)))
+                    added_handles.append(flavor)
+        else:
+            color = beta_colors[beta]
+            if beta not in added_handles:
+                mylabel = r'$\beta = {}$'.format(beta)
+                legend_handles.append(mpatches.Patch(color=beta_colors[beta], label=mylabel))
+                added_handles.append(beta)
+
 
         if "48x96x12" in f:
+            print "48x96x12!!!!"
             color = 'g'
             latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", f).group(1)
-            if latsize not in added_handles:
-                legend_handles.append(mpatches.Patch(color=color, label=latsize))
-                added_handles.append(latsize)
+            # if latsize not in added_handles:
+            #     legend_handles.append(mpatches.Patch(color=color, label=))
+            #     added_handles.append(latsize)
 
-        mark = 'o'
-        mfc='white'
-        if s_mass < s_mass_cutoff:
-            mark = 'D'
-            mfc = color
         plotsettings = dict(linestyle="none", c=color, marker=mark, label=label, ms=8, elinewidth=3, capsize=8,
                             capthick=2, mec=color, mew=3, aa=True, mfc=mfc, fmt='o')
         index+=1
         logging.info("plotting {} {} {}".format(x,y,e))
-        axe.errorbar(x, y, yerr=e, zorder=0, **plotsettings)
+        if options.scale:
+            if options.box:
+                b = axe.boxplot(df["decay"]*scale[beta], positions=[x*scale[beta]], widths=[0.001*scale[beta]], patch_artist=True)
+            else:
+                axe.errorbar(x*scale[beta], y*scale[beta], yerr=e*scale[beta], zorder=0, **plotsettings)
+            ymax = max(ymax,y*scale[beta])
+            ymin = min(ymin,y*scale[beta])
+            xmax = max(xmax,x*scale[beta])
+        else:
+            if options.box:
+                b = axe.boxplot(df["decay"], positions=[x], widths=[0.001], patch_artist=True)
+            else:
+                axe.errorbar(x, y, yerr=e, zorder=0, **plotsettings)
+            ymax = max(ymax,y)
+            ymin = min(ymin,y)
+            xmax = max(xmax,x)
+
+        if options.box:
+            b["boxes"][0].set_color(color)
+            b["boxes"][0].set_facecolor(color)
+            b["medians"][0].set_color('k')
+            plt.setp(b["fliers"], visible=False)
+
 
     if options.xrange:
         logging.info("setting x range to {}".format(options.xrange))
         plt.xlim(options.xrange)
+    else:
+        logging.info("auto setting x range")
+        plt.xlim(auto_fit_range(0, xmax, zero=True))
+
 
     if options.yrange:
         logging.info("setting y range to {}".format(options.yrange))
         plt.ylim(options.yrange)
+    else:
+        logging.info("auto setting y range")
+        if options.box:
+            plt.ylim(auto_fit_range(ymin, ymax, buff=3.5))
+        else:
+            plt.ylim(auto_fit_range(ymin, ymax))
+
 
     if options.title:
         axe.set_title(options.title, **fontsettings)
 
-    axe.set_xlabel("$m_{ud}+m_{res}$", **fontsettings)
-    axe.set_ylabel("lattice units", **fontsettings)
+    #axe.set_xlabel("$m_{%s}+m_{res}+m_{%s}+m_{res}$" % (rawflavor.split("-")[0], rawflavor.split("-")[1]), **fontsettings)
+    if options.bothquarks:
+        axe.set_xlabel("$m_{q_1}+m_{res}+m_{q_2}+m_{res}$", **fontsettings)
+    else:
+        axe.set_xlabel("$m_{q_{1}}+m_{res}$", **fontsettings)
+    if options.scale:
+        axe.set_ylabel("MeV", **fontsettings)
+    else:
+        axe.set_ylabel("lattice units", **fontsettings)
+
     axe.tick_params(axis='both', which='major', labelsize=20)
 
-    if options.yrange:
-        ax2 = axe.twinx()
-        ax2.set_ylabel('MeV', **fontsettings)
-        ax2.set_ylim(np.array(options.yrange) * scale)
-        ax2.tick_params(axis='both', which='major', labelsize=20)
 
-    leg = axe.legend(handles=legend_handles, loc=0, **fontsettings )
+    if not options.box:
+        leg = axe.legend(handles=sorted(legend_handles), loc=0, **fontsettings )
     if(options.output_stub):
         fig.set_size_inches(18.5, 10.5)
         if args.eps:
@@ -156,12 +237,18 @@ if __name__ == "__main__":
                         help="stub of name to write output to")
     parser.add_argument("-e", "--eps", action="store_true",
                         help="save as eps not png")
+    parser.add_argument("-b", "--box", action="store_true",
+                        help="max boxplots instead")
     parser.add_argument("-y", "--yrange", type=float, required=False, nargs=2,
                         help="set the yrange of the plot", default=None)
     parser.add_argument("-x", "--xrange", type=float, required=False, nargs=2,
                         help="set the xrange of the plot", default=None)
     parser.add_argument("-t", "--title", type=str, required=False,
                         help="plot title", default="decay constants")
+    parser.add_argument("-s", "--scale", action="store_true",
+                        help="scale the values")
+    parser.add_argument("--bothquarks", action="store_true",
+                        help="use both quark masses as the x value")
     args = parser.parse_args()
 
     if args.verbose:
@@ -170,7 +257,7 @@ if __name__ == "__main__":
     else:
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
-    logging.info("Computing decay constants for: {}".format("\n".join(args.files)))
+    logging.info("Ploting decay constants for: {}".format("\n".join(args.files)))
 
     if args.output_stub:
         outdir = os.path.dirname(args.output_stub)
