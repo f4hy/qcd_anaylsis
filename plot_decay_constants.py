@@ -14,6 +14,7 @@ from cStringIO import StringIO
 import numpy as np
 import re
 
+from residualmasses import residual_masses
 
 def all_same_beta(files):
     logging.info("Determining beta")
@@ -52,6 +53,24 @@ def auto_fit_range(minval, maxval, zero=False, buff=0.4):
     logging.info("setting range to {}".format(fitrange))
     return fitrange
 
+class data_params(object):
+    def __init__(self, filename):
+        self.ud_mass = float(re.search("mud([0-9]\.[0-9]*)_", filename).group(1))
+        self.s_mass = float(re.search("ms([0-9]\.[0-9]*)", filename).group(1))
+        self.beta = re.search("_b([0-9]\.[0-9]*)_", filename).group(1)
+
+        self.smearing = re.search("fixed_(.*)/", filename).group(1)
+        self.flavor = flavor_map[re.search("_([a-z][a-z]*-[a-z][a-z]*).boot", filename).group(1)]
+        self.heavyness = re.search("_([a-z][a-z0-9])_", filename).group(1)
+        self.latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
+
+        if self.heavyness != "ll":
+            self.heavymass = re.search("_heavy(0.[0-9]*)_", filename).group(1)
+        else:
+            self.heavymass = None
+
+
+flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH"}
 
 legend_handles = []
 added_handles = []
@@ -81,9 +100,11 @@ def strange_legend(s_mass):
 flavor_color = {"\pi": 'b', "K": 'r', '\eta': 'm', "Hl": 'c', "Hs": 'y'}
 
 
-def colors_and_legend(heavyness, heavymass, beta, flavor, one_beta, one_flavor, smearing):
+def colors_and_legend(data_properties, one_beta, one_flavor):
 
-    print "heavymass", heavymass
+    p = data_properties
+
+    print "heavymass", data_properties.heavymass
 
     # if heavyness != "ll":
     #     if heavymass not in added_handles:
@@ -99,35 +120,34 @@ def colors_and_legend(heavyness, heavymass, beta, flavor, one_beta, one_flavor, 
 
     if one_beta and one_flavor:
         logging.info("Only one beta nd one flavor given, using smearing")
-        if smearing not in added_handles:
-            smearing_colors[smearing] = colors.pop()
-            color = smearing_colors[smearing]
-            legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(smearing)))
-            added_handles.append(smearing)
+        if p.smearing not in added_handles:
+            smearing_colors[p.smearing] = colors.pop()
+            color = smearing_colors[p.smearing]
+            legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(p.smearing)))
+            added_handles.append(p.smearing)
         else:
-            color = smearing_colors[smearing]
+            color = smearing_colors[p.smearing]
         return color
 
 
 
     if one_beta:
-        color = flavor_color[flavor]
-        if flavor not in added_handles:
-            legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(flavor)))
-            added_handles.append(flavor)
+        color = flavor_color[p.flavor]
+        if p.flavor not in added_handles:
+            legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(p.flavor)))
+            added_handles.append(p.flavor)
         return color
 
-    color = beta_colors[beta]
-    if beta not in added_handles:
-        mylabel = r'$\beta = {}$'.format(beta)
-        legend_handles.append(mpatches.Patch(color=beta_colors[beta], label=mylabel))
-        added_handles.append(beta)
+    color = beta_colors[p.beta]
+    if p.beta not in added_handles:
+        mylabel = r'$\beta = {}$'.format(p.beta)
+        legend_handles.append(mpatches.Patch(color=beta_colors[p.beta], label=mylabel))
+        added_handles.append(p.beta)
     return color
 
 
 
 def plot_decay_constant(options):
-    flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH"}
 
     scale = {"4.17": 2450, "4.35": 3600, "4.47": 4600}
 
@@ -151,20 +171,13 @@ def plot_decay_constant(options):
     index = 0
     fig, axe = plt.subplots(1)
 
-    for f in options.files:
-        ud_mass = float(re.search("mud([0-9]\.[0-9]*)_", f).group(1))
-        s_mass = float(re.search("ms([0-9]\.[0-9]*)", f).group(1))
-        beta = re.search("_b([0-9]\.[0-9]*)_", f).group(1)
+    print options.files
 
-        smearing = re.search("fixed_(.*)/", f).group(1)
-        flavor = flavor_map[re.search("_([a-z][a-z]*-[a-z][a-z]*).boot", f).group(1)]
-        rawflavor = re.search("_([a-z][a-z]*-[a-z][a-z]*).boot", f).group(1)
-        heavyness = re.search("_([a-z][a-z0-9])_", f).group(1)
-        if heavyness != "ll":
-            heavymass = re.search("_heavy(0.[0-9]*)_", f).group(1)
-        else:
-            heavymass = None
-        label = "$f_{}$ s{}".format(flavor, s_mass)
+    for f in options.files:
+
+        p = data_params(f)
+
+        label = "$f_{}$ s{}".format(p.flavor, p.s_mass)
         with open(f) as datafile:
             datastring = datafile.readline().strip("#").split(",")
             x,y,e = [float(i.strip()) for i in datastring]
@@ -180,9 +193,9 @@ def plot_decay_constant(options):
 
         mfc = 'white'
 
-        mark = strange_legend(s_mass)
+        mark = strange_legend(p.s_mass)
 
-        color = colors_and_legend(heavyness, heavymass, beta, flavor, one_beta, one_flavor, smearing)
+        color = colors_and_legend(p, one_beta, one_flavor)
 
         if "48x96x12" in f:
             logging.info("48x96x12!!!!")
@@ -193,18 +206,19 @@ def plot_decay_constant(options):
             #     added_handles.append(latsize)
 
 
+
         plotsettings = dict(linestyle="none", c=color, marker=mark, label=label, ms=8, elinewidth=3, capsize=8,
                             capthick=2, mec=color, mew=3, aa=True, mfc=mfc, fmt='o', ecolor=color)
         index+=1
         logging.info("plotting {} {} {}".format(x,y,e))
         if options.scale:
             if options.box:
-                b = axe.boxplot(df["decay"]*scale[beta], positions=[x*scale[beta]], widths=[0.001*scale[beta]], patch_artist=True)
+                b = axe.boxplot(df["decay"]*scale[p.beta], positions=[x*scale[p.beta]], widths=[0.001*scale[p.beta]], patch_artist=True)
             else:
-                axe.errorbar(x*scale[beta], y*scale[beta], yerr=e*scale[beta], zorder=0, **plotsettings)
-            ymax = max(ymax,y*scale[beta])
-            ymin = min(ymin,y*scale[beta])
-            xmax = max(xmax,x*scale[beta])
+                axe.errorbar(x*scale[p.beta], y*scale[p.beta], yerr=e*scale[p.beta], zorder=0, **plotsettings)
+            ymax = max(ymax,y*scale[p.beta])
+            ymin = min(ymin,y*scale[p.beta])
+            xmax = max(xmax,x*scale[p.beta])
         else:
             if options.box:
                 b = axe.boxplot(df["decay"], positions=[x], widths=[0.001], patch_artist=True)
