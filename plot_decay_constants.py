@@ -53,6 +53,19 @@ def auto_fit_range(minval, maxval, zero=False, buff=0.4):
     logging.info("setting range to {}".format(fitrange))
     return fitrange
 
+
+def xvalue(xaxis_type, data_properties):
+    logging.info("using xaxis type {}".format(xaxis_type))
+
+    if xaxis_type == "mud":
+        residual = residual_masses[(data_properties.ud_mass, data_properties.s_mass)]
+        return data_properties.ud_mass + residual
+
+    if xaxis_type == "mud_s":
+        residual = residual_masses[(data_properties.ud_mass, data_properties.s_mass)]
+        return data_properties.ud_mass + residual + data_properties.s_mass + residual
+
+
 class data_params(object):
     def __init__(self, filename):
         self.ud_mass = float(re.search("mud([0-9]\.[0-9]*)_", filename).group(1))
@@ -206,6 +219,8 @@ def plot_decay_constant(options):
             #     added_handles.append(latsize)
 
 
+        x = xvalue(options.xaxis, p)
+
 
         plotsettings = dict(linestyle="none", c=color, marker=mark, label=label, ms=8, elinewidth=3, capsize=8,
                             capthick=2, mec=color, mew=3, aa=True, mfc=mfc, fmt='o', ecolor=color)
@@ -292,6 +307,9 @@ def plot_decay_constant(options):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="average data files")
+
+    axis_choices = ["mud", "mud_s", "mpi"]
+
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="increase output verbosity")
     parser.add_argument('files', metavar='f', type=str, nargs='+',
@@ -306,6 +324,8 @@ if __name__ == "__main__":
                         help="set the yrange of the plot", default=None)
     parser.add_argument("-x", "--xrange", type=float, required=False, nargs=2,
                         help="set the xrange of the plot", default=None)
+    parser.add_argument("--xaxis", required=False, choices=axis_choices,
+                        help="what to set on the xaxis", default="mud")
     parser.add_argument("-t", "--title", type=str, required=False,
                         help="plot title", default="decay constants")
     parser.add_argument("-s", "--scale", action="store_true",
