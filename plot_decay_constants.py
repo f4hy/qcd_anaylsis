@@ -21,6 +21,12 @@ def all_same_beta(files):
     return allEqual(beta_filesnames)
 
 
+def all_same_flavor(files):
+    logging.info("Determining flavor")
+    flavors_filesnames = [re.search("_([a-z][a-z]*-[a-z][a-z]*).boot", f).group(1) for f in files]
+    return allEqual(flavors_filesnames)
+
+
 def allEqual(lst):
     return not lst or lst.count(lst[0]) == len(lst)
 
@@ -47,17 +53,83 @@ def auto_fit_range(minval, maxval, zero=False, buff=0.4):
     return fitrange
 
 
+legend_handles = []
+added_handles = []
+s_mass_marks = {}
+markers = ['o', "D", "^", "<", ">", "v", "x", "p", "8", 'o', "D"]
+colors = ['b', 'r', 'k', 'm', 'c', 'y', 'b', 'r', 'k', 'm', 'c', 'y']
+
+beta_colors = {"4.17": 'b', "4.35": 'r', "4.47": 'k'}
+
+heavy_color = {"m0": 'b', "m1": 'r', 'm2': 'm'}
+heavy_colors = {}
+
+smearing_colors = {}
+
+def strange_legend(s_mass):
+    if s_mass not in added_handles:
+        s_mass_marks[s_mass] = markers.pop()
+        mark = s_mass_marks[s_mass]
+        smass_leg = mlines.Line2D([], [], color='black', marker=s_mass_marks[s_mass], mfc='white', mew=3, lw=0,
+                                markersize=18, label='$m_s={}$'.format(s_mass))
+        #legend_handles.append(smass_leg)
+        added_handles.append(s_mass)
+    else:
+        mark = s_mass_marks[s_mass]
+    return mark
+
+flavor_color = {"\pi": 'b', "K": 'r', '\eta': 'm', "Hl": 'c', "Hs": 'y'}
+
+
+def colors_and_legend(heavyness, heavymass, beta, flavor, one_beta, one_flavor, smearing):
+
+    print "heavymass", heavymass
+
+    # if heavyness != "ll":
+    #     if heavymass not in added_handles:
+    #         print heavy_colors
+    #         heavy_colors[heavymass] = colors.pop()
+    #         color = heavy_colors[heavymass]
+    #         legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(heavymass)))
+    #         added_handles.append(heavymass)
+    #     else:
+    #         color = heavy_colors[heavymass]
+    #     return color
+
+
+    if one_beta and one_flavor:
+        logging.info("Only one beta nd one flavor given, using smearing")
+        if smearing not in added_handles:
+            smearing_colors[smearing] = colors.pop()
+            color = smearing_colors[smearing]
+            legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(smearing)))
+            added_handles.append(smearing)
+        else:
+            color = smearing_colors[smearing]
+        return color
+
+
+
+    if one_beta:
+        color = flavor_color[flavor]
+        if flavor not in added_handles:
+            legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(flavor)))
+            added_handles.append(flavor)
+        return color
+
+    color = beta_colors[beta]
+    if beta not in added_handles:
+        mylabel = r'$\beta = {}$'.format(beta)
+        legend_handles.append(mpatches.Patch(color=beta_colors[beta], label=mylabel))
+        added_handles.append(beta)
+    return color
+
+
+
 def plot_decay_constant(options):
     flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH"}
-    markers = ['o', "D", "^", "<", ">", "v", "x", "p", "8", 'o', "D"]
-    colors = ['b', 'r', 'k', 'm', 'c', 'y']
-    flavor_color = {"\pi": 'b', "K": 'r', '\eta': 'm', "Hl": 'c', "Hs": 'y'}
-    heavy_color = {"m0": 'b', "m1": 'r', 'm2': 'm'}
-    heavy_colors = {}
 
     scale = {"4.17": 2450, "4.35": 3600, "4.47": 4600}
-    s_mass_cutoff = {"4.17": 0.035, "4.35": 0.02, "4.47": 0.02}
-    beta_colors = {"4.17": 'b', "4.35": 'r', "4.47": 'k'}
 
     #plt.rc('text', usetex=True)
 
@@ -69,36 +141,35 @@ def plot_decay_constant(options):
     flavor_patches = [mpatches.Patch(color=c, label='${}$'.format(l)) for l,c in flavor_color.iteritems() ]
     heavy_patches = [mpatches.Patch(color=c, label='${}$'.format(l)) for l,c in flavor_color.iteritems() ]
 
-    legend_handles = []
-    added_handles = []
 
-    s_mass_marks = {}
 
     one_beta = all_same_beta(options.files)
+    one_flavor = all_same_flavor(options.files)
+    logging.info("one_beta: {}, one_flavor: {}".format(one_beta, one_flavor))
 
     data = {}
     index = 0
     fig, axe = plt.subplots(1)
+
     for f in options.files:
         ud_mass = float(re.search("mud([0-9]\.[0-9]*)_", f).group(1))
         s_mass = float(re.search("ms([0-9]\.[0-9]*)", f).group(1))
         beta = re.search("_b([0-9]\.[0-9]*)_", f).group(1)
 
-        if s_mass == 0.03 or s_mass == 0.025:
-            continue
-
-
+        smearing = re.search("fixed_(.*)/", f).group(1)
         flavor = flavor_map[re.search("_([a-z][a-z]*-[a-z][a-z]*).boot", f).group(1)]
         rawflavor = re.search("_([a-z][a-z]*-[a-z][a-z]*).boot", f).group(1)
         heavyness = re.search("_([a-z][a-z0-9])_", f).group(1)
         if heavyness != "ll":
             heavymass = re.search("_heavy(0.[0-9]*)_", f).group(1)
+        else:
+            heavymass = None
         label = "$f_{}$ s{}".format(flavor, s_mass)
         with open(f) as datafile:
             datastring = datafile.readline().strip("#").split(",")
             x,y,e = [float(i.strip()) for i in datastring]
             datatxt = datafile.read()
-            logging.info("x,y,e:".format(x,y,e))
+            logging.info("x,y,e:{} {} {}".format(x,y,e))
 
         df = pd.read_csv(f,comment='#', names=["decay"])
 
@@ -107,51 +178,23 @@ def plot_decay_constant(options):
         mark = markers[index % len(markers)]
         # color = colors[index % len(colors)]
 
-
         mfc = 'white'
-        if s_mass not in added_handles:
-            s_mass_marks[s_mass] = markers.pop()
-            mark = s_mass_marks[s_mass]
-            smass_leg = mlines.Line2D([], [], color='black', marker=s_mass_marks[s_mass], mfc='white', mew=3, lw=0,
-                                      markersize=18, label='$m_s={}$'.format(s_mass))
-            legend_handles.append(smass_leg)
-            added_handles.append(s_mass)
-        else:
-            mark = s_mass_marks[s_mass]
 
-        if heavyness != "ll":
-            if heavymass not in added_handles:
-                heavy_colors[heavymass] = colors.pop()
-                color = heavy_colors[heavymass]
-                legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(heavymass)))
-                added_handles.append(heavymass)
-            else:
-                color = heavy_colors[heavymass]
+        mark = strange_legend(s_mass)
 
-        if one_beta:
-            if heavyness == "ll":
-                color = flavor_color[flavor]
-                if flavor not in added_handles:
-                    legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(flavor)))
-                    added_handles.append(flavor)
-        else:
-            color = beta_colors[beta]
-            if beta not in added_handles:
-                mylabel = r'$\beta = {}$'.format(beta)
-                legend_handles.append(mpatches.Patch(color=beta_colors[beta], label=mylabel))
-                added_handles.append(beta)
-
+        color = colors_and_legend(heavyness, heavymass, beta, flavor, one_beta, one_flavor, smearing)
 
         if "48x96x12" in f:
-            print "48x96x12!!!!"
+            logging.info("48x96x12!!!!")
             color = 'g'
             latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", f).group(1)
             # if latsize not in added_handles:
             #     legend_handles.append(mpatches.Patch(color=color, label=))
             #     added_handles.append(latsize)
 
+
         plotsettings = dict(linestyle="none", c=color, marker=mark, label=label, ms=8, elinewidth=3, capsize=8,
-                            capthick=2, mec=color, mew=3, aa=True, mfc=mfc, fmt='o')
+                            capthick=2, mec=color, mew=3, aa=True, mfc=mfc, fmt='o', ecolor=color)
         index+=1
         logging.info("plotting {} {} {}".format(x,y,e))
         if options.scale:
@@ -204,7 +247,7 @@ def plot_decay_constant(options):
     if options.bothquarks:
         axe.set_xlabel("$m_{q_1}+m_{res}+m_{q_2}+m_{res}$", **fontsettings)
     else:
-        axe.set_xlabel("$m_{q_{1}}+m_{res}$", **fontsettings)
+        axe.set_xlabel("$m_{l}+m_{res}$", **fontsettings)
     if options.scale:
         axe.set_ylabel("MeV", **fontsettings)
     else:
