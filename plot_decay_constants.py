@@ -54,20 +54,50 @@ def auto_fit_range(minval, maxval, zero=False, buff=0.4):
     return fitrange
 
 
-def xvalue(xaxis_type, data_properties):
+def xvalue(xaxis_type, data_properties, options):
     logging.info("using xaxis type {}".format(xaxis_type))
+
+    if options.scale:
+        s = scale[data_properties.beta]
+    else:
+        s = 1.0
 
     if xaxis_type == "mud":
         residual = residual_masses[(data_properties.ud_mass, data_properties.s_mass)]
-        return data_properties.ud_mass + residual
+        return s*(data_properties.ud_mass + residual)
 
     if xaxis_type == "mud_s":
         residual = residual_masses[(data_properties.ud_mass, data_properties.s_mass)]
-        return data_properties.ud_mass + residual + data_properties.s_mass + residual
+        return s*(data_properties.ud_mass + residual + data_properties.s_mass + residual)
+
+    if xaxis_type == "mpisqr":
+        pionmass = read_pion_mass(data_properties, options)
+        return (s*pionmass)**2 #*pionmass
+
+def read_pion_mass(data_properties, options):
+    if options.fitdata is None:
+        raise RuntimeError("--fitdata required when plotting with pionmass")
+    import glob
+    fitdatafiles = glob.glob(options.fitdata.strip("'\""))
+    for i in [data_properties.ud_mass, data_properties.s_mass, data_properties.latsize, data_properties.beta]:
+        fitdatafiles = [f for f in fitdatafiles if str(i) in f ]
+    if len(fitdatafiles) != 1:
+        logging.critical("Unique fit file not found!")
+        logging.error("found: {}".format(fitdatafiles))
+        raise SystemExit("Unique fit file not found!")
+
+    with open(fitdatafiles[0]) as fitfile:
+        txt = fitfile.read()
+        mass, masserror = re.findall("mass .*?(\d+\.\d+).*?(\d+\.\d+)", txt)[0]
+
+    return float(mass)
+
+    raise SystemExit(-1)
 
 
 class data_params(object):
     def __init__(self, filename):
+        self.filename = filename
         self.ud_mass = float(re.search("mud([0-9]\.[0-9]*)_", filename).group(1))
         self.s_mass = float(re.search("ms([0-9]\.[0-9]*)", filename).group(1))
         self.beta = re.search("_b([0-9]\.[0-9]*)_", filename).group(1)
@@ -84,6 +114,7 @@ class data_params(object):
 
 
 flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH"}
+scale = {"4.17": 2450, "4.35": 3600, "4.47": 4600}
 
 legend_handles = []
 added_handles = []
@@ -117,7 +148,6 @@ def colors_and_legend(data_properties, one_beta, one_flavor):
 
     p = data_properties
 
-    print "heavymass", data_properties.heavymass
 
     # if heavyness != "ll":
     #     if heavymass not in added_handles:
@@ -162,7 +192,6 @@ def colors_and_legend(data_properties, one_beta, one_flavor):
 
 def plot_decay_constant(options):
 
-    scale = {"4.17": 2450, "4.35": 3600, "4.47": 4600}
 
     #plt.rc('text', usetex=True)
 
@@ -184,7 +213,6 @@ def plot_decay_constant(options):
     index = 0
     fig, axe = plt.subplots(1)
 
-    print options.files
 
     for f in options.files:
 
@@ -219,7 +247,7 @@ def plot_decay_constant(options):
             #     added_handles.append(latsize)
 
 
-        x = xvalue(options.xaxis, p)
+        x = xvalue(options.xaxis, p, options)
 
 
         plotsettings = dict(linestyle="none", c=color, marker=mark, label=label, ms=8, elinewidth=3, capsize=8,
@@ -228,12 +256,12 @@ def plot_decay_constant(options):
         logging.info("plotting {} {} {}".format(x,y,e))
         if options.scale:
             if options.box:
-                b = axe.boxplot(df["decay"]*scale[p.beta], positions=[x*scale[p.beta]], widths=[0.001*scale[p.beta]], patch_artist=True)
+                b = axe.boxplot(df["decay"]*scale[p.beta], positions=[x], widths=[0.001*scale[p.beta]], patch_artist=True)
             else:
-                axe.errorbar(x*scale[p.beta], y*scale[p.beta], yerr=e*scale[p.beta], zorder=0, **plotsettings)
+                axe.errorbar(x, y*scale[p.beta], yerr=e*scale[p.beta], zorder=0, **plotsettings)
             ymax = max(ymax,y*scale[p.beta])
             ymin = min(ymin,y*scale[p.beta])
-            xmax = max(xmax,x*scale[p.beta])
+            xmax = max(xmax,x)
         else:
             if options.box:
                 b = axe.boxplot(df["decay"], positions=[x], widths=[0.001], patch_artist=True)
@@ -251,8 +279,9 @@ def plot_decay_constant(options):
 
 
     if options.physical:
+        x_physicals = {"mud": 2.2, "mud_s": 97.2, "mpisqr": 138.0**2}
         y, err = options.physical
-        physplot = axe.errorbar(2.2, y, yerr=e, marker="o", ecolor="k", color="k", label="physical",
+        physplot = axe.errorbar(x_physicals[options.xaxis], y, yerr=e, marker="o", ecolor="k", color="k", label="physical",
                                 ms=15, elinewidth=3, capsize=1, capthick=2, mec=color, mew=3, mfc='m')
         legend_handles.append(physplot)
 
@@ -280,8 +309,10 @@ def plot_decay_constant(options):
 
     #axe.set_xlabel("$m_{%s}+m_{res}+m_{%s}+m_{res}$" % (rawflavor.split("-")[0], rawflavor.split("-")[1]), **fontsettings)
 
-    xlabel = {"mud":"$m_{l}+m_{res}$", "mud_s": "$m_{l}+m_s+2m_{res}$", "mpi": "$m_{\pi}$", , "mpisqr": "$m_{\pi}^2$"}
-    axe.set_xlabel(xlabel, **fontsettings)
+    xlabel = {"mud": u"$m_{l}+m_{res}$", "mud_s": u"$m_{l}+m_s+2m_{res}$", "mpi": u"$m_{\pi}$", "mpisqr": u"$m^2_{\pi}$"}
+
+    axe.set_xlabel(xlabel[options.xaxis], **fontsettings)
+
     if options.scale:
         axe.set_ylabel("MeV", **fontsettings)
     else:
@@ -307,7 +338,7 @@ def plot_decay_constant(options):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="average data files")
 
-    axis_choices = ["mud", "mud_s", "mpi"]
+    axis_choices = ["mud", "mud_s", "mpi", "mpisqr"]
 
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="increase output verbosity")
@@ -325,14 +356,14 @@ if __name__ == "__main__":
                         help="set the xrange of the plot", default=None)
     parser.add_argument("--xaxis", required=False, choices=axis_choices,
                         help="what to set on the xaxis", default="mud")
+    parser.add_argument("--fitdata", required=False, type=str,
+                        help="folder for fitdata when needed")
     parser.add_argument("-t", "--title", type=str, required=False,
                         help="plot title", default="decay constants")
     parser.add_argument("-s", "--scale", action="store_true",
                         help="scale the values")
     parser.add_argument("-p", "--physical", type=float, nargs=2,
                         help="add physical point")
-    parser.add_argument("--bothquarks", action="store_true",
-                        help="use both quark masses as the x value")
     args = parser.parse_args()
 
     if args.verbose:
