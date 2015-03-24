@@ -221,6 +221,12 @@ def plot_decay_constant(options):
             plt.setp(b["fliers"], visible=False)
 
 
+    if options.physical:
+        y, err = options.physical
+        physplot = axe.errorbar(2.2, y, yerr=e, marker="o", ecolor="k", color="k", label="physical",
+                                ms=15, elinewidth=3, capsize=1, capthick=2, mec=color, mew=3, mfc='m')
+        legend_handles.append(physplot)
+
     if options.xrange:
         logging.info("setting x range to {}".format(options.xrange))
         plt.xlim(options.xrange)
@@ -290,6 +296,8 @@ if __name__ == "__main__":
                         help="plot title", default="decay constants")
     parser.add_argument("-s", "--scale", action="store_true",
                         help="scale the values")
+    parser.add_argument("-p", "--physical", type=float, nargs=2,
+                        help="add physical point")
     parser.add_argument("--bothquarks", action="store_true",
                         help="use both quark masses as the x value")
     args = parser.parse_args()
