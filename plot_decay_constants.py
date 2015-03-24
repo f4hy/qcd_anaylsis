@@ -279,10 +279,9 @@ def plot_decay_constant(options):
         axe.set_title(options.title, **fontsettings)
 
     #axe.set_xlabel("$m_{%s}+m_{res}+m_{%s}+m_{res}$" % (rawflavor.split("-")[0], rawflavor.split("-")[1]), **fontsettings)
-    if options.bothquarks:
-        axe.set_xlabel("$m_{q_1}+m_{res}+m_{q_2}+m_{res}$", **fontsettings)
-    else:
-        axe.set_xlabel("$m_{l}+m_{res}$", **fontsettings)
+
+    xlabel = {"mud":"$m_{l}+m_{res}$", "mud_s": "$m_{l}+m_s+2m_{res}$", "mpi": "$m_{\pi}$", , "mpisqr": "$m_{\pi}^2$"}
+    axe.set_xlabel(xlabel, **fontsettings)
     if options.scale:
         axe.set_ylabel("MeV", **fontsettings)
     else:
