@@ -72,19 +72,27 @@ class filewriter:
         ofile = open(ofile_name, "w")
         logging.info("writing data")
 
-        def index(i):
-            if i >= self.shift:
-                return i-self.shift
-            else:
-                return i+self.shift
+        def index(i, period):
+            new = i+self.shift
+            if new >= period:
+                print i, new - period
+                return new - period
+            print i, new
+            return new
+            # if i >= self.shift:
+            #     print i, i+self.shift-period
+            #     return i-self.shift
+            # else:
+            #     print i, i+self.shift
+            #     return i+period-self.shift
 
 
         for cfg, data in self.data.iteritems():
             ddata = dict(data)
+            period = max(ddata.keys())+1
             for i in range(max(ddata.keys())+1):
-                ofile.write("{}, {}".format(i,ddata[index(i)]))
+                ofile.write("{}, {}".format(i,ddata[index(i, period)]))
                 ofile.write("\n")
-
 
 def split_data(args):
 
