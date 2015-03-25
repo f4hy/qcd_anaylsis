@@ -115,7 +115,7 @@ class data_params(object):
         self.latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
 
         if self.heavyness != "ll":
-            self.heavymass = re.search("_heavy(0.[0-9]*)_", filename).group(1)
+            self.heavymass = re.search("_(m[012])_", filename).group(1)
         else:
             self.heavymass = None
 
@@ -197,7 +197,7 @@ def colors_and_legend(data_properties, one_beta, one_flavor):
 
 
 
-def plot_decay_constant(options):
+def plot_mass(options):
 
 
     #plt.rc('text', usetex=True)
@@ -232,7 +232,7 @@ def plot_decay_constant(options):
             datatxt = datafile.read()
             logging.info("x,y,e:{} {} {}".format(x,y,e))
 
-        df = pd.read_csv(f,comment='#', names=["decay"])
+        df = pd.read_csv(f,comment='#', names=["config", "mass", "amp1", "amp2"])
 
 
 
@@ -260,10 +260,14 @@ def plot_decay_constant(options):
         plotsettings = dict(linestyle="none", c=color, marker=mark, label=label, ms=8, elinewidth=3, capsize=8,
                             capthick=2, mec=color, mew=3, aa=True, mfc=mfc, fmt='o', ecolor=color)
         index+=1
+
+        y = df["mass"].mean()
+        e = df["mass"].std()
+
         logging.info("plotting {} {} {}".format(x,y,e))
         if options.scale:
             if options.box:
-                b = axe.boxplot(df["decay"]*scale[p.beta], positions=[x], widths=[0.001*scale[p.beta]], patch_artist=True)
+                b = axe.boxplot(df["mass"]*scale[p.beta], positions=[x], widths=[0.001*scale[p.beta]], patch_artist=True)
             else:
                 axe.errorbar(x, y*scale[p.beta], yerr=e*scale[p.beta], zorder=0, **plotsettings)
             ymax = max(ymax,y*scale[p.beta])
@@ -271,7 +275,7 @@ def plot_decay_constant(options):
             xmax = max(xmax,x)
         else:
             if options.box:
-                b = axe.boxplot(df["decay"], positions=[x], widths=[0.001], patch_artist=True)
+                b = axe.boxplot(df["mass"], positions=[x], widths=[0.001], patch_artist=True)
             else:
                 axe.errorbar(x, y, yerr=e, zorder=0, **plotsettings)
             ymax = max(ymax,y)
@@ -366,7 +370,7 @@ if __name__ == "__main__":
     parser.add_argument("--fitdata", required=False, type=str,
                         help="folder for fitdata when needed")
     parser.add_argument("-t", "--title", type=str, required=False,
-                        help="plot title", default="decay constants")
+                        help="plot title", default="masses")
     parser.add_argument("-s", "--scale", action="store_true",
                         help="scale the values")
     parser.add_argument("-p", "--physical", type=float, nargs=2,
@@ -379,7 +383,7 @@ if __name__ == "__main__":
     else:
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
-    logging.info("Ploting decay constants for: {}".format("\n".join(args.files)))
+    logging.info("Ploting mass for: {}".format("\n".join(args.files)))
 
     if args.output_stub:
         outdir = os.path.dirname(args.output_stub)
@@ -389,4 +393,4 @@ if __name__ == "__main__":
                 os.makedirs(outdir)
 
 
-    plot_decay_constant(args)
+    plot_mass(args)
