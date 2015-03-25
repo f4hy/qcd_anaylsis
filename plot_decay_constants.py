@@ -24,8 +24,15 @@ def all_same_beta(files):
 
 def all_same_flavor(files):
     logging.info("Determining flavor")
-    flavors_filesnames = [re.search("_([a-z][a-z]*-[a-z][a-z]*).boot", f).group(1) for f in files]
+    flavors_filesnames = [determine_flavor(f) for f in files]
     return allEqual(flavors_filesnames)
+
+def determine_flavor(f):
+    flavors = ["ud-ud", "ud-s", "s-s", "heavy-ud", "heavy-s", "heavy-heavy"]
+    for flavor in flavors:
+        if flavor in f:
+            return flavor
+    raise RuntimeError("Flavor not found")
 
 
 def allEqual(lst):
@@ -103,7 +110,7 @@ class data_params(object):
         self.beta = re.search("_b([0-9]\.[0-9]*)_", filename).group(1)
 
         self.smearing = re.search("fixed_(.*)/", filename).group(1)
-        self.flavor = flavor_map[re.search("_([a-z][a-z]*-[a-z][a-z]*).boot", filename).group(1)]
+        self.flavor = flavor_map[re.search(determine_flavor(filename)]
         self.heavyness = re.search("_([a-z][a-z0-9])_", filename).group(1)
         self.latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
 
