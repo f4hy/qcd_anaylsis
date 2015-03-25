@@ -110,7 +110,7 @@ class data_params(object):
         self.beta = re.search("_b(4\.[0-9]*)_", filename).group(1)
 
         self.smearing = re.search("fixed_(.*)/", filename).group(1)
-        self.flavor = flavor_map[re.search(determine_flavor(filename)]
+        self.flavor = flavor_map[determine_flavor(filename)]
         self.heavyness = re.search("_([a-z][a-z0-9])_", filename).group(1)
         self.latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
 
@@ -228,9 +228,6 @@ def plot_mass(options):
         label = "$f_{}$ s{}".format(p.flavor, p.s_mass)
         with open(f) as datafile:
             datastring = datafile.readline().strip("#").split(",")
-            x,y,e = [float(i.strip()) for i in datastring]
-            datatxt = datafile.read()
-            logging.info("x,y,e:{} {} {}".format(x,y,e))
 
         df = pd.read_csv(f,comment='#', names=["config", "mass", "amp1", "amp2"])
 
