@@ -28,7 +28,7 @@ def all_same_flavor(files):
     return allEqual(flavors_filesnames)
 
 def determine_flavor(f):
-    flavors = ["ud-ud", "ud-s", "s-s", "heavy-ud", "heavy-s", "heavy-heavy"]
+    flavors = ["ud-ud", "ud-s", "s-s", "heavy-ud", "heavy-s", "heavy-heavy", "KPratio"]
     for flavor in flavors:
         if flavor in f:
             return flavor
@@ -78,14 +78,15 @@ def xvalue(xaxis_type, data_properties, options):
         return s*(data_properties.ud_mass + residual + data_properties.s_mass + residual)
 
     if xaxis_type == "mpisqr":
-        pionmass = read_pion_mass(data_properties, options)
+        pionmass = read_fit_mass(data_properties, "ud-ud", options)
         return (s*pionmass)**2 #*pionmass
 
-def read_pion_mass(data_properties, options):
+def read_fit_mass(data_properties, flavor, options):
     if options.fitdata is None:
         raise RuntimeError("--fitdata required when plotting with pionmass")
     import glob
     fitdatafiles = glob.glob(options.fitdata.strip("'\""))
+    fitdatafiles = [f for f in fitdatafiles if flavor in f ]
     for i in [data_properties.ud_mass, data_properties.s_mass, data_properties.latsize, data_properties.beta]:
         fitdatafiles = [f for f in fitdatafiles if str(i) in f ]
     if len(fitdatafiles) != 1:
@@ -99,7 +100,6 @@ def read_pion_mass(data_properties, options):
 
     return float(mass)
 
-    raise SystemExit(-1)
 
 
 class data_params(object):
@@ -110,7 +110,7 @@ class data_params(object):
         self.beta = re.search("_b(4\.[0-9]*)_", filename).group(1)
 
         self.smearing = re.search("fixed_(.*)/", filename).group(1)
-        self.flavor = flavor_map[re.search(determine_flavor(filename)]
+        self.flavor = flavor_map[determine_flavor(filename)]
         self.heavyness = re.search("_([a-z][a-z0-9])_", filename).group(1)
         self.latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
 
@@ -120,7 +120,7 @@ class data_params(object):
             self.heavymass = None
 
 
-flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH"}
+flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH", "KPratio": "KPratio"}
 scale = {"4.17": 2450, "4.35": 3600, "4.47": 4600}
 
 legend_handles = []
@@ -288,7 +288,11 @@ def plot_decay_constant(options):
     if options.physical:
         x_physicals = {"mud": 2.2, "mud_s": 97.2, "mpisqr": 138.0**2}
         y, err = options.physical
-        physplot = axe.errorbar(x_physicals[options.xaxis], y, yerr=e, marker="o", ecolor="k", color="k", label="physical",
+        if options.scale:
+            x = x_physicals[options.xaxis]
+        else:
+            x = 0.001
+        physplot = axe.errorbar(x, y, yerr=err, marker="o", ecolor="k", color="k", label="physical",
                                 ms=15, elinewidth=3, capsize=1, capthick=2, mec=color, mew=3, mfc='m')
         legend_handles.append(physplot)
 
