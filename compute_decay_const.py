@@ -121,10 +121,7 @@ def decay_constant(filename, options):
             heavyness = heavyness+"_heavy{}".format(options.heavyquarkmass)
         f1, f2 = flavor.split("-")
         logging.debug("flavors {},{}".format(f1, f2))
-        if options.bothqaurks:
-            x = masses[f1]+masses[f2]+resisdual_masses[(masses["ud"], masses["s"])]
-        else:
-            x = masses[f1]+resisdual_masses[(masses["ud"], masses["s"])]
+        x = masses[f1]+resisdual_masses[(masses["ud"], masses["s"])]
         header = "#{}, {}, {}\n".format(x, decay_constant.mean(), decay_constant.std())
         logging.info(header)
         outfilename = "{}_{}_{}_{}_b{}_mud{}_ms{}_decayconstant_{}-{}.boot".format(options.out_stub, size, heavyness, smearing, beta, masses["ud"], masses["s"],
