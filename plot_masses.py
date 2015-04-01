@@ -109,7 +109,7 @@ class data_params(object):
         self.s_mass = float(re.search("ms([0-9]\.[0-9]*)", filename).group(1))
         self.beta = re.search("_b(4\.[0-9]*)_", filename).group(1)
 
-        self.smearing = re.search("fixed_(.*)/", filename).group(1)
+        self.smearing = re.search("([0-2]_[0-2])", filename).group(1)
         self.flavor = flavor_map[determine_flavor(filename)]
         self.heavyness = re.search("_([a-z][a-z0-9])_", filename).group(1)
         self.latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
@@ -289,7 +289,7 @@ def plot_mass(options):
     if options.physical:
         x_physicals = {"mud": 2.2, "mud_s": 97.2, "mpisqr": 138.0**2}
         y, err = options.physical
-        physplot = axe.errorbar(x_physicals[options.xaxis], y, yerr=e, marker="o", ecolor="k", color="k", label="physical",
+        physplot = axe.errorbar(x_physicals[options.xaxis], y, yerr=err, marker="o", ecolor="k", color="k", label="physical",
                                 ms=15, elinewidth=3, capsize=1, capthick=2, mec=color, mew=3, mfc='m')
         legend_handles.append(physplot)
 
