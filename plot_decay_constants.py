@@ -81,6 +81,12 @@ def xvalue(xaxis_type, data_properties, options):
         pionmass = read_fit_mass(data_properties, "ud-ud", options)
         return (s*pionmass)**2 #*pionmass
 
+    if xaxis_type == "2mksqr-mpisqr":
+        pionmass = read_fit_mass(data_properties, "ud-ud", options)
+        kaonmass = read_fit_mass(data_properties, "ud-s", options)
+        return 2.0*(s*kaonmass)**2 - (s*pionmass)**2
+
+
 def read_fit_mass(data_properties, flavor, options):
     if options.fitdata is None:
         raise RuntimeError("--fitdata required when plotting with pionmass")
@@ -286,7 +292,7 @@ def plot_decay_constant(options):
 
 
     if options.physical:
-        x_physicals = {"mud": 2.2, "mud_s": 97.2, "mpisqr": 138.0**2}
+        x_physicals = {"mud": 2.2, "mud_s": 97.2, "mpisqr": 138.0**2, "2mksqr-mpisqr": 2*(497.6**2)-138.0**2}
         y, err = options.physical
         if options.scale:
             x = x_physicals[options.xaxis]
@@ -320,7 +326,8 @@ def plot_decay_constant(options):
 
     #axe.set_xlabel("$m_{%s}+m_{res}+m_{%s}+m_{res}$" % (rawflavor.split("-")[0], rawflavor.split("-")[1]), **fontsettings)
 
-    xlabel = {"mud": u"$m_{l}+m_{res}$", "mud_s": u"$m_{l}+m_s+2m_{res}$", "mpi": u"$m_{\pi}$", "mpisqr": u"$m^2_{\pi}$"}
+    xlabel = {"mud": u"$m_{l}+m_{res}$", "mud_s": u"$m_{l}+m_s+2m_{res}$", "mpi": u"$m_{\pi}$",
+              "mpisqr": u"$m^2_{\pi}$", "2mksqr-mpisqr": u"$2m^2_{K}-m^2_{\pi}$" }
 
     axe.set_xlabel(xlabel[options.xaxis], **fontsettings)
 
@@ -349,7 +356,7 @@ def plot_decay_constant(options):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="average data files")
 
-    axis_choices = ["mud", "mud_s", "mpi", "mpisqr"]
+    axis_choices = ["mud", "mud_s", "mpi", "mpisqr", "2mksqr-mpisqr"]
 
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="increase output verbosity")
