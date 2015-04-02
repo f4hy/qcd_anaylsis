@@ -9,7 +9,6 @@ from matplotlib.widgets import CheckButtons
 import os
 import pandas as pd
 import math
-import data_params
 
 from cStringIO import StringIO
 import numpy as np
@@ -109,6 +108,22 @@ def read_fit_mass(data_properties, flavor, options):
 
 
 
+class data_params(object):
+    def __init__(self, filename):
+        self.filename = filename
+        self.ud_mass = float(re.search("mud([0-9]\.[0-9]*)_", filename).group(1))
+        self.s_mass = float(re.search("ms([0-9]\.[0-9]*)", filename).group(1))
+        self.beta = re.search("_b(4\.[0-9]*)_", filename).group(1)
+
+        self.smearing = re.search("fixed_(.*)/", filename).group(1)
+        self.flavor = flavor_map[determine_flavor(filename)]
+        self.heavyness = re.search("_([a-z][a-z0-9])_", filename).group(1)
+        self.latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
+
+        if self.heavyness != "ll":
+            self.heavymass = re.search("_heavy(0.[0-9]*)_", filename).group(1)
+        else:
+            self.heavymass = None
 
 
 flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH", "KPratio": "KPratio"}
@@ -214,7 +229,7 @@ def plot_decay_constant(options):
 
     for f in options.files:
 
-        p = data_params.data_params(f)
+        p = data_params(f)
 
         label = "$f_{}$ s{}".format(p.flavor, p.s_mass)
         with open(f) as datafile:

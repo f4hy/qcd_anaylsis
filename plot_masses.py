@@ -10,8 +10,6 @@ import os
 import pandas as pd
 import math
 
-import data_params
-
 from cStringIO import StringIO
 import numpy as np
 import re
@@ -100,6 +98,26 @@ def read_pion_mass(data_properties, options):
         mass, masserror = re.findall("mass .*?(\d+\.\d+).*?(\d+\.\d+)", txt)[0]
 
     return float(mass)
+
+    raise SystemExit(-1)
+
+
+class data_params(object):
+    def __init__(self, filename):
+        self.filename = filename
+        self.ud_mass = float(re.search("mud([0-9]\.[0-9]*)_", filename).group(1))
+        self.s_mass = float(re.search("ms([0-9]\.[0-9]*)", filename).group(1))
+        self.beta = re.search("_b(4\.[0-9]*)_", filename).group(1)
+
+        self.smearing = re.search("([0-2]_[0-2])", filename).group(1)
+        self.flavor = flavor_map[determine_flavor(filename)]
+        self.heavyness = re.search("_([a-z][a-z0-9])_", filename).group(1)
+        self.latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
+
+        if self.heavyness != "ll":
+            self.heavymass = re.search("_(m[012])_", filename).group(1)
+        else:
+            self.heavymass = None
 
 
 flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH"}
@@ -205,7 +223,7 @@ def plot_mass(options):
 
     for f in options.files:
 
-        p = data_params.data_params(f)
+        p = data_params(f)
 
         label = "$f_{}$ s{}".format(p.flavor, p.s_mass)
         with open(f) as datafile:
