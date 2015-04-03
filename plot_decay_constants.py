@@ -61,7 +61,7 @@ def auto_fit_range(minval, maxval, zero=False, buff=0.4):
     return fitrange
 
 
-def xvalue(xaxis_type, data_properties, options):
+def xvalues(xaxis_type, data_properties, options):
     logging.info("using xaxis type {}".format(xaxis_type))
 
     if options.scale:
@@ -71,11 +71,11 @@ def xvalue(xaxis_type, data_properties, options):
 
     if xaxis_type == "mud":
         residual = residual_masses[(data_properties.ud_mass, data_properties.s_mass)]
-        return s*(data_properties.ud_mass + residual)
+        return pd.Series(s*(data_properties.ud_mass + residual))
 
     if xaxis_type == "mud_s":
         residual = residual_masses[(data_properties.ud_mass, data_properties.s_mass)]
-        return s*(data_properties.ud_mass + residual + data_properties.s_mass + residual)
+        return pd.Serites(s*(data_properties.ud_mass + residual + data_properties.s_mass + residual))
 
     if xaxis_type == "mpisqr":
         pionmass = read_fit_mass(data_properties, "ud-ud", options)
@@ -101,10 +101,8 @@ def read_fit_mass(data_properties, flavor, options):
         raise SystemExit("Unique fit file not found!")
 
     with open(fitdatafiles[0]) as fitfile:
-        txt = fitfile.read()
-        mass, masserror = re.findall("mass .*?(\d+\.\d+).*?(\d+\.\d+)", txt)[0]
-
-    return float(mass)
+        df = pd.read_csv(fitfile,comment='#', names=["config", "mass", "amp1", "amp2"])
+        return df.mass
 
 
 
@@ -260,8 +258,9 @@ def plot_decay_constant(options):
             #     added_handles.append(latsize)
 
 
-        x = xvalue(options.xaxis, p, options)
-
+        xs = xvalues(options.xaxis, p, options)
+        x = xs.median()
+        xerr = xs.std()
 
         plotsettings = dict(linestyle="none", c=color, marker=mark, label=label, ms=8, elinewidth=3, capsize=8,
                             capthick=2, mec=color, mew=3, aa=True, mfc=mfc, fmt='o', ecolor=color)
@@ -270,8 +269,10 @@ def plot_decay_constant(options):
         if options.scale:
             if options.box:
                 b = axe.boxplot(df["decay"]*scale[p.beta], positions=[x], widths=[0.001*scale[p.beta]], patch_artist=True)
+            elif options.scatter:
+                axe.scatter(xs, df["decay"]*scale[p.beta], c=color)
             else:
-                axe.errorbar(x, y*scale[p.beta], yerr=e*scale[p.beta], zorder=0, **plotsettings)
+                axe.errorbar(x, y*scale[p.beta], yerr=e*scale[p.beta], xerr=xerr, zorder=0, **plotsettings)
             ymax = max(ymax,y*scale[p.beta])
             ymin = min(ymin,y*scale[p.beta])
             xmax = max(xmax,x)
@@ -368,6 +369,8 @@ if __name__ == "__main__":
                         help="save as eps not png")
     parser.add_argument("-b", "--box", action="store_true",
                         help="max boxplots instead")
+    parser.add_argument("-c", "--scatter", action="store_true",
+                        help="make a scatter plot instead")
     parser.add_argument("-y", "--yrange", type=float, required=False, nargs=2,
                         help="set the yrange of the plot", default=None)
     parser.add_argument("-x", "--xrange", type=float, required=False, nargs=2,
