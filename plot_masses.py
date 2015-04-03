@@ -61,7 +61,7 @@ def auto_fit_range(minval, maxval, zero=False, buff=0.4):
     return fitrange
 
 
-def xvalue(xaxis_type, data_properties, options):
+def xvalues(xaxis_type, data_properties, options):
     logging.info("using xaxis type {}".format(xaxis_type))
 
     if options.scale:
@@ -71,21 +71,22 @@ def xvalue(xaxis_type, data_properties, options):
 
     if xaxis_type == "mud":
         residual = residual_masses[(data_properties.ud_mass, data_properties.s_mass)]
-        return s*(data_properties.ud_mass + residual)
+        return pd.Series(s*(data_properties.ud_mass + residual))
 
     if xaxis_type == "mud_s":
         residual = residual_masses[(data_properties.ud_mass, data_properties.s_mass)]
-        return s*(data_properties.ud_mass + residual + data_properties.s_mass + residual)
+        return mp.Series(s*(data_properties.ud_mass + residual + data_properties.s_mass + residual))
 
     if xaxis_type == "mpisqr":
-        pionmass = read_pion_mass(data_properties, options)
-        return (s*pionmass)**2 #*pionmass
+        pionmass = read_fit_mass(data_properties, "ud-ud", options)
+        return (s*pionmass)**2
 
-def read_pion_mass(data_properties, options):
+def read_fit_mass(data_properties, flavor, options):
     if options.fitdata is None:
         raise RuntimeError("--fitdata required when plotting with pionmass")
     import glob
     fitdatafiles = glob.glob(options.fitdata.strip("'\""))
+    fitdatafiles = [f for f in fitdatafiles if flavor in f ]
     for i in [data_properties.ud_mass, data_properties.s_mass, data_properties.latsize, data_properties.beta]:
         fitdatafiles = [f for f in fitdatafiles if str(i) in f ]
     if len(fitdatafiles) != 1:
@@ -94,12 +95,8 @@ def read_pion_mass(data_properties, options):
         raise SystemExit("Unique fit file not found!")
 
     with open(fitdatafiles[0]) as fitfile:
-        txt = fitfile.read()
-        mass, masserror = re.findall("mass .*?(\d+\.\d+).*?(\d+\.\d+)", txt)[0]
-
-    return float(mass)
-
-    raise SystemExit(-1)
+        df = pd.read_csv(fitfile,comment='#', names=["config", "mass", "amp1", "amp2"])
+        return df.mass
 
 
 class data_params(object):
@@ -196,6 +193,19 @@ def colors_and_legend(data_properties, one_beta, one_flavor):
     return color
 
 
+def read_bootstraps(f, options):
+
+
+    df = pd.read_csv(f,comment='#', names=["config", "mass", "amp1", "amp2"])
+
+    if options.spinaverage:
+        if "vectorave" not in f:
+            raise SystemExit("spin average requires inputing the vector file")
+        ppfile = f.replace("vectorave", "PP")
+        PPdf = pd.read_csv(ppfile,comment='#', names=["config", "mass", "amp1", "amp2"])
+        return (3.0*df["mass"] + PPdf["mass"])/4.0
+    else:
+        return df["mass"]
 
 def plot_mass(options):
 
@@ -226,10 +236,8 @@ def plot_mass(options):
         p = data_params(f)
 
         label = "$f_{}$ s{}".format(p.flavor, p.s_mass)
-        with open(f) as datafile:
-            datastring = datafile.readline().strip("#").split(",")
 
-        df = pd.read_csv(f,comment='#', names=["config", "mass", "amp1", "amp2"])
+        data = read_bootstraps(f, options)
 
 
 
@@ -251,28 +259,30 @@ def plot_mass(options):
             #     added_handles.append(latsize)
 
 
-        x = xvalue(options.xaxis, p, options)
+        xs = xvalues(options.xaxis, p, options)
+        x = xs.median()
+        xerr = xs.std()
 
 
         plotsettings = dict(linestyle="none", c=color, marker=mark, label=label, ms=8, elinewidth=3, capsize=8,
                             capthick=2, mec=color, mew=3, aa=True, mfc=mfc, fmt='o', ecolor=color)
         index+=1
 
-        y = df["mass"].mean()
-        e = df["mass"].std()
+        y = data.mean()
+        e = data.std()
 
         logging.info("plotting {} {} {}".format(x,y,e))
         if options.scale:
             if options.box:
-                b = axe.boxplot(df["mass"]*scale[p.beta], positions=[x], widths=[0.001*scale[p.beta]], patch_artist=True)
+                b = axe.boxplot(data*scale[p.beta], positions=[x], widths=[0.001*scale[p.beta]], patch_artist=True)
             else:
-                axe.errorbar(x, y*scale[p.beta], yerr=e*scale[p.beta], zorder=0, **plotsettings)
+                axe.errorbar(x, y*scale[p.beta], yerr=e*scale[p.beta], xerr=xerr, zorder=0, **plotsettings)
             ymax = max(ymax,y*scale[p.beta])
             ymin = min(ymin,y*scale[p.beta])
             xmax = max(xmax,x)
         else:
             if options.box:
-                b = axe.boxplot(df["mass"], positions=[x], widths=[0.001], patch_artist=True)
+                b = axe.boxplot(data, positions=[x], widths=[0.001], patch_artist=True)
             else:
                 axe.errorbar(x, y, yerr=e, zorder=0, **plotsettings)
             ymax = max(ymax,y)
@@ -370,6 +380,8 @@ if __name__ == "__main__":
                         help="plot title", default="masses")
     parser.add_argument("-s", "--scale", action="store_true",
                         help="scale the values")
+    parser.add_argument("--spinaverage", action="store_true",
+                        help="spinaverage vector with pseudoscalar")
     parser.add_argument("-p", "--physical", type=float, nargs=2,
                         help="add physical point")
     args = parser.parse_args()
