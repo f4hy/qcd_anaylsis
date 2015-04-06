@@ -230,11 +230,6 @@ def plot_decay_constant(options):
         p = data_params(f)
 
         label = "$f_{}$ s{}".format(p.flavor, p.s_mass)
-        with open(f) as datafile:
-            datastring = datafile.readline().strip("#").split(",")
-            x,y,e = [float(i.strip()) for i in datastring]
-            datatxt = datafile.read()
-            logging.info("x,y,e:{} {} {}".format(x,y,e))
 
         df = pd.read_csv(f,comment='#', names=["decay"])
 
@@ -261,6 +256,8 @@ def plot_decay_constant(options):
         xs = xvalues(options.xaxis, p, options)
         x = xs.median()
         xerr = xs.std()
+        y = float(df.median())
+        e = float(df.std().values)
 
         plotsettings = dict(linestyle="none", c=color, marker=mark, label=label, ms=8, elinewidth=3, capsize=8,
                             capthick=2, mec=color, mew=3, aa=True, mfc=mfc, fmt='o', ecolor=color)
