@@ -6,7 +6,7 @@ import pandas as pd
 import re
 import matplotlib.pyplot as plt
 from scipy.optimize import leastsq
-
+import glob
 
 heavymap = {}
 heavymap[("4.17", "m0")] = 0.35
@@ -25,10 +25,21 @@ scale = {"4.17": 2450, "4.35": 3600, "4.47": 4600}
 def read_files(basefile, spinaverage=None):
     data = {}
 
+    col_names = ["config", "mass", "amp1", "amp2"]
+    if "decay_const" in basefile:
+        col_names = ["mass"]
+
+
     if "m0" not in basefile:
         raise SystemExit("interpolate requires inputing the m0 mass file")
 
-    files = [basefile, basefile.replace("_m0_", "_m1_"), basefile.replace("_m0_", "_m2_")]
+    m1file = re.sub("_heavy0\.[0-9]+_", "_*", basefile.replace("_m0_", "_m1_"))
+    m1file = glob.glob(m1file)[0]
+    m2file = re.sub("_heavy0\.[0-9]+_", "_*", basefile.replace("_m0_", "_m2_"))
+
+    m2file = glob.glob(m2file)[0]
+
+    files = [basefile, m1file, m2file]
 
     for f in files:
         logging.info("reading {}".format(f))
@@ -36,13 +47,13 @@ def read_files(basefile, spinaverage=None):
         beta = re.search("_b(4\.[0-9]*)_", f).group(1)
         heavyness = re.search("_([a-z][a-z0-9])_", f).group(1)
 
-        df = pd.read_csv(f, comment='#', names=["config", "mass", "amp1", "amp2"])
+        df = pd.read_csv(f, comment='#', names=col_names)
 
         if spinaverage:
             if "vectorave" not in f:
                 raise SystemExit("spin average requires inputing the vector file")
             ppfile = f.replace("vectorave", "PP")
-            PPdf = pd.read_csv(ppfile, comment='#', names=["config", "mass", "amp1", "amp2"])
+            PPdf = pd.read_csv(ppfile, comment='#', names=col_names)
             data[heavymap[(beta, heavyness)]] = (3.0*df["mass"] + PPdf["mass"]) / 4.0
 
         else:
@@ -103,11 +114,11 @@ def plot_fitline(data, fitline, m_cc, physical, outstub):
         plt.show()
 
 
-def write_data(m_cc, output_stub):
+def write_data(m_cc, output_stub, suffix):
     if output_stub is None:
         logging.info("Not writing output")
         return
-    outfilename = output_stub + ".mcc"
+    outfilename = output_stub + suffix
     logging.info("writing mcc to {}".format(outfilename))
     with open(outfilename, "w") as ofile:
         ofile.write("{}\n".format(m_cc))
@@ -127,11 +138,19 @@ def interpolate_heavymass(options):
         return line_params[0] * x + line_params[1]
 
     if options.physical:
+        logging.info("Using physical point {} to set the scale".format(options.physical))
         m_cc = get_physical_point(options.physical/scale[beta], line_params)
 
-    plot_fitline(data, fitline, m_cc, options.physical/scale[beta], options.output_stub)
+        plot_fitline(data, fitline, m_cc, options.physical/scale[beta], options.output_stub)
 
-    write_data(m_cc, options.output_stub)
+        write_data(m_cc, options.output_stub, ".mcc")
+    elif options.mcc:
+        logging.info("Using heavy mass {} to scale values".format(options.mcc))
+
+        write_data(fitline(options.mcc), options.output_stub, "")
+
+    else:
+        logging.error("Either mcc or physical point must be given")
 
 
 if __name__ == "__main__":
@@ -144,6 +163,8 @@ if __name__ == "__main__":
                         help="spinaverage vector with pseudoscalar")
     parser.add_argument("-p", "--physical", type=float,
                         help="add physical point")
+    parser.add_argument("-m", "--mcc", type=float,
+                        help="scale data using given heavy mass")
     parser.add_argument('basefile', metavar='f', type=str,
                         help='input file')
     args = parser.parse_args()
