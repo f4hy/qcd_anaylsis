@@ -16,6 +16,8 @@ import re
 
 from residualmasses import residual_masses
 
+import plot_helpers
+
 def all_same_beta(files):
     logging.info("Determining beta")
     beta_filesnames = [re.search("_b(4\.[0-9]*)_", f).group(1) for f in files]
@@ -258,8 +260,10 @@ def plot_decay_constant(options):
         xs = xvalues(options.xaxis, p, options)
         x = xs.median()
         xerr = xs.std()
+        xerr = plot_helpers.error(xs)
         y = float(df.median())
         e = float(df.std().values)
+        e = plot_helpers.error(df.values)
 
         plotsettings = dict(linestyle="none", c=color, marker=mark, label=label, ms=8, elinewidth=3, capsize=8,
                             capthick=2, mec=color, mew=3, aa=True, mfc=mfc, fmt='o', ecolor=color)
@@ -279,7 +283,7 @@ def plot_decay_constant(options):
             if options.box:
                 b = axe.boxplot(df["decay"], positions=[x], widths=[0.001], patch_artist=True)
             else:
-                axe.errorbar(x, y, yerr=e, zorder=0, **plotsettings)
+                axe.errorbar(x, y, yerr=e, xerr=xerr, zorder=0, **plotsettings)
             ymax = max(ymax,y)
             ymin = min(ymin,y)
             xmax = max(xmax,x)
