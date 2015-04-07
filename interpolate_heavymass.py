@@ -70,41 +70,57 @@ def get_physical_point(physical, line_params):
 def interpolate(data, physical=None):
 
     cmass = []
-    mmass = []
+    mmasses = []
 
     for heavymass, mesonmass in data.iteritems():
         cmass.append(heavymass)
-        mmass.append(mesonmass.median())
+        mmasses.append(mesonmass)
 
     def line(v, x, y):
         return (v[0]*x+v[1]) - y
 
+    Nconfigs = len(mmasses[0])
+
     A = np.array(cmass)
-    B = np.array(mmass)
+    fits = []
+    for i in range(Nconfigs):
+        mmass = [m[i] for m in mmasses]
+        B = np.array(mmass)
 
-    slope_guess = (max(mmass)-min(mmass)) / (max(cmass) - min(cmass))
-    int_guess = min(mmass) - min(cmass)*slope_guess
-    guess = [slope_guess, int_guess]
-    logging.info("guessing a line with y={}x+{}".format(*guess))
-    best_fit, success = leastsq(line, guess, args=(A, B), maxfev=10000)
 
-    return best_fit
+        slope_guess = (max(mmass)-min(mmass)) / (max(cmass) - min(cmass))
+        int_guess = min(mmass) - min(cmass)*slope_guess
+        guess = [slope_guess, int_guess]
+        guess = [slope_guess, 0.0]
+        logging.info("guessing a line with y={}x+{}".format(*guess))
+        best_fit, _, info, mesg, ierr = leastsq(line, guess, args=(A, B), maxfev=10000, full_output=True)
+        fits.append(best_fit)
+
+    return fits
+
+
+def gen_line_func(parameters):
+    def fitline(x):
+        return parameters[0] * x + parameters[1]
+
+    return fitline
 
 
 def plot_fitline(data, fitline, m_cc, physical, outstub):
-
     size = 100
 
     for heavymass, mesonmass in data.iteritems():
         plt.scatter(heavymass, mesonmass.median(), s=size)
+        #plt.scatter(heavymass, mesonmass, s=size)
 
     xdata = np.arange(min(data.keys())-0.005, max(data.keys())+0.005, 0.001)
     ydata = [fitline(x) for x in xdata]
     plt.plot(xdata, ydata)
 
-    logging.info("physical point {}, {}".format(m_cc, physical))
+    if physical:
+        logging.info("physical point {}, {}".format(m_cc, physical))
 
-    plt.scatter(m_cc, physical, c='r', s=size)
+        plt.scatter(m_cc, physical, c='r', s=size)
 
     if outstub is not None:
         filename = outstub+".png"
@@ -123,6 +139,19 @@ def write_data(m_cc, output_stub, suffix):
     with open(outfilename, "w") as ofile:
         ofile.write("{}\n".format(m_cc))
 
+def write_shifted_data(shifted_data, mcc, output_stub, suffix):
+    if output_stub is None:
+        logging.info("Not writing output")
+        logging.info("shifted data median:{} and std:{}".format(shifted_data.mean(), shifted_data.std()))
+        return
+    outfilename = output_stub + suffix
+    logging.info("writing shifted data to {}".format(outfilename))
+    with open(outfilename, "w") as ofile:
+        ofile.write("#{}, {}, {}\n".format(mcc, shifted_data.mean(), shifted_data.std()))
+        for i in shifted_data:
+            ofile.write("{}\n".format(i))
+    return
+
 
 def interpolate_heavymass(options):
     """ script to interpolate the heavy mass """
@@ -132,25 +161,40 @@ def interpolate_heavymass(options):
 
     data = read_files(options.basefile, spinaverage=options.spinaverage)
 
+
+    line_params = interpolate(data)
+    line_params = np.median(line_params, axis=0)
+
+    fitline = gen_line_func(line_params)
+
+    logging.info("Using physical point {} to set the scale".format(options.physical))
+
+    m_cc = get_physical_point(options.physical/scale[beta], line_params)
+
+    plot_fitline(data, fitline, m_cc, options.physical/scale[beta], options.output_stub)
+
+    write_data(m_cc, options.output_stub, ".mcc")
+
+
+
+def shift_data(options):
+    """ script to interpolate the heavy mass """
+    logging.debug("Called with {}".format(options))
+
+    beta = re.search("_b(4\.[0-9]*)_", options.basefile).group(1)
+
+    data = read_files(options.basefile, spinaverage=options.spinaverage)
+
+    for k,v in data.iteritems():
+        logging.debug("original data: {} has median: {}".format(k, v.median()))
+
     line_params = interpolate(data)
 
-    def fitline(x):
-        return line_params[0] * x + line_params[1]
+    scaled_values = []
+    count = 0
 
-    if options.physical:
-        logging.info("Using physical point {} to set the scale".format(options.physical))
-        m_cc = get_physical_point(options.physical/scale[beta], line_params)
-
-        plot_fitline(data, fitline, m_cc, options.physical/scale[beta], options.output_stub)
-
-        write_data(m_cc, options.output_stub, ".mcc")
-    elif options.mcc:
-        logging.info("Using heavy mass {} to scale values".format(options.mcc))
-
-        write_data(fitline(options.mcc), options.output_stub, "")
-
-    else:
-        logging.error("Either mcc or physical point must be given")
+    shifted_data = np.array([gen_line_func(lp)(options.mcc) for lp in line_params])
+    write_shifted_data(shifted_data, options.mcc, options.output_stub, "")
 
 
 if __name__ == "__main__":
@@ -175,4 +219,9 @@ if __name__ == "__main__":
     else:
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
-    interpolate_heavymass(args)
+    if args.physical:
+        interpolate_heavymass(args)
+    elif args.mcc:
+        shift_data(args)
+    else:
+        logging.error("Either mcc or physical point must be given")
