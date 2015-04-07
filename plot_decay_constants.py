@@ -55,6 +55,8 @@ def auto_fit_range(minval, maxval, zero=False, buff=0.4):
     spread = maxval - minval
     if zero:
         fitrange = (0, maxval+spread*buff)
+    elif spread == 0:
+        fitrange = minval-(minval*0.1), maxval+(maxval*0.1)
     else:
         fitrange = round(minval-spread*buff, maxval+spread*buff)
     logging.info("setting range to {}".format(fitrange))
