@@ -30,7 +30,7 @@ def all_same_flavor(files):
     return allEqual(flavors_filesnames)
 
 def determine_flavor(f):
-    flavors = ["ud-ud", "ud-s", "s-s", "heavy-ud", "heavy-s", "heavy-heavy", "KPratio"]
+    flavors = ["ud-ud", "ud-s", "s-s", "heavy-ud", "heavy-s", "heavy-heavy", "KPratio", "2k-pi"]
     for flavor in flavors:
         if flavor in f:
             return flavor
@@ -116,19 +116,21 @@ class data_params(object):
         self.ud_mass = float(re.search("mud([0-9]\.[0-9]*)_", filename).group(1))
         self.s_mass = float(re.search("ms([0-9]\.[0-9]*)", filename).group(1))
         self.beta = re.search("_b(4\.[0-9]*)_", filename).group(1)
-
-        self.smearing = re.search("fixed_(.*)/", filename).group(1)
+        try:
+            self.smearing = re.search("fixed_(.*)/", filename).group(1)
+        except:
+            self.smearing = "none"
         self.flavor = flavor_map[determine_flavor(filename)]
         self.heavyness = re.search("_([a-z][a-z0-9])_", filename).group(1)
         self.latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
 
-        if self.heavyness != "ll":
-            self.heavymass = re.search("_heavy(0.[0-9]*)_", filename).group(1)
-        else:
-            self.heavymass = None
+        # if self.heavyness != "ll":
+        #     self.heavymass = re.search("_heavy(0.[0-9]*)_", filename).group(1)
+        # else:
+        #     self.heavymass = None
+        self.heavymass = None
 
-
-flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH", "KPratio": "KPratio"}
+flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH", "KPratio": "KPratio", "2k-pi": "2m_K-m_\pi"}
 scale = {"4.17": 2450, "4.35": 3600, "4.47": 4600}
 
 legend_handles = []
@@ -211,7 +213,7 @@ def plot_decay_constant(options):
     #plt.rc('text', usetex=True)
 
     xmax = ymax = -10000
-    ymin = 10000
+    ymin = 100000000
 
     fontsettings = dict(fontsize=30)
 
@@ -265,20 +267,28 @@ def plot_decay_constant(options):
         e = float(df.std().values)
         e = plot_helpers.error(df.values)
 
+        scalepower = 1.0
+        if options.scalesquared:
+            scalepower = 2.0
+
         plotsettings = dict(linestyle="none", c=color, marker=mark, label=label, ms=8, elinewidth=3, capsize=8,
                             capthick=2, mec=color, mew=3, aa=True, mfc=mfc, fmt='o', ecolor=color)
         index+=1
         logging.info("plotting {} {} {}".format(x,y,e))
         if options.scale:
+            sc = scale[p.beta]**scalepower
+            scaled_err = plot_helpers.error(df.values*sc)
+
             if options.box:
-                b = axe.boxplot(df["decay"]*scale[p.beta], positions=[x], widths=[0.001*scale[p.beta]], patch_artist=True)
+                b = axe.boxplot(df["decay"]*sc, positions=[x], widths=[0.001*sc], patch_artist=True)
             elif options.scatter:
-                axe.scatter(xs, df["decay"]*scale[p.beta], c=color)
+                axe.scatter(xs, df["decay"]*sc, c=color)
             else:
-                axe.errorbar(x, y*scale[p.beta], yerr=e*scale[p.beta], xerr=xerr, zorder=0, **plotsettings)
-            ymax = max(ymax,y*scale[p.beta])
-            ymin = min(ymin,y*scale[p.beta])
+                axe.errorbar(x, y*sc, yerr=scaled_err, xerr=xerr, zorder=0, **plotsettings)
+            ymax = max(ymax,y*sc)
+            ymin = min(ymin,y*sc)
             xmax = max(xmax,x)
+
         else:
             if options.box:
                 b = axe.boxplot(df["decay"], positions=[x], widths=[0.001], patch_artist=True)
@@ -336,7 +346,10 @@ def plot_decay_constant(options):
     axe.set_xlabel(xlabel[options.xaxis], **fontsettings)
 
     if options.scale:
-        axe.set_ylabel("MeV", **fontsettings)
+        if options.scalesquared:
+            axe.set_ylabel("MeV^2", **fontsettings)
+        else:
+            axe.set_ylabel("MeV", **fontsettings)
     else:
         axe.set_ylabel("lattice units", **fontsettings)
 
@@ -386,6 +399,8 @@ if __name__ == "__main__":
                         help="plot title", default="decay constants")
     parser.add_argument("-s", "--scale", action="store_true",
                         help="scale the values")
+    parser.add_argument("-ss", "--scalesquared", action="store_true",
+                        help="scale the values squared")
     parser.add_argument("-p", "--physical", type=float, nargs=2,
                         help="add physical point")
     args = parser.parse_args()
@@ -404,6 +419,9 @@ if __name__ == "__main__":
             logging.info("directory for output {} does not exist, atempting to create".format(outdir))
             if outdir is not "":
                 os.makedirs(outdir)
+
+    if args.scalesquared:
+        args.scale = True
 
 
     plot_decay_constant(args)
