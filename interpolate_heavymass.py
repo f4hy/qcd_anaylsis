@@ -19,7 +19,7 @@ heavymap[("4.47", "m0")] = 0.150
 heavymap[("4.47", "m1")] = 0.206
 heavymap[("4.47", "m2")] = 0.250
 
-scale = {"4.17": 2450, "4.35": 3600, "4.47": 4600}
+scale = {"4.17": 2490, "4.35": 3660, "4.47": 4600}
 
 
 def read_files(basefile, spinaverage=None):

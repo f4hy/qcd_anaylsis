@@ -131,7 +131,7 @@ class data_params(object):
         self.heavymass = None
 
 flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH", "KPratio": "KPratio", "2k-pi": "2m_K-m_\pi"}
-scale = {"4.17": 2450, "4.35": 3600, "4.47": 4600}
+scale = {"4.17": 2492, "4.35": 3660, "4.47": 4600}
 
 legend_handles = []
 added_handles = []
