@@ -16,27 +16,12 @@ import re
 
 from residualmasses import residual_masses
 
-def all_same_beta(files):
-    logging.info("Determining beta")
-    beta_filesnames = [re.search("_b(4\.[0-9]*)_", f).group(1) for f in files]
-    return allEqual(beta_filesnames)
+from ensamble_info import flavor_map, scale, data_params, determine_flavor, read_fit_mass
+from ensamble_info import all_same_beta, all_same_heavy, all_same_flavor
 
 
-def all_same_flavor(files):
-    logging.info("Determining flavor")
-    flavors_filesnames = [determine_flavor(f) for f in files]
-    return allEqual(flavors_filesnames)
-
-def determine_flavor(f):
-    flavors = ["ud-ud", "ud-s", "s-s", "heavy-ud", "heavy-s", "heavy-heavy"]
-    for flavor in flavors:
-        if flavor in f:
-            return flavor
-    raise RuntimeError("Flavor not found")
 
 
-def allEqual(lst):
-    return not lst or lst.count(lst[0]) == len(lst)
 
 def round5(x):
     return int(5 * np.around(x/5.0))
@@ -78,47 +63,16 @@ def xvalues(xaxis_type, data_properties, options):
         return mp.Series(s*(data_properties.ud_mass + residual + data_properties.s_mass + residual))
 
     if xaxis_type == "mpisqr":
-        pionmass = read_fit_mass(data_properties, "ud-ud", options)
+        pionmass = read_fit_mass(data_properties, "ud-ud", options.fitdata)
         return (s*pionmass)**2
 
-def read_fit_mass(data_properties, flavor, options):
-    if options.fitdata is None:
-        raise RuntimeError("--fitdata required when plotting with pionmass")
-    import glob
-    fitdatafiles = glob.glob(options.fitdata.strip("'\""))
-    fitdatafiles = [f for f in fitdatafiles if flavor in f ]
-    for i in [data_properties.ud_mass, data_properties.s_mass, data_properties.latsize, data_properties.beta]:
-        fitdatafiles = [f for f in fitdatafiles if str(i) in f ]
-    if len(fitdatafiles) != 1:
-        logging.critical("Unique fit file not found!")
-        logging.error("found: {}".format(fitdatafiles))
-        raise SystemExit("Unique fit file not found!")
-
-    with open(fitdatafiles[0]) as fitfile:
-        df = pd.read_csv(fitfile,comment='#', names=["config", "mass", "amp1", "amp2"])
-        return df.mass
+    if xaxis_type == "2mksqr-mpisqr":
+        pionmass = read_fit_mass(data_properties, "ud-ud", options.fitdata)
+        kaonmass = read_fit_mass(data_properties, "ud-s", options.fitdata)
+        return 2.0*(s*kaonmass)**2 - (s*pionmass)**2
 
 
-class data_params(object):
-    def __init__(self, filename):
-        self.filename = filename
-        self.ud_mass = float(re.search("mud([0-9]\.[0-9]*)_", filename).group(1))
-        self.s_mass = float(re.search("ms([0-9]\.[0-9]*)", filename).group(1))
-        self.beta = re.search("_b(4\.[0-9]*)_", filename).group(1)
 
-        self.smearing = re.search("([0-2]_[0-2])", filename).group(1)
-        self.flavor = flavor_map[determine_flavor(filename)]
-        self.heavyness = re.search("_([a-z][a-z0-9])_", filename).group(1)
-        self.latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
-
-        if self.heavyness != "ll":
-            self.heavymass = re.search("_(m[012])_", filename).group(1)
-        else:
-            self.heavymass = None
-
-
-flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH"}
-scale = {"4.17": 2450, "4.35": 3600, "4.47": 4600}
 
 legend_handles = []
 added_handles = []
@@ -128,7 +82,7 @@ colors = ['b', 'r', 'k', 'm', 'c', 'y', 'b', 'r', 'k', 'm', 'c', 'y']
 
 beta_colors = {"4.17": 'b', "4.35": 'r', "4.47": 'k'}
 
-heavy_color = {"m0": 'b', "m1": 'r', 'm2': 'm'}
+heavy_color = {"m0": 'b', "m1": 'r', 'm2': 'm', 's0': 'c'}
 heavy_colors = {}
 
 smearing_colors = {}
@@ -148,21 +102,20 @@ def strange_legend(s_mass):
 flavor_color = {"\pi": 'b', "K": 'r', '\eta': 'm', "Hl": 'c', "Hs": 'y'}
 
 
-def colors_and_legend(data_properties, one_beta, one_flavor):
+def colors_and_legend(data_properties, one_beta, one_flavor, one_heavy):
 
     p = data_properties
 
 
-    # if heavyness != "ll":
-    #     if heavymass not in added_handles:
-    #         print heavy_colors
-    #         heavy_colors[heavymass] = colors.pop()
-    #         color = heavy_colors[heavymass]
-    #         legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(heavymass)))
-    #         added_handles.append(heavymass)
-    #     else:
-    #         color = heavy_colors[heavymass]
-    #     return color
+    if p.heavyness != "ll" and not one_heavy:
+        if p.heavymass not in added_handles:
+            heavy_colors[p.heavymass] = colors.pop()
+            color = heavy_colors[p.heavymass]
+            legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(p.heavymass)))
+            added_handles.append(p.heavymass)
+        else:
+            color = heavy_colors[p.heavymass]
+        return color
 
 
     if one_beta and one_flavor:
@@ -221,7 +174,7 @@ def plot_mass(options):
     heavy_patches = [mpatches.Patch(color=c, label='${}$'.format(l)) for l,c in flavor_color.iteritems() ]
 
 
-
+    one_heavy = all_same_heavy(options.files)
     one_beta = all_same_beta(options.files)
     one_flavor = all_same_flavor(options.files)
     logging.info("one_beta: {}, one_flavor: {}".format(one_beta, one_flavor))
@@ -248,7 +201,7 @@ def plot_mass(options):
 
         mark = strange_legend(p.s_mass)
 
-        color = colors_and_legend(p, one_beta, one_flavor)
+        color = colors_and_legend(p, one_beta, one_flavor, one_heavy)
 
         if "48x96x12" in f:
             logging.info("48x96x12!!!!")
@@ -297,7 +250,7 @@ def plot_mass(options):
 
 
     if options.physical:
-        x_physicals = {"mud": 2.2, "mud_s": 97.2, "mpisqr": 138.0**2}
+        x_physicals = {"mud": 2.2, "mud_s": 97.2, "mpisqr": 138.0**2, "2mksqr-mpisqr": 2*(497.6**2)-138.0**2}
         y, err = options.physical
         physplot = axe.errorbar(x_physicals[options.xaxis], y, yerr=err, marker="o", ecolor="k", color="k", label="physical",
                                 ms=15, elinewidth=3, capsize=1, capthick=2, mec=color, mew=3, mfc='m')
@@ -327,7 +280,8 @@ def plot_mass(options):
 
     #axe.set_xlabel("$m_{%s}+m_{res}+m_{%s}+m_{res}$" % (rawflavor.split("-")[0], rawflavor.split("-")[1]), **fontsettings)
 
-    xlabel = {"mud": u"$m_{l}+m_{res}$", "mud_s": u"$m_{l}+m_s+2m_{res}$", "mpi": u"$m_{\pi}$", "mpisqr": u"$m^2_{\pi}$"}
+    xlabel = {"mud": u"$m_{l}+m_{res}$", "mud_s": u"$m_{l}+m_s+2m_{res}$", "mpi": u"$m_{\pi}$",
+              "mpisqr": u"$m^2_{\pi}$", "2mksqr-mpisqr": u"$2m^2_{K}-m^2_{\pi}$" }
 
     axe.set_xlabel(xlabel[options.xaxis], **fontsettings)
 
@@ -356,7 +310,7 @@ def plot_mass(options):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="average data files")
 
-    axis_choices = ["mud", "mud_s", "mpi", "mpisqr"]
+    axis_choices = ["mud", "mud_s", "mpi", "mpisqr", "2mksqr-mpisqr"]
 
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="increase output verbosity")
