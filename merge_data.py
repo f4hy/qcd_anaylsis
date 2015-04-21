@@ -75,9 +75,7 @@ class filewriter:
         def index(i, period):
             new = i+self.shift
             if new >= period:
-                print i, new - period
                 return new - period
-            print i, new
             return new
             # if i >= self.shift:
             #     print i, i+self.shift-period
@@ -98,7 +96,17 @@ def split_data(args):
 
     ofile = None
 
-    infiles = [open(fname) for fname in args.files]
+    linecounts = [sum(1 for line in open(fname)) for fname in args.files]
+    print linecounts
+
+    target = max(linecounts)
+    prunedfiles = [f for c,f in zip(linecounts, args.files) if c == target]
+
+    for f in args.files:
+        if f not in prunedfiles:
+            logging.error("incomplete files {}".format(f))
+
+    infiles = [open(fname) for fname in prunedfiles]
 
     data_info = {"flavor":None, "snk":None, "src":None, "correlatortype":None}
     fw = filewriter(data_info, args.shift)
@@ -115,7 +123,7 @@ def split_data(args):
             fw = filewriter(data_info, args.shift)
         else:
             # logging.debug("is a data line")
-            for line,f in zip(lines,args.files):
+            for line,f in zip(lines,prunedfiles):
                 fw.add_data(line,f)
 
     logging.info("Done!")
@@ -129,6 +137,8 @@ if __name__ == "__main__":
                         help="stub of name to write output to")
     parser.add_argument("-s", "--shift", type=int, default=0, required=False,
                         help="shift the times on the data")
+    parser.add_argument('--err', nargs='?', type=argparse.FileType('w'),
+                        default=None)
     parser.add_argument('files', metavar='f', type=str, nargs='+',
                         help='files to plot')
 
@@ -139,6 +149,14 @@ if __name__ == "__main__":
         logging.debug("Verbose debuging mode activated")
     else:
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+
+    if args.err is not None:
+        root = logging.getLogger()
+        ch = logging.StreamHandler(args.err)
+        ch.setLevel(logging.ERROR)
+        formatter = logging.Formatter('%(levelname)s: %(message)s')
+        ch.setFormatter(formatter)
+        root.addHandler(ch)
 
 
     split_data(args)
