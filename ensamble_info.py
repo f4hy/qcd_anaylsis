@@ -20,7 +20,12 @@ class data_params(object):
     def __init__(self, filename):
         self.filename = filename
         self.ud_mass = float(re.search("mud([0-9]\.[0-9]*)_", filename).group(1))
-        self.s_mass = float(re.search("ms([0-9]\.[0-9]*)", filename).group(1))
+        strange_mass = re.search("ms([a-z0-9.]+)", filename).group(1)
+        try:
+            self.s_mass = float(strange_mass)
+        except ValueError:
+            logging.warning("Found strange mass to be {}".format(strange_mass))
+            self.s_mass = strange_mass
         self.beta = re.search("_b(4\.[0-9]*)_", filename).group(1)
         try:
             self.smearing = re.search("fixed_(.*)/", filename).group(1)
