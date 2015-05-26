@@ -101,7 +101,7 @@ def strange_legend(s_mass):
         mark = s_mass_marks[s_mass]
     return mark
 
-flavor_color = {"\pi": 'b', "K": 'r', '\eta': 'm', "Hl": 'c', "Hs": 'y'}
+flavor_color = {"\pi": 'b', "K": 'r', '\eta': 'm', "Hl": 'c', "Hs": 'y', "HH": 'g'}
 
 
 def colors_and_legend(data_properties, one_beta, one_flavor):
@@ -163,6 +163,7 @@ def plot_decay_constant(options):
     flavor_patches = [mpatches.Patch(color=c, label='${}$'.format(l)) for l,c in flavor_color.iteritems() ]
     heavy_patches = [mpatches.Patch(color=c, label='${}$'.format(l)) for l,c in flavor_color.iteritems() ]
 
+    has_shifted = any("msshifted" in f for f in options.files)
 
 
     one_beta = all_same_beta(options.files)
@@ -193,14 +194,18 @@ def plot_decay_constant(options):
 
         color = colors_and_legend(p, one_beta, one_flavor)
 
-        if "48x96x12" in f:
-            logging.info("48x96x12!!!!")
-            color = 'g'
-            latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", f).group(1)
+        # if "48x96x12" in f:
+        #     logging.info("48x96x12!!!!")
+        #     color = 'g'
+        #     latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", f).group(1)
             # if latsize not in added_handles:
-            #     legend_handles.append(mpatches.Patch(color=color, label=))
+            #     legend_handles.append(mpatches.Patch(color=color, label=r"$\beta = 4.17 48x96$"))
             #     added_handles.append(latsize)
 
+        alpha = 1.0
+        if "32x64" in f and p.ud_mass < 0.004:
+            alpha = 0.3
+            color="#9999FF"
 
         xs = xvalues(options.xaxis, p, options)
         x = xs.median()
@@ -214,8 +219,12 @@ def plot_decay_constant(options):
         if options.scalesquared:
             scalepower = 2.0
 
+        if has_shifted and p.s_mass != "shifted":
+            alpha = 0.3
+
+
         plotsettings = dict(linestyle="none", c=color, marker=mark, label=label, ms=8, elinewidth=3, capsize=8,
-                            capthick=2, mec=color, mew=3, aa=True, mfc=mfc, fmt='o', ecolor=color)
+                            capthick=2, mec=color, mew=3, aa=True, mfc=mfc, fmt='o', ecolor=color, alpha=alpha)
         index+=1
         logging.info("plotting {} {} {}".format(x,y,e))
         if options.scale:
@@ -258,6 +267,8 @@ def plot_decay_constant(options):
         physplot = axe.errorbar(x, y, yerr=err, marker="o", ecolor="k", color="k", label="physical",
                                 ms=15, elinewidth=3, capsize=1, capthick=2, mec=color, mew=3, mfc='m')
         legend_handles.append(physplot)
+        ymax = max(ymax,y)
+        ymin = min(ymin,y)
 
     if options.xrange:
         logging.info("setting x range to {}".format(options.xrange))
@@ -353,6 +364,10 @@ if __name__ == "__main__":
         logging.debug("Verbose debuging mode activated")
     else:
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+
+    for f in args.files:
+        if not os.path.isfile(f):
+            raise argparse.ArgumentTypeError("Argument {} is not a valid file".format(f))
 
     logging.info("Ploting decay constants for: {}".format("\n".join(args.files)))
 
