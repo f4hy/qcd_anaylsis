@@ -2,12 +2,13 @@ import logging
 import pandas as pd
 import re
 
-flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH", "KPratio": "KPratio", "2k-pi": "2m_K-m_\pi"}
+flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH", "KPratio": "KPratio", "2k-pi": "2m_K-m_\pi", "Omega": "\Omega"}
 scale = {"4.17": 2492, "4.35": 3660, "4.47": 4600}
 
 
 def determine_flavor(f):
-    flavors = ["ud-ud", "ud-s", "s-s", "heavy-ud", "heavy-s", "heavy-heavy", "KPratio", "2k-pi"]
+    print f
+    flavors = ["ud-ud", "ud-s", "s-s", "heavy-ud", "heavy-s", "heavy-heavy", "KPratio", "2k-pi", "Omega"]
     for flavor in flavors:
         if flavor in f:
             return flavor
@@ -30,7 +31,8 @@ class data_params(object):
         self.latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
 
         if self.heavyness != "ll":
-            self.heavymass = re.search("_heavy(0.[0-9]*)_", filename).group(1)
+            #self.heavymass = re.search("_heavy(0.[0-9]*)_", filename).group(1)
+            self.heavymass = re.search("_([ms][012])_", filename).group(1)
         else:
             self.heavymass = None
 
