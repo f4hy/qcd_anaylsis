@@ -91,7 +91,6 @@ def interpolate(data, physical=None):
         slope_guess = (max(mmass)-min(mmass)) / (max(cmass) - min(cmass))
         int_guess = min(mmass) - min(cmass)*slope_guess
         guess = [slope_guess, int_guess]
-        guess = [slope_guess, 0.0]
         logging.info("guessing a line with y={}x+{}".format(*guess))
         best_fit, _, info, mesg, ierr = leastsq(line, guess, args=(A, B), maxfev=10000, full_output=True)
         fits.append(best_fit)
@@ -148,8 +147,8 @@ def write_shifted_data(shifted_data, mcc, output_stub, suffix):
     logging.info("writing shifted data to {}".format(outfilename))
     with open(outfilename, "w") as ofile:
         ofile.write("#{}, {}, {}\n".format(mcc, shifted_data.mean(), shifted_data.std()))
-        for i in shifted_data:
-            ofile.write("{}\n".format(i))
+        for i,d in enumerate(shifted_data):
+            ofile.write("{}, {}\n".format(i, d))
     return
 
 
