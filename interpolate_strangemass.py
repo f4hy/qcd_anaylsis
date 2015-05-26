@@ -132,6 +132,8 @@ def display_plots(outstub, physical_x, physical_y, beta):
 
     if outstub is not None:
         filename = outstub+".png"
+        if args.eps:
+            filename = outstub+".eps"
         logging.info("Saving plot to {}".format(filename))
         plt.savefig(filename, dpi=200)
     else:
@@ -146,6 +148,16 @@ def write_weights(weights, output_stub, suffix):
     logging.info("writing strangeweights to {}".format(outfilename))
     with open(outfilename, "w") as ofile:
         ofile.write("{}, {}\n".format(*weights))
+
+
+def write_smass(smass, output_stub, suffix):
+    if output_stub is None:
+        logging.info("Not writing output")
+        return
+    outfilename = output_stub + suffix
+    logging.info("writing smass to {}".format(outfilename))
+    with open(outfilename, "w") as ofile:
+        ofile.write("{}\n".format(smass))
 
 
 def interpolate_strangemass(options):
@@ -182,6 +194,13 @@ def interpolate_strangemass(options):
 
     write_weights(weights, options.output_stub, ".strangeweights")
 
+    s1,s2 = alldata.keys()
+    if s1 > s2:
+        smass = weights[1]*s1 + weights[0]*s2
+    else:
+        smass = weights[0]*s1 + weights[1]*s2
+    write_smass(smass, options.output_stub, ".smass")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="script to interpolate the heavy mass")
@@ -191,6 +210,8 @@ if __name__ == "__main__":
                         help="stub of name to write output to")
     parser.add_argument("-ms", type=float,
                         help="scale data using given strange mass")
+    parser.add_argument("-e", "--eps", action="store_true",
+                        help="save as eps not png")
     parser.add_argument("--fitdata", required=False, type=str,
                         help="folder for fitdata when needed")
     parser.add_argument('files', metavar='f', type=str, nargs='+',
