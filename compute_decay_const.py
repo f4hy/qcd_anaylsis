@@ -59,17 +59,43 @@ def read_file(filename):
     return df
 
 
+def residual_mass(udmass, smass):
+    residual_masses = {(0.019, 0.030): 0.00047, (0.012, 0.030): 0.00040, (0.007, 0.030): 0.00042,
+                        (0.019, 0.040): 0.00041, (0.012, 0.040): 0.00044, (0.007, 0.040): 0.00038,
+                        (0.0035, 0.040): 0.00039,
+                        (0.008, 0.018): 0.00000, (0.008, 0.025): 0.00000,
+                        (0.012, 0.018): 0.000053, (0.012, 0.025): 0.000032,
+                        (0.0042, 0.018): 0.00000, (0.0042, 0.025): 0.00000 ,
+                        (0.0030, 0.0150): 0.00000}
+
+    try:
+        return residual_masses[(udmass, smass)]
+    except KeyError:
+        return 0.0
+
+
 def decay_constant(filename, options):
     logging.info("Reading bootstraped fit values from {}".format(filename))
 
     df = read_file(filename)
+
+    beta = re.search("_b(4\.[0-9]*)_", filename).group(1)
+
     masses = {}
     masses["ud"] = float(re.search("mud([0-9]\.[0-9]*)_", filename).group(1))
-    masses["s"] = float(re.search("ms([0-9]\.[0-9]*)", filename).group(1))
+
+
+    strange_mass = re.search("ms([a-z0-9.]+)", filename).group(1)
+    try:
+        masses["s"] = float(strange_mass)
+    except ValueError:
+        logging.warning("Found strange mass to be {}".format(strange_mass))
+        if strange_mass == "shifted":
+            with open("ms/{}.smass".format(beta)) as smassfile:
+                masses["s"] = float(smassfile.readline())
     flavor = re.search("_([a-z]*-[a-z]*)_", f).group(1)
     smearing = re.search("([0-2]_[0-2])", filename).group(1)
 
-    beta = re.search("_b(4\.[0-9]*)_", filename).group(1)
     size = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
 
 
@@ -81,26 +107,17 @@ def decay_constant(filename, options):
     if heavyness != "ll" and options.heavyquarkmass is None:
         raise RuntimeError("heavy mass must be specified for heavy quarks")
 
-    resisdual_masses = {(0.019, 0.030): 0.00047, (0.012, 0.030): 0.00040, (0.007, 0.030): 0.00042,
-                        (0.019, 0.040): 0.00041, (0.012, 0.040): 0.00044, (0.007, 0.040): 0.00038,
-                        (0.0035, 0.040): 0.00039,
-                        (0.008, 0.018): 0.00000, (0.008, 0.025): 0.00000,
-                        (0.012, 0.018): 0.000053, (0.012, 0.025): 0.000032,
-                        (0.0042, 0.018): 0.00000, (0.0042, 0.025): 0.00000 ,
-                        (0.0030, 0.0150): 0.00000}
 
 
     quarktype1, quarktype2 = re.search("_([a-z][a-z]*-[a-z][a-z]*)_", filename).group(1).split("-")
     logging.debug("quarktypes".format(quarktype1, quarktype2))
 
     if heavyness == "ll":
-        quarkmass1 = masses[quarktype1]+resisdual_masses[(masses["ud"], masses["s"])]
-        quarkmass2 = masses[quarktype2]+resisdual_masses[(masses["ud"], masses["s"])]
+        quarkmass1 = masses[quarktype1]+residual_mass(masses["ud"], masses["s"])
+        quarkmass2 = masses[quarktype2]+residual_mass(masses["ud"], masses["s"])
     else:
         quarkmass1 = masses[quarktype1]
         quarkmass2 = masses[quarktype2]
-
-
 
     if options.function == "axial":
         decay_constant = np.sqrt( (quarkmass1 + quarkmass2)*2*df.amp / (df.mass**2))
@@ -117,14 +134,14 @@ def decay_constant(filename, options):
 
 
     if options.out_stub:
-        if heavyness != "ll":
-            heavyness = heavyness+"_heavy{}".format(options.heavyquarkmass)
+        # if heavyness != "ll":
+        #     heavyness = heavyness+"_heavy{}".format(options.heavyquarkmass)
         f1, f2 = flavor.split("-")
         logging.debug("flavors {},{}".format(f1, f2))
-        x = masses[f1]+resisdual_masses[(masses["ud"], masses["s"])]
+        x = masses[f1]+residual_mass(masses["ud"], masses["s"])
         header = "#{}, {}, {}\n".format(x, decay_constant.mean(), decay_constant.std())
         logging.info(header)
-        outfilename = "{}_{}_{}_{}_b{}_mud{}_ms{}_decayconstant_{}-{}.boot".format(options.out_stub, size, heavyness, smearing, beta, masses["ud"], masses["s"],
+        outfilename = "{}_{}_{}_{}_b{}_mud{}_ms{}_decayconstant_{}-{}.boot".format(options.out_stub, size, heavyness, smearing, beta, masses["ud"], strange_mass,
                                                                                   quarktype1, quarktype2)
         logging.info("Writing bootstraped decay constants to {}".format(outfilename))
         csv_txt = decay_constant.to_csv(None, sep=" ", index=False, header=False)
@@ -133,7 +150,7 @@ def decay_constant(filename, options):
             outfile.write(csv_txt)
     else:
         print(decay_constant)
-        print("{}, {}, {}\n".format(masses["ud"]+resisdual_masses[(masses["ud"], masses["s"])], decay_constant.mean(), decay_constant.std()))
+        print("{}, {}, {}\n".format(masses["ud"]+residual_mass(masses["ud"], masses["s"]), decay_constant.mean(), decay_constant.std()))
 
 if __name__ == "__main__":
     functs = ["axial", "standard", "simul00-01", "simul00-11", "simul01-11", "axialsimul", "axialsimul01-11", "axialsimul00-11"]
