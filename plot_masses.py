@@ -78,36 +78,47 @@ legend_handles = []
 added_handles = []
 s_mass_marks = {}
 markers = ['o', "D", "^", "<", ">", "v", "x", "p", "8", 'o', "D"]
-colors = ['b', 'r', 'k', 'm', 'c', 'y', 'b', 'r', 'k', 'm', 'c', 'y']
+colors = ['b', 'r', 'k', 'm', 'c', 'y', 'b', 'r', 'k', 'm', 'c', 'y']*2
 
 beta_colors = {"4.17": 'b', "4.35": 'r', "4.47": 'k'}
 
-heavy_color = {"m0": 'b', "m1": 'r', 'm2': 'm', 's0': 'c'}
+heavy_colors = {"m0": 'b', "m1": 'r', 'm2': 'm', 's0': 'c'}
 heavy_colors = {}
-
+s_mass_colors = {}
 smearing_colors = {}
 
-def strange_legend(s_mass):
-    if s_mass not in added_handles:
-        s_mass_marks[s_mass] = markers.pop()
-        mark = s_mass_marks[s_mass]
-        smass_leg = mlines.Line2D([], [], color='black', marker=s_mass_marks[s_mass], mfc='white', mew=3, lw=0,
-                                markersize=18, label='$m_s={}$'.format(s_mass))
-        #legend_handles.append(smass_leg)
-        added_handles.append(s_mass)
-    else:
-        mark = s_mass_marks[s_mass]
-    return mark
 
 flavor_color = {"\pi": 'b', "K": 'r', '\eta': 'm', "Hl": 'c', "Hs": 'y'}
 
 
-def colors_and_legend(data_properties, one_beta, one_flavor, one_heavy):
+def colors_and_legend(data_properties, legend_mode="beta"):
+
 
     p = data_properties
 
+    if p.s_mass not in s_mass_marks.keys():
+        s_mass_marks[p.s_mass] = markers.pop()
+        mark = s_mass_marks[p.s_mass]
+        smass_leg = mlines.Line2D([], [], color='black', marker=s_mass_marks[p.s_mass], mfc='white', mew=3, lw=0,
+                                markersize=18, label='$m_s={}$'.format(p.s_mass))
+        #legend_handles.append(smass_leg)
+        #added_handles.append(p.s_mass)
+    else:
+        mark = s_mass_marks[p.s_mass]
 
-    if p.heavyness != "ll" and not one_heavy:
+
+    if legend_mode == "strange":
+        if p.s_mass not in added_handles:
+            s_mass_colors[p.s_mass] = colors.pop()
+            color = s_mass_colors[p.s_mass]
+            legend_handles.append(mpatches.Patch(color=color, label='$ms:{}$'.format(p.s_mass)))
+            added_handles.append(p.s_mass)
+        else:
+            color = s_mass_colors[p.s_mass]
+        return mark, color
+
+
+    if legend_mode == "heavy":
         if p.heavymass not in added_handles:
             heavy_colors[p.heavymass] = colors.pop()
             color = heavy_colors[p.heavymass]
@@ -115,10 +126,10 @@ def colors_and_legend(data_properties, one_beta, one_flavor, one_heavy):
             added_handles.append(p.heavymass)
         else:
             color = heavy_colors[p.heavymass]
-        return color
+        return mark, color
 
 
-    if one_beta and one_flavor:
+    if legend_mode == "smearing":
         logging.info("Only one beta nd one flavor given, using smearing")
         if p.smearing not in added_handles:
             smearing_colors[p.smearing] = colors.pop()
@@ -127,23 +138,23 @@ def colors_and_legend(data_properties, one_beta, one_flavor, one_heavy):
             added_handles.append(p.smearing)
         else:
             color = smearing_colors[p.smearing]
-        return color
+        return mark, color
 
 
-
-    if one_beta:
+    if legend_mode == "flavor":
         color = flavor_color[p.flavor]
         if p.flavor not in added_handles:
             legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(p.flavor)))
             added_handles.append(p.flavor)
-        return color
+        return mark, color
 
-    color = beta_colors[p.beta]
-    if p.beta not in added_handles:
-        mylabel = r'$\beta = {}$'.format(p.beta)
-        legend_handles.append(mpatches.Patch(color=beta_colors[p.beta], label=mylabel))
-        added_handles.append(p.beta)
-    return color
+    if legend_mode == "beta":
+        color = beta_colors[p.beta]
+        if p.beta not in added_handles:
+            mylabel = r'$\beta = {}$'.format(p.beta)
+            legend_handles.append(mpatches.Patch(color=beta_colors[p.beta], label=mylabel))
+            added_handles.append(p.beta)
+        return mark, color
 
 
 def read_bootstraps(f, options):
@@ -173,6 +184,7 @@ def plot_mass(options):
     flavor_patches = [mpatches.Patch(color=c, label='${}$'.format(l)) for l,c in flavor_color.iteritems() ]
     heavy_patches = [mpatches.Patch(color=c, label='${}$'.format(l)) for l,c in flavor_color.iteritems() ]
 
+    has_shifted = any("msshifted" in f for f in options.files)
 
     one_heavy = all_same_heavy(options.files)
     one_beta = all_same_beta(options.files)
@@ -199,14 +211,14 @@ def plot_mass(options):
 
         mfc = 'white'
 
-        mark = strange_legend(p.s_mass)
+        # mark = strange_legend(p.s_mass)
 
-        color = colors_and_legend(p, one_beta, one_flavor, one_heavy)
+        mark, color = colors_and_legend(p, options.legend_mode)
 
-        if "48x96x12" in f:
-            logging.info("48x96x12!!!!")
-            color = 'g'
-            latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", f).group(1)
+        # if "48x96x12" in f:
+        #     logging.info("48x96x12!!!!")
+        #     color = 'g'
+        #     latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", f).group(1)
             # if latsize not in added_handles:
             #     legend_handles.append(mpatches.Patch(color=color, label=))
             #     added_handles.append(latsize)
@@ -216,9 +228,12 @@ def plot_mass(options):
         x = xs.median()
         xerr = xs.std()
 
+        alpha = 1.0
+        if has_shifted and p.s_mass != "shifted":
+            alpha = 0.3
 
         plotsettings = dict(linestyle="none", c=color, marker=mark, label=label, ms=8, elinewidth=3, capsize=8,
-                            capthick=2, mec=color, mew=3, aa=True, mfc=mfc, fmt='o', ecolor=color)
+                            capthick=2, mec=color, mew=3, aa=True, mfc=mfc, fmt='o', ecolor=color, alpha=alpha)
         index+=1
 
         y = data.mean()
@@ -253,8 +268,10 @@ def plot_mass(options):
         x_physicals = {"mud": 2.2, "mud_s": 97.2, "mpisqr": 138.0**2, "2mksqr-mpisqr": 2*(497.6**2)-138.0**2}
         y, err = options.physical
         physplot = axe.errorbar(x_physicals[options.xaxis], y, yerr=err, marker="o", ecolor="k", color="k", label="physical",
-                                ms=15, elinewidth=3, capsize=1, capthick=2, mec=color, mew=3, mfc='m')
+                                ms=15, elinewidth=3, capsize=1, capthick=2, mec="k", mew=3, mfc='m')
         legend_handles.append(physplot)
+        ymax = max(ymax,y)
+        ymin = min(ymin,y)
 
     if options.xrange:
         logging.info("setting x range to {}".format(options.xrange))
@@ -311,6 +328,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="average data files")
 
     axis_choices = ["mud", "mud_s", "mpi", "mpisqr", "2mksqr-mpisqr"]
+    legend_choices = ["beta", "strange", "flavor", "heavy"]
 
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="increase output verbosity")
@@ -328,6 +346,8 @@ if __name__ == "__main__":
                         help="set the xrange of the plot", default=None)
     parser.add_argument("--xaxis", required=False, choices=axis_choices,
                         help="what to set on the xaxis", default="mud")
+    parser.add_argument("--legend_mode", required=False, choices=legend_choices,
+                        help="what to use for the legend", default="beta")
     parser.add_argument("--fitdata", required=False, type=str,
                         help="folder for fitdata when needed")
     parser.add_argument("-t", "--title", type=str, required=False,
