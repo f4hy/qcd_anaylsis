@@ -2,13 +2,13 @@ import logging
 import pandas as pd
 import re
 
-flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH", "KPratio": "KPratio", "2k-pi": "2m_K-m_\pi", "Omega": "\Omega"}
+flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH", "KPratio": "KPratio", "2k-pi": "2m_K-m_\pi", "Omega": "\Omega", 't0': 't_0', 'w0': "w_0"}
 scale = {"4.17": 2492, "4.35": 3660, "4.47": 4600}
 
 
 def determine_flavor(f):
     print f
-    flavors = ["ud-ud", "ud-s", "s-s", "heavy-ud", "heavy-s", "heavy-heavy", "KPratio", "2k-pi", "Omega"]
+    flavors = flavor_map.keys()
     for flavor in flavors:
         if flavor in f:
             return flavor
@@ -32,14 +32,28 @@ class data_params(object):
         except:
             self.smearing = "none"
         self.flavor = flavor_map[determine_flavor(filename)]
-        self.heavyness = re.search("_([a-z][a-z0-9])_", filename).group(1)
-        self.latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
 
-        if self.heavyness != "ll":
+        try:
+            self.latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
+        except AttributeError:
+            self.latsize = None
+
+        try:
+            self.heavyness = re.search("_([a-z][a-z0-9])_", filename).group(1)
+        except AttributeError:
+            self.heavyness = None
+
+        if self.heavyness != "ll" and self.heavyness is not None:
             #self.heavymass = re.search("_heavy(0.[0-9]*)_", filename).group(1)
             self.heavymass = re.search("_([ms][012])_", filename).group(1)
         else:
             self.heavymass = None
+
+    def __repr__(self):
+        if self.heavyness == "ll":
+            return "{}_{}_{}_{}_{}_{}".format(self.beta, self.latsize, self.ud_mass, self.s_mass, self.flavor, self.heavyness)
+        else:
+            return "{}_{}_{}_{}_{}_{}_{}".format(self.beta, self.latsize, self.ud_mass, self.s_mass, self.flavor, self.heavyness, self.heavymass)
 
 
 def read_fit_mass(data_properties, flavor, fitdata):
