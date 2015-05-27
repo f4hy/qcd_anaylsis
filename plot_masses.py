@@ -76,6 +76,7 @@ def xvalues(xaxis_type, data_properties, options):
 
 legend_handles = []
 added_handles = []
+summary_lines = []
 s_mass_marks = {}
 markers = ['o', "D", "^", "<", ">", "v", "x", "p", "8", 'o', "D"]
 colors = ['b', 'r', 'k', 'm', 'c', 'y', 'b', 'r', 'k', 'm', 'c', 'y']*2
@@ -239,6 +240,8 @@ def plot_mass(options):
         y = data.mean()
         e = data.std()
 
+        summary_lines.append("{}, {}, {}\n".format(p, y, e))
+
         logging.info("plotting {} {} {}".format(x,y,e))
         if options.scale:
             if options.box:
@@ -291,7 +294,6 @@ def plot_mass(options):
         else:
             plt.ylim(auto_fit_range(ymin, ymax))
 
-
     if options.title:
         axe.set_title(options.title, **fontsettings)
 
@@ -313,6 +315,11 @@ def plot_mass(options):
     if not options.box:
         leg = axe.legend(handles=sorted(legend_handles), loc=0, **fontsettings )
     if(options.output_stub):
+        summaryfilename = options.output_stub + ".txt"
+        logging.info("Writting summary to {}".format(summaryfilename))
+        with open(summaryfilename, 'w') as summaryfile:
+            for i in summary_lines:
+                summaryfile.write(i)
         fig.set_size_inches(18.5, 10.5)
         if args.eps:
             logging.info("Saving plot to {}".format(options.output_stub+".eps"))
@@ -322,6 +329,7 @@ def plot_mass(options):
             plt.savefig(options.output_stub+".png", dpi=200)
         return
 
+    print "".join(summary_lines)
     plt.show()
 
 if __name__ == "__main__":

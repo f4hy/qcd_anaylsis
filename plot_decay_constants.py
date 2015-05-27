@@ -14,7 +14,7 @@ from cStringIO import StringIO
 import numpy as np
 import re
 
-from residualmasses import residual_masses
+from residualmasses import residual_mass
 
 import plot_helpers
 
@@ -57,11 +57,11 @@ def xvalues(xaxis_type, data_properties, options):
         s = 1.0
 
     if xaxis_type == "mud":
-        residual = residual_masses[(data_properties.ud_mass, data_properties.s_mass)]
+        residual = residual_mass(data_properties.ud_mass, data_properties.s_mass)
         return pd.Series(s*(data_properties.ud_mass + residual))
 
     if xaxis_type == "mud_s":
-        residual = residual_masses[(data_properties.ud_mass, data_properties.s_mass)]
+        residual = residual_mass(data_properties.ud_mass, data_properties.s_mass)
         return pd.Serites(s*(data_properties.ud_mass + residual + data_properties.s_mass + residual))
 
     if xaxis_type == "mpisqr":
@@ -78,6 +78,7 @@ def xvalues(xaxis_type, data_properties, options):
 
 legend_handles = []
 added_handles = []
+summary_lines = []
 s_mass_marks = {}
 markers = ['o', "D", "^", "<", ">", "v", "x", "p", "8", 'o', "D"]
 colors = ['b', 'r', 'k', 'm', 'c', 'y', 'b', 'r', 'k', 'm', 'c', 'y']
@@ -215,6 +216,8 @@ def plot_decay_constant(options):
         e = float(df.std().values)
         e = plot_helpers.error(df.values)
 
+        summary_lines.append("{}, {}, {}\n".format(p, y, df.std().values))
+
         scalepower = 1.0
         if options.scalesquared:
             scalepower = 2.0
@@ -313,6 +316,12 @@ def plot_decay_constant(options):
     if not options.box:
         leg = axe.legend(handles=sorted(legend_handles), loc=0, **fontsettings )
     if(options.output_stub):
+        summaryfilename = options.output_stub + ".txt"
+        logging.info("Writting summary to {}".format(summaryfilename))
+        with open(summaryfilename, 'w') as summaryfile:
+            for i in summary_lines:
+                summaryfile.write(i)
+
         fig.set_size_inches(18.5, 10.5)
         if args.eps:
             logging.info("Saving plot to {}".format(options.output_stub+".eps"))
@@ -322,6 +331,7 @@ def plot_decay_constant(options):
             plt.savefig(options.output_stub+".png", dpi=200)
         return
 
+    print "".join(summary_lines)
     plt.show()
 
 if __name__ == "__main__":
