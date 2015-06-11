@@ -124,7 +124,7 @@ def interpolate(data):
 
 
 
-def plot_fitline(data, fit_params, ftype, physical, phys_t0, outstub):
+def plot_fitline(data, fit_params, ftype, physical, outstub):
     logging.info("ploting")
     size = 100
 
@@ -168,9 +168,6 @@ def plot_fitline(data, fit_params, ftype, physical, phys_t0, outstub):
 
     plt.errorbar(physical, phys_y, yerr=np.sqrt(physical_variance), color="r", mec="r", **plotsettings)
 
-    ainv = hbar_c * phys_y / phys_t0
-    var_ainv = hbar_c * np.sqrt(physical_variance) / phys_t0
-    logging.info("ainv = {} +/- {}".format(ainv, var_ainv))
 
     perror = np.sqrt(physical_variance)
 
@@ -202,20 +199,14 @@ def finish_plot(beta, ftype, xlabel, legend_handles, outstub):
         plt.show()
 
 
-def write_data(intersects, a_invs, output_stub, suffix):
+def write_data(t0_ch, a_inv, a_inv_err, output_stub, suffix):
     if output_stub is None:
         logging.info("Not writing output")
         return
     outfilename = output_stub + suffix
     logging.info("writing a_inv to {}".format(outfilename))
     with open(outfilename, "w") as ofile:
-        try:
-            ofile.write("# mean: {}, {}\n".format(np.mean(intersects), np.mean(a_invs)))
-        except:
-            ofile.write("# mean: {}\n".format(np.mean(intersects)))
-
-        for i,a in zip(intersects,a_invs):
-            ofile.write("{}, {}\n".format(i, a))
+        ofile.write("{}, {} +/- {}\n".format(t0_ch, a_inv, a_inv_err))
 
 
 
@@ -268,22 +259,15 @@ def interpolate_wilsonflow(options):
         fitstring = ", ".join(["{}: {:.6f} +/- {:.6f}".format(k,v,fit_params.errors[k]) for k,v in fit_params.values.iteritems()])
         logging.info("fit parameters found to be {}".format(fitstring))
 
+        phys_t0 =  0.1465
 
+        phys_y, phys_err = plot_fitline(data_group, fit_params, ftype, physical, options.output_stub)
 
+        ainv = hbar_c * phys_y / phys_t0
+        ainv_err = hbar_c * phys_err / phys_t0
+        logging.info("ainv = {} +/- {}".format(ainv, ainv_err))
 
-
-        # if options.physical:
-        #     ainvs = [hbar_c * i / options.physical for i in intersects]
-        # else:
-        #     ainvs = [None for i in intersects]
-
-        # ainv
-
-        pfit = plot_fitline(data_group, fit_params, ftype, physical, 0.1465, options.output_stub)
-
-        #legend_handles.append(pfit)
-
-        #write_data(intersects , ainvs , options.output_stub, "_{}.a_inv".format(strange))
+        write_data(phys_y , ainv, ainv_err, options.output_stub, "_a_inv")
 
 
     xlabels = {"mud": r"$t_0^{1/2} m_{ud}$", "tmpisqr": r"$t_0 (m_{\pi})^2$",
