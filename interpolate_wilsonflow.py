@@ -96,7 +96,7 @@ def interpolate(data):
     return m
 
 
-def plot_fitline(data, fit_params, ftype, physical, outstub):
+def plot_fitline(data, fit_params, ftype, phys_x, outstub):
     logging.info("ploting")
 
     c = colors.pop()
@@ -115,10 +115,10 @@ def plot_fitline(data, fit_params, ftype, physical, outstub):
 
         xvalues.append(xvalue)
 
-    xdata = np.arange(physical-0.01, max(xvalues)+0.005, 0.001)
+    xdata = np.arange(phys_x-0.01, max(xvalues)+0.005, 0.001)
     mydata = fit_params.values["A"]*(1+fit_params.values["C"]*xdata)
 
-    phys_y = fit_params.values["A"]*(1+fit_params.values["C"]*physical)
+    t0_ch = fit_params.values["A"]*(1+fit_params.values["C"]*phys_x)
 
     plt.plot(xdata, mydata, color=c)
 
@@ -131,18 +131,18 @@ def plot_fitline(data, fit_params, ftype, physical, outstub):
     plt.fill_between(xdata, mydata, mydata+np.sqrt(perry), facecolor=c, alpha=0.1, lw=0, zorder=-10)
     plt.fill_between(xdata, mydata, mydata-np.sqrt(perry), facecolor=c, alpha=0.1, lw=0, zorder=-10)
 
-    physical_variance = (m.errors["A"]*(1+m.values["C"]*physical))**2
-    physical_variance += ((m.values["A"])*physical*m.errors["C"])**2
-    physical_variance += 2*physical*phys_y*m.covariance[("A", "C")]
+    t0_ch_variance = (m.errors["A"]*(1+m.values["C"]*phys_x))**2
+    t0_ch_variance += ((m.values["A"])*phys_x*m.errors["C"])**2
+    t0_ch_variance += 2*phys_x*t0_ch*m.covariance[("A", "C")]
 
-    plt.errorbar(physical, phys_y, yerr=np.sqrt(physical_variance),
+    plt.errorbar(phys_x, t0_ch, yerr=np.sqrt(t0_ch_variance),
                  color="r", mec="r", **plotsettings)
 
-    perror = np.sqrt(physical_variance)
+    t0_ch_std = np.sqrt(t0_ch_variance)
 
-    logging.info("Determined at physical point t_0 = {:.5f} +/- {:.5f}".format(phys_y, perror))
+    logging.info("Determined at physical point t_0 = {:.5f} +/- {:.5f}".format(t0_ch, t0_ch_std))
 
-    return phys_y, perror
+    return t0_ch, t0_ch_std
 
 
 def finish_plot(beta, ftype, xlabel, legend_handles, outstub):
@@ -194,11 +194,11 @@ def interpolate_wilsonflow(options):
     alldata = read_files(options.files, options.xaxis, options.fitdata)
 
     if options.xaxis == "mud":
-        physical = 0
+        phys_x = 0
     if options.xaxis == "tmpisqr":
-        physical = ((0.1465/hbar_c)*135.0)**2
+        phys_x = ((0.1465/hbar_c)*135.0)**2
     if options.xaxis == "t_2mksqr-mpisqr":
-        physical = ((0.1465/hbar_c)**2)*(2*(495**2) + 138.0**2)
+        phys_x = ((0.1465/hbar_c)**2)*(2*(495**2) + 138.0**2)
 
     legend_handles = []
 
@@ -221,14 +221,14 @@ def interpolate_wilsonflow(options):
 
         phys_t0 = 0.1465
 
-        phys_y, phys_err = plot_fitline(data_group, fit_params, ftype, physical,
+        t0_ch, phys_err = plot_fitline(data_group, fit_params, ftype, phys_x,
                                         options.output_stub)
 
-        ainv = hbar_c * phys_y / phys_t0
+        ainv = hbar_c * t0_ch / phys_t0
         ainv_err = hbar_c * phys_err / phys_t0
         logging.info("ainv = {} +/- {}".format(ainv, ainv_err))
 
-        write_data(phys_y, ainv, ainv_err, options.output_stub, "_a_inv")
+        write_data(t0_ch, ainv, ainv_err, options.output_stub, "_a_inv")
 
     xlabels = {"mud": r"$t_0^{1/2} m_{ud}$", "tmpisqr": r"$t_0 (m_{\pi})^2$",
                "t_2mksqr-mpisqr": r"$t_0 (2m_k^2+m_{\pi}^2)^2$"}
