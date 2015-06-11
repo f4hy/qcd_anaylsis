@@ -6,145 +6,126 @@ import pandas as pd
 import re
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import matplotlib.colors as pltcolors
 from scipy.optimize import leastsq
 import glob
+from iminuit import Minuit
 
 colors = ['b', 'k', 'c', 'y', 'm', 'b']
 #colors = ['c', 'm', 'k', 'm', 'c', 'y', 'b', 'r', 'k', 'm', 'c', 'y']
+
+# hbar*c / 1 fm  = 197.327 MeV
+hbar_c = 197.327
+
+
+from residualmasses import residual_mass
 
 from ensamble_info import flavor_map, scale, data_params, determine_flavor, read_fit_mass
 from ensamble_info import all_same_beta, all_same_heavy, all_same_flavor
 
 
-def read_files(files):
+def read_files(files, xtype, fitdata):
     data = {}
 
     N = None
 
     for f in files:
         print f
-        mud = float(re.search("_mud(0\.[0-9]*)_", f).group(1))
-        strange_mass = re.search("ms([a-z0-9.]+)", f).group(1)
-        strange_mass = strange_mass.replace(".jack", "")
-        try:
-            strange_mass = float(strange_mass)
-        except:
-            pass
+        dp = data_params(f)
+
+        mud = dp.ud_mass
+        strange_mass = re.search("ms([a-z0-9].+)", f).group(1)
+        strange_mass = dp.s_mass
+
 
         if strange_mass == "shifted":
             strange_mass = "interpolated"
 
-        if strange_mass not in data.keys():
-            data[strange_mass] = []
-
         df = pd.read_csv(f, comment='#', names=["flow"])
 
-        if N is None:
-            N = len(df.flow.values)
-        else:
-            if len(df.flow.values) != N:
-                logging.warn("Size missmatch in {}!".format(f))
-                continue
+        xvalue = xvalues(xtype, dp, fitdata, t_0=np.mean(df.flow.values))
 
-        data[strange_mass].append((mud, df.flow.values))
+        data[dp] = (np.mean(xvalue), df.flow.values)
 
 
     return data
 
 
-def xvalues(xaxis_type, data_properties, options):
+def xvalues(xaxis_type, data_properties, fitdata, t_0=None):
     logging.info("using xaxis type {}".format(xaxis_type))
 
-    if options.scale:
-        s = scale[data_properties.beta]
-    else:
-        s = 1.0
 
     if xaxis_type == "mud":
         residual = residual_mass(data_properties.ud_mass, data_properties.s_mass)
-        return pd.Series(s*(data_properties.ud_mass + residual))
+        return (t_0)*pd.Series((data_properties.ud_mass + residual))
 
     if xaxis_type == "mud_s":
         residual = residual_mass(data_properties.ud_mass, data_properties.s_mass)
-        return pd.Serites(s*(data_properties.ud_mass + residual + data_properties.s_mass + residual))
+        return pd.Serites((data_properties.ud_mass + residual + data_properties.s_mass + residual))
 
-    if xaxis_type == "mpisqr":
-        pionmass = read_fit_mass(data_properties, "ud-ud", options.fitdata)
-        return (s*pionmass)**2 #*pionmass
+    if xaxis_type == "tmpisqr":
+        pionmass = read_fit_mass(data_properties, "ud-ud", fitdata)
+        return ((t_0)*pionmass)**2 #*pionmass
 
-    if xaxis_type == "2mksqr-mpisqr":
-        pionmass = read_fit_mass(data_properties, "ud-ud", options.fitdata)
-        kaonmass = read_fit_mass(data_properties, "ud-s", options.fitdata)
-        return 2.0*(s*kaonmass)**2 - (s*pionmass)**2
-
-
-
-def get_physical_point(physical, line_params):
-    m, b = line_params
-    mcc = (physical - b)/m
-    return mcc
+    if xaxis_type == "t_2mksqr-mpisqr":
+        pionmass = read_fit_mass(data_properties, "ud-ud", fitdata)
+        kaonmass = read_fit_mass(data_properties, "ud-s", fitdata)
+        return (t_0)**2*(2.0*(kaonmass)**2 + (pionmass)**2)
 
 
-def interpolate(data, funct="line", physical=None):
 
-    logging.info("using the physical value {}".format(physical))
+def interpolate(data):
 
-    muds = []
+    logging.info("Fitting data")
+
+
+    dps = []
+    xvalues = []
     flows = []
+    variances = []
     fits = []
 
-
-    for mud, flow in data:
-        muds.append(mud)
-        flows.append(flow)
-
-
-    Nconfigs = len(flows[0])
-
-    def line(v, x, y):
-        return (v[0]*x+v[1]) - y
-
-    def quad(v, x, y):
-        return (v[0]*x+v[1]+v[2]*(x*x)) - y
-
-    logging.info("Using {} jackknife samples".format(Nconfigs))
-    for i in range(Nconfigs):
-        A = np.array(muds)
-
-        fl = [f[i] for f in flows]
-        B = np.array(fl)
-
-        slope_guess = (min(B)-max(B)) / (max(A) - min(A))
-        int_guess = min(B) - min(A)*slope_guess
-        line_guess = [slope_guess, int_guess]
-        quad_guess = [slope_guess, int_guess, 0.0]
-
-        if funct == "line":
-            logging.debug("guessing a line with y={}x+{}".format(*line_guess))
-            best_fit, _, info, mesg, ierr = leastsq(line, line_guess, args=(A, B), maxfev=10000, full_output=True)
-        elif funct == "quad":
-            logging.debug("guessing a line with y={2}x^2+{0}x+{1}".format(*quad_guess))
-            best_fit, _, info, mesg, ierr = leastsq(quad, quad_guess, args=(A, B), maxfev=10000, full_output=True)
-
-        fits.append(best_fit)
-
-    return fits
+    for dp, d in data.iteritems():
+        dps.append(dp)
+        xvalues.append(d[0])
+        flows.append(np.mean(d[1]))
+        n = float(len(d[1]))
+        variances.append(((n-1)*np.var(d[1])))
 
 
-def gen_line_func(parameters):
+    xvalues = np.array(xvalues)
+    flows = np.array(flows)
+    variances = np.array(variances)
 
-    if len(parameters) == 2:
-        def fitline(x):
-            return parameters[0] * x + parameters[1]
-    else:
-        def fitline(x):
-            return parameters[0] * x + parameters[1] + parameters[2] * (x*x)
+    def weighted_sqr_diff(C, A):
+        sqr_diff = (flows - A*(1+C*xvalues))**2
+        return np.sum(sqr_diff/variances)
+
+    dof = float(len(flows)-2)
+
+    guess_A = np.mean(flows)
+    guess_slope = (min(flows)-max(flows)) / (max(xvalues) - min(xvalues))
+
+    guess = (guess_slope, guess_A)
+
+    m = Minuit(weighted_sqr_diff, C=guess_slope, error_C=guess_slope*0.01,
+               A=guess_A, error_A=guess_A*0.01, errordef=dof,
+               print_level=0, pedantic=True)
+
+    results = m.migrad()
+    logging.debug(results)
+    logging.debug("variances {}".format(variances))
+    logging.debug("std {}".format(np.sqrt(variances)))
+
+    logging.info("chi^2={}, dof={}, chi^2/dof={}".format(m.fval, dof, m.fval/dof))
+    logging.info('covariance {}'.format(m.covariance))
+
+    return m
 
 
-    return fitline
 
-
-def plot_fitline(data, fitlines, med_line, intersects, a_invs, ftype, beta, strangeness, outstub):
+def plot_fitline(data, fit_params, ftype, physical, phys_t0, outstub):
+    logging.info("ploting")
     size = 100
 
     c = colors.pop()
@@ -152,58 +133,54 @@ def plot_fitline(data, fitlines, med_line, intersects, a_invs, ftype, beta, stra
     plotsettings = dict(linestyle="none", ms=8, elinewidth=3, capsize=8,
                         capthick=2, mew=3, aa=True, fmt='o')
 
-    muds = []
-    for mud, flow in data:
+    xvalues = []
+
+    for dp, d in data.iteritems():
+        xvalue, flow = d
         N = len(flow)
         y = np.mean(flow)
         err = np.sqrt((N-1)*(np.std(flow)**2))
-        logging.info("mud={}, {}={}, err={}".format(mud, ftype, y, err))
-        patch = plt.errorbar(mud, y, yerr=err, color=c, ecolor=c, mec=c, **plotsettings)
+        logging.info("{}, {}={}, err={}".format(dp, ftype, y, err))
+        patch = plt.errorbar(xvalue, y, yerr=err, color=c, ecolor=c, mec=c, **plotsettings)
 
+        xvalues.append(xvalue)
 
+    xdata = np.arange(physical-0.01, max(xvalues)+0.005, 0.001)
+    mydata = fit_params.values["A"]*(1+fit_params.values["C"]*xdata)
 
-        muds.append(mud)
-        #plt.scatter(heavymass, mesonmass, s=size)
+    phys_y = fit_params.values["A"]*(1+fit_params.values["C"]*physical)
 
-    xdata = np.arange(-0.001, max(muds)+0.005, 0.001)
-    mydata = np.array([med_line(x) for x in xdata])
     plt.plot(xdata, mydata, color=c)
 
-    it_y = np.mean(intersects)
-    it_err = np.sqrt((N-1)*(np.std(intersects)**2))
-    plt.errorbar(0, it_y, it_err, color="r", mec="r", **plotsettings)
+    m = fit_params
+    t1 = (m.errors["A"]*(1+m.values["C"]*xdata))**2
+    t2 = ((m.values["A"])*xdata*m.errors["C"])**2
+    t3 = 2*xdata*mydata*m.covariance[("A", "C")]
+    perry = t1+t2+t3
+
+    plt.fill_between(xdata, mydata, mydata+np.sqrt(perry),facecolor=c, alpha=0.1, lw=0, color=c, zorder=-10)
+    plt.fill_between(xdata, mydata, mydata-np.sqrt(perry),facecolor=c, alpha=0.1, lw=0, color=c, zorder=-10)
+
+    physical_variance = (m.errors["A"]*(1+m.values["C"]*physical))**2
+    physical_variance += ((m.values["A"])*physical*m.errors["C"])**2
+    physical_variance += 2*physical*phys_y*m.covariance[("A", "C")]
 
 
-    filldatas = []
-    erryp = []
-    errym = []
-    for x in xdata:
-        y = med_line(x)
-        fillys = [y-f(x) for f  in fitlines]
-        erryp.append(y - np.sqrt((N-1)*np.std(fillys)**2))
-        errym.append(y + np.sqrt((N-1)*np.std(fillys)**2))
+    plt.errorbar(physical, phys_y, yerr=np.sqrt(physical_variance), color="r", mec="r", **plotsettings)
 
-    plt.fill_between(xdata, mydata, erryp, facecolor=c, alpha=0.3, lw=0, zorder=-10)
-    plt.fill_between(xdata, mydata, errym, facecolor=c, alpha=0.3, lw=0, zorder=-10)
+    ainv = hbar_c * phys_y / phys_t0
+    var_ainv = hbar_c * np.sqrt(physical_variance) / phys_t0
+    logging.info("ainv = {} +/- {}".format(ainv, var_ainv))
 
+    perror = np.sqrt(physical_variance)
 
-    # logging.info("physical point {}, {}".format(0, intersects))
+    logging.info("Determined at physical point t_0 = {:.5f} +/- {:.5f}".format(phys_y, perror))
 
-    #plt.scatter(0, at_zero, c='r', s=size)
-
-    if a_invs[0] is not None:
-        a_inv = np.mean(a_invs)
-        err_a_inv = np.sqrt((N-1)*(np.std(a_invs)**2))
-
-        text = "{}: {}  -> 1/a = {:.2f} +/- {:.2f} MeV".format(strangeness, it_y, a_inv, err_a_inv)
-        logging.info(text)
-
-        #plt.annotate(text, xy=(0,it_y), xytext=(0.5, it_y), textcoords="axes fraction", arrowprops=dict(facecolor="black"), **fontsettings)
-        return mpatches.Patch(color=c, label=text)
-    return mpatches.Patch(color=c, label="{}".format(strangeness))
+    return phys_y, perror
 
 
-def finish_plot(beta, ftype, legend_handles, outstub):
+
+def finish_plot(beta, ftype, xlabel, legend_handles, outstub):
     fontsettings = dict(fontsize=20)
 
     plotsettings = dict(linestyle="none", ms=8, elinewidth=3, capsize=8,
@@ -211,7 +188,7 @@ def finish_plot(beta, ftype, legend_handles, outstub):
 
     plt.title(r'$\beta={}$    ${}$'.format(beta, ftype), **fontsettings)
     plt.ylabel("${} / a$".format(ftype), **fontsettings)
-    plt.xlabel("m_ud", **fontsettings)
+    plt.xlabel(xlabel, **fontsettings)
 
     plt.legend(handles=sorted(legend_handles), loc=0, **fontsettings )
 
@@ -246,6 +223,8 @@ def interpolate_wilsonflow(options):
     """ script to interpolate the heavy mass """
     logging.debug("Called with {}".format(options))
 
+
+
     try:
         beta = re.search("_b(4\.[0-9]*)_", options.files[0]).group(1)
     except:
@@ -259,47 +238,68 @@ def interpolate_wilsonflow(options):
     else:
         ftype = None
 
-    alldata = read_files(options.files)
+    alldata = read_files(options.files, options.xaxis, options.fitdata)
+
+    if options.xaxis == "mud":
+        physical = 0
+    if options.xaxis == "tmpisqr":
+        physical = ((0.1465/hbar_c)*135.0)**2
+    if options.xaxis == "t_2mksqr-mpisqr":
+        physical = ((0.1465/hbar_c)**2)*(2*(495**2)+ 138.0**2)
+
 
     legend_handles = []
-    for strange,data in alldata.iteritems():
 
-        fit_params = interpolate(data, funct=options.funct)
-        logging.info("fit parameters for mean are {}".format(np.mean(fit_params, axis=0)))
-
-        fitlines = []
-        for i in fit_params:
-            fitlines.append(gen_line_func(i))
-
-        med_line = gen_line_func(np.mean(fit_params, axis=0))
-
-        logging.info("Using physical point {} to set the scale".format(options.physical))
-
-        intersects = [i[1] for i in fit_params]
-        at_zero = np.mean(fit_params, axis=0)[1]
+    stranges = set(i.s_mass for i in alldata.keys())
 
 
-        # hbar*c / 1 fm  = 197.327 MeV
-        hbar_c = 197.327
+    if options.seperate_strange:
+        logging.info("fitting strangeses seperately")
+        groups = [{k:v for k,v in alldata.iteritems() if k.s_mass == s} for s in stranges ]
+    else:
+        logging.info("fitting all data together")
+        groups = [alldata]
 
-        if options.physical:
-            ainvs = [hbar_c * i / options.physical for i in intersects]
-        else:
-            ainvs = [None for i in intersects]
+
+    for data_group in groups:
+
+        fit_params = interpolate(data_group)
+
+        fitstring = ", ".join(["{}: {:.6f} +/- {:.6f}".format(k,v,fit_params.errors[k]) for k,v in fit_params.values.iteritems()])
+        logging.info("fit parameters found to be {}".format(fitstring))
 
 
-        legend_handles.append(plot_fitline(data, fitlines, med_line, intersects, ainvs,
-                                           ftype, beta, strange, options.output_stub))
 
-        write_data(intersects , ainvs , options.output_stub, "_{}.a_inv".format(strange))
 
-    finish_plot(beta, ftype, legend_handles, options.output_stub)
+
+        # if options.physical:
+        #     ainvs = [hbar_c * i / options.physical for i in intersects]
+        # else:
+        #     ainvs = [None for i in intersects]
+
+        # ainv
+
+        pfit = plot_fitline(data_group, fit_params, ftype, physical, 0.1465, options.output_stub)
+
+        #legend_handles.append(pfit)
+
+        #write_data(intersects , ainvs , options.output_stub, "_{}.a_inv".format(strange))
+
+
+    xlabels = {"mud": r"$t_0^{1/2} m_{ud}$", "tmpisqr": r"$t_0 (m_{\pi})^2$",
+               "t_2mksqr-mpisqr": r"$t_0 (2m_k^2+m_{\pi}^2)^2$"}
+    finish_plot(beta, ftype, xlabels[options.xaxis], legend_handles, options.output_stub)
 
 
 if __name__ == "__main__":
+
+    axis_choices = ["mud", "mud_s", "mpi", "tmpisqr", "t_2mksqr-mpisqr"]
+
     parser = argparse.ArgumentParser(description="script to interpolate the heavy mass")
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="increase output verbosity")
+    parser.add_argument("--seperate_strange", action="store_true",
+                        help="fit different strange values seperately")
     parser.add_argument("-o", "--output_stub", type=str, required=False,
                         help="stub of name to write output to")
     parser.add_argument("--spinaverage", action="store_true",
@@ -312,6 +312,10 @@ if __name__ == "__main__":
                         help="which function to fit to")
     parser.add_argument('files', metavar='f', type=str, nargs='+',
                         help='files to plot')
+    parser.add_argument("--fitdata", required=False, type=str,
+                        help="folder for fitdata when needed")
+    parser.add_argument("--xaxis", required=False, choices=axis_choices,
+                        help="what to set on the xaxis", default="mud")
     args = parser.parse_args()
 
     if args.verbose:
@@ -319,5 +323,12 @@ if __name__ == "__main__":
         logging.debug("Verbose debuging mode activated")
     else:
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+
+
+    if args.xaxis == "tmpisqr":
+        for f in args.files:
+            if "t0" not in f:
+                raise argparse.ArgumentTypeError("tmpisqr requires t0 data".format(f))
+
 
     interpolate_wilsonflow(args)
