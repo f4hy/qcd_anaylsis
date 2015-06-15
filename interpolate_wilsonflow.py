@@ -26,6 +26,7 @@ def read_files(files, xtype, fitdata):
         df = pd.read_csv(f, comment='#', names=["flow"])
         xvalue = xvalues(xtype, dp, fitdata, t_0=np.mean(df.flow.values))
 
+        logging.info("read {} giving x={}, y={}".format(dp, np.mean(xvalue), df.flow.mean()))
         data[dp] = (np.mean(xvalue), df.flow.values)
 
     return data
@@ -199,6 +200,8 @@ def interpolate_wilsonflow(options):
         phys_x = ((0.1465/hbar_c)*135.0)**2
     if options.xaxis == "t_2mksqr-mpisqr":
         phys_x = ((0.1465/hbar_c)**2)*(2*(495**2) + 138.0**2)
+
+    logging.info("Attempting to extrapolate to {}={}".format(options.xaxis, phys_x))
 
     legend_handles = []
 
