@@ -52,7 +52,7 @@ def xvalues(xaxis_type, data_properties, fitdata, t_0=None):
         return (t_0)**2*(2.0*(kaonmass)**2 + (pionmass)**2)
 
 
-def interpolate(data):
+def interpolate(data, physical_x):
 
     logging.info("Fitting data")
 
@@ -90,15 +90,15 @@ def interpolate(data):
     variances1 = np.array(variances1)
 
     def weighted_sqr_diff(C, A, B):
-        sqr_diff0 = (flows0 - A*(1+C*xvalues0))**2
-        sqr_diff1 = (flows1 - B*(1+C*xvalues1))**2
+        sqr_diff0 = (flows0 - A*(1+C*(xvalues0-physical_x)))**2
+        sqr_diff1 = (flows1 - B*(1+C*(xvalues1-physical_x)))**2
         return np.sum(sqr_diff0/variances0) + np.sum(sqr_diff1/variances1)
 
     dof = float(len(flows0)+len(flows1))-3.0
 
     guess_A = np.mean(flows0)
     guess_B = np.mean(flows1)
-    guess_slope = (min(flows1)-max(flows1)) / (max(xvalues1) - min(xvalues1))
+    guess_slope = (min(flows1)-max(flows1)) / (max(physical_x-xvalues1) - min(xvalues1-physical_x))
     #guess_slope = -0.3
 
     logging.debug("Guessing {}".format((guess_slope, guess_A, guess_B)))
@@ -119,6 +119,8 @@ def interpolate(data):
     logging.info("errors: {}".format(m.errors))
     logging.info("chi^2={}, dof={}, chi^2/dof={}".format(m.fval, dof, m.fval/dof))
     logging.info('covariance {}'.format(m.covariance))
+
+    #exit(-1)
 
     return m
 
@@ -148,28 +150,32 @@ def plot_fitline(datagroups, fit_params, ftype, phys_x, outstub):
 
 
     xdata = np.arange(phys_x-0.01, max(xvalues)+0.005, 0.001)
+    xdata_phys = xdata-phys_x
 
+    mydata0 = fit_params.values["A"]*(1+fit_params.values["C"]*(xdata_phys))
+    mydata1 = fit_params.values["B"]*(1+fit_params.values["C"]*(xdata_phys))
 
-    mydata0 = fit_params.values["A"]*(1+fit_params.values["C"]*xdata)
-    mydata1 = fit_params.values["B"]*(1+fit_params.values["C"]*xdata)
+    # t0_ch0 = fit_params.values["A"]*(1+fit_params.values["C"]*phys_x)
+    # t0_ch1 = fit_params.values["B"]*(1+fit_params.values["C"]*phys_x)
+    # print t0_ch0
+    # print t0_ch1
 
-    t0_ch0 = fit_params.values["A"]*(1+fit_params.values["C"]*phys_x)
-    t0_ch1 = fit_params.values["B"]*(1+fit_params.values["C"]*phys_x)
+    t0_ch0 = fit_params.values["A"]
+    t0_ch1 = fit_params.values["B"]
 
     axes[0].plot(xdata, mydata0, color=c)
     axes[1].plot(xdata, mydata1, color=c)
 
 
-
     m = fit_params
-    t1 = (m.errors["A"]*(1+m.values["C"]*xdata))**2
-    t2 = ((m.values["A"])*xdata*m.errors["C"])**2
-    t3 = 2*xdata*mydata0*m.covariance[("A", "C")]
+    t1 = (m.errors["A"]*(1+m.values["C"]*xdata_phys))**2
+    t2 = ((m.values["A"])*xdata_phys*m.errors["C"])**2
+    t3 = 2*xdata_phys*mydata0*m.covariance[("A", "C")]
     perry0 = t1+t2+t3
 
-    t1 = (m.errors["B"]*(1+m.values["C"]*xdata))**2
-    t2 = ((m.values["B"])*xdata*m.errors["C"])**2
-    t3 = 2*xdata*mydata1*m.covariance[("B", "C")]
+    t1 = (m.errors["B"]*(1+m.values["C"]*xdata_phys))**2
+    t2 = ((m.values["B"])*xdata_phys*m.errors["C"])**2
+    t3 = 2*xdata_phys*mydata1*m.covariance[("B", "C")]
     perry1 = t1+t2+t3
 
 
@@ -181,28 +187,18 @@ def plot_fitline(datagroups, fit_params, ftype, phys_x, outstub):
 
 
 
-    t0_ch_variance0 = (m.errors["A"]*(1+m.values["C"]*phys_x))**2
-    t0_ch_variance0 += ((m.values["A"])*phys_x*m.errors["C"])**2
-    t0_ch_variance0 += 2*phys_x*t0_ch0*m.covariance[("A", "C")]
+    t0_ch_std0 = m.errors["A"]
+    axes[0].errorbar(phys_x, t0_ch0, yerr=t0_ch_std0,
+                     color="r", mec="r", **plotsettings)
 
-    axes[0].errorbar(phys_x, t0_ch0, yerr=np.sqrt(t0_ch_variance0),
-                 color="r", mec="r", **plotsettings)
-
-
-    t0_ch_std0 = np.sqrt(t0_ch_variance0)
 
     logging.info("Determined at physical point t_0 = {:.5f} +/- {:.5f}".format(t0_ch0, t0_ch_std0))
 
 
-    t0_ch_variance1 = (m.errors["B"]*(1+m.values["C"]*phys_x))**2
-    t0_ch_variance1 += ((m.values["B"])*phys_x*m.errors["C"])**2
-    t0_ch_variance1 += 2*phys_x*t0_ch1*m.covariance[("B", "C")]
 
-    axes[1].errorbar(phys_x, t0_ch1, yerr=np.sqrt(t0_ch_variance1),
-                 color="r", mec="r", **plotsettings)
-
-
-    t0_ch_std1 = np.sqrt(t0_ch_variance1)
+    t0_ch_std1 = m.errors["B"]
+    axes[1].errorbar(phys_x, t0_ch1, yerr=t0_ch_std1,
+                     color="r", mec="r", **plotsettings)
 
     logging.info("Determined at physical point t_0 = {:.5f} +/- {:.5f}".format(t0_ch1, t0_ch_std1))
 
@@ -274,7 +270,7 @@ def interpolate_wilsonflow(options):
 
 
 
-    fit_params = interpolate(groups)
+    fit_params = interpolate(groups, phys_x)
 
     fitstring = ", ".join(["{}: {:.6f} +/- {:.6f}".format(k, v, fit_params.errors[k]) for
                            k, v in fit_params.values.iteritems()])
