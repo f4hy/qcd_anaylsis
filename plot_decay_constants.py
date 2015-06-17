@@ -20,7 +20,7 @@ import plot_helpers
 
 from ensamble_info import flavor_map, scale, data_params, determine_flavor, read_fit_mass
 from ensamble_info import all_same_beta, all_same_heavy, all_same_flavor
-
+from auto_key import auto_key
 
 
 def round5(x):
@@ -80,7 +80,7 @@ legend_handles = []
 added_handles = []
 summary_lines = []
 s_mass_marks = {}
-markers = ['o', "D", "^", "<", ">", "v", "x", "p", "8", 'o', "D"]
+markers = ['o', "D",  "<",  "p", "8", "v", "^", "D", ">", 'o']
 colors = ['b', 'r', 'k', 'm', 'c', 'y', 'b', 'r', 'k', 'm', 'c', 'y']
 
 beta_colors = {"4.17": 'b', "4.35": 'r', "4.47": 'k'}
@@ -102,72 +102,40 @@ def strange_legend(s_mass):
         mark = s_mass_marks[s_mass]
     return mark
 
-flavor_color = {"\pi": 'b', "K": 'r', '\eta': 'm', "Hl": 'c', "Hs": 'y', "HH": 'g'}
 
-def colors_and_legend(data_properties, legend_mode="beta"):
-
+def colors_and_legend(data_properties, legend_mode="all"):
 
     p = data_properties
-
-    if p.s_mass not in s_mass_marks.keys():
-        s_mass_marks[p.s_mass] = markers.pop()
-        mark = s_mass_marks[p.s_mass]
-        smass_leg = mlines.Line2D([], [], color='black', marker=s_mass_marks[p.s_mass], mfc='white', mew=3, lw=0,
-                                  markersize=18, label='$m_s={}$'.format(p.s_mass))
-        #legend_handles.append(smass_leg)
-        #added_handles.append(p.s_mass)
-    else:
-        mark = s_mass_marks[p.s_mass]
-
+    if legend_mode == "all":
+        color, mark, mfc = auto_key((p.beta, p.s_mass, p.latsize))
+        legend_label = r'$\beta = {}, L={}, ms={}$'.format(p.beta, p.latsize[:2], p.s_mass)
 
     if legend_mode == "strange":
-        if p.s_mass not in added_handles:
-            s_mass_colors[p.s_mass] = colors.pop()
-            color = s_mass_colors[p.s_mass]
-            legend_handles.append(mpatches.Patch(color=color, label='$ms:{}$'.format(p.s_mass)))
-            added_handles.append(p.s_mass)
-        else:
-            color = s_mass_colors[p.s_mass]
-        return mark, color
-
+        color, mark, mfc = auto_key(p.s_mass)
+        legend_label = r'$ms={}$'.format(p.s_mass)
 
     if legend_mode == "heavy":
-        if p.heavymass not in added_handles:
-            heavy_colors[p.heavymass] = colors.pop()
-            color = heavy_colors[p.heavymass]
-            legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(p.heavymass)))
-            added_handles.append(p.heavymass)
-        else:
-            color = heavy_colors[p.heavymass]
-        return mark, color
-
+        color, mark, mfc = auto_key(p.heavymass)
+        legend_label = r'$mh={}$'.format(p.heavymass)
 
     if legend_mode == "smearing":
-        logging.info("Only one beta nd one flavor given, using smearing")
-        if p.smearing not in added_handles:
-            smearing_colors[p.smearing] = colors.pop()
-            color = smearing_colors[p.smearing]
-            legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(p.smearing)))
-            added_handles.append(p.smearing)
-        else:
-            color = smearing_colors[p.smearing]
-        return mark, color
-
+        color, mark, mfc = auto_key(p.smearing)
+        legend_label = r'$smearing={}$'.format(p.smearing)
 
     if legend_mode == "flavor":
-        color = flavor_color[p.flavor]
-        if p.flavor not in added_handles:
-            legend_handles.append(mpatches.Patch(color=color, label='${}$'.format(p.flavor)))
-            added_handles.append(p.flavor)
-        return mark, color
+        color, mark, mfc = auto_key(p.flavor)
+        legend_label = r'$smearing={}$'.format(p.flavor)
 
-    if legend_mode == "beta":
-        color = beta_colors[p.beta]
-        if p.beta not in added_handles:
-            mylabel = r'$\beta = {}$'.format(p.beta)
-            legend_handles.append(mpatches.Patch(color=beta_colors[p.beta], label=mylabel))
-            added_handles.append(p.beta)
-        return mark, color
+
+    symbol = mpl.lines.Line2D([], [], color=color, mec=color, marker=mark, markersize=15,
+                              linestyle="None", label=legend_label, mfc=mfc)
+    #legend_handles.append(mpatches.Patch(color=beta_colors[p.beta], label=mylabel))
+    handel = (color, mark, mfc)
+    if handel not in added_handles:
+        added_handles.append(handel)
+        legend_handles.append(symbol)
+
+    return handel
 
 
 def plot_decay_constant(options):
@@ -179,9 +147,6 @@ def plot_decay_constant(options):
     ymin = 100000000
 
     fontsettings = dict(fontsize=30)
-
-    flavor_patches = [mpatches.Patch(color=c, label='${}$'.format(l)) for l,c in flavor_color.iteritems() ]
-    heavy_patches = [mpatches.Patch(color=c, label='${}$'.format(l)) for l,c in flavor_color.iteritems() ]
 
     has_shifted = any("msshifted" in f for f in options.files)
 
@@ -212,7 +177,8 @@ def plot_decay_constant(options):
 
         mark = strange_legend(p.s_mass)
 
-        mark, color = colors_and_legend(p, options.legend_mode)
+        #mark, color, mfc = colors_and_legend(p, options.legend_mode)
+        color, mark, mfc = colors_and_legend(p, options.legend_mode)
 
         # if "48x96x12" in f:
         #     logging.info("48x96x12!!!!")
@@ -224,7 +190,7 @@ def plot_decay_constant(options):
 
         alpha = 1.0
         if "32x64" in f and p.ud_mass < 0.004:
-            alpha = 0.3
+            alpha = 0.6
             color="#9999FF"
 
         xs = xvalues(options.xaxis, p, options)
@@ -241,12 +207,14 @@ def plot_decay_constant(options):
         if options.scalesquared:
             scalepower = 2.0
 
-        if has_shifted and p.s_mass != "shifted":
-            alpha = 0.3
+        # if has_shifted and p.s_mass != "interpolated":
+        #     alpha = 0.3
 
+        if p.ratio:
+            scalepower = 0.0
 
-        plotsettings = dict(linestyle="none", c=color, marker=mark, label=label, ms=8, elinewidth=3, capsize=8,
-                            capthick=2, mec=color, mew=3, aa=True, mfc=mfc, fmt='o', ecolor=color, alpha=alpha)
+        plotsettings = dict(linestyle="none", c=color, marker=mark, label=label, ms=12, elinewidth=4, capsize=8,
+                            capthick=2, mec=color, mew=2, aa=True, mfc=mfc, fmt='o', ecolor=color, alpha=alpha)
         index+=1
         logging.info("plotting {} {} {}".format(x,y,e))
         if options.scale:
@@ -287,7 +255,7 @@ def plot_decay_constant(options):
         else:
             x = 0.001
         physplot = axe.errorbar(x, y, yerr=err, marker="o", ecolor="k", color="k", label="physical",
-                                ms=15, elinewidth=3, capsize=1, capthick=2, mec=color, mew=3, mfc='m')
+                                ms=15, elinewidth=3, capsize=1, capthick=2, mec='m', mew=3, mfc='m')
         legend_handles.append(physplot)
         ymax = max(ymax,y)
         ymin = min(ymin,y)
@@ -306,7 +274,7 @@ def plot_decay_constant(options):
     else:
         logging.info("auto setting y range")
         if options.box:
-            plt.ylim(auto_fit_range(ymin, ymax, buff=3.5))
+            plt.ylim(auto_fit_range(ymin, ymax, buff=5.5))
         else:
             plt.ylim(auto_fit_range(ymin, ymax))
 
@@ -319,9 +287,16 @@ def plot_decay_constant(options):
     xlabel = {"mud": u"$m_{l}+m_{res}$", "mud_s": u"$m_{l}+m_s+2m_{res}$", "mpi": u"$m_{\pi}$",
               "mpisqr": u"$m^2_{\pi}$", "2mksqr-mpisqr": u"$2m^2_{K}-m^2_{\pi}$" }
 
-    axe.set_xlabel(xlabel[options.xaxis], **fontsettings)
 
-    if options.scale:
+    if options.xlabel:
+        axe.set_xlabel(options.ylabel, **fontsettings)
+    else:
+        axe.set_xlabel(xlabel[options.xaxis], **fontsettings)
+
+
+    if options.ylabel:
+        axe.set_ylabel(options.ylabel, **fontsettings)
+    elif options.scale:
         if options.scalesquared:
             axe.set_ylabel("MeV^2", **fontsettings)
         else:
@@ -331,9 +306,12 @@ def plot_decay_constant(options):
 
     axe.tick_params(axis='both', which='major', labelsize=20)
 
+    def legsort(i):
+        return i.get_label()
+
 
     if not options.box:
-        leg = axe.legend(handles=sorted(legend_handles), loc=0, **fontsettings )
+        leg = axe.legend(handles=sorted(legend_handles, key=legsort), loc=0, **fontsettings )
     if(options.output_stub):
         summaryfilename = options.output_stub + ".txt"
         logging.info("Writting summary to {}".format(summaryfilename))
@@ -378,11 +356,15 @@ if __name__ == "__main__":
     parser.add_argument("--xaxis", required=False, choices=axis_choices,
                         help="what to set on the xaxis", default="mud")
     parser.add_argument("--legend_mode", required=False, choices=legend_choices,
-                        help="what to use for the legend", default="beta")
+                        help="what to use for the legend", default="all")
     parser.add_argument("--fitdata", required=False, type=str,
                         help="folder for fitdata when needed")
     parser.add_argument("-t", "--title", type=str, required=False,
                         help="plot title", default="decay constants")
+    parser.add_argument("--ylabel", type=str, required=False,
+                        help="ylabel", default=None)
+    parser.add_argument("--xlabel", type=str, required=False,
+                        help="xlabel", default=None)
     parser.add_argument("-s", "--scale", action="store_true",
                         help="scale the values")
     parser.add_argument("-ss", "--scalesquared", action="store_true",
