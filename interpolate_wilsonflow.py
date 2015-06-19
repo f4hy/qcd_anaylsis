@@ -97,6 +97,9 @@ def interpolate(data):
     return m
 
 
+legend_handles = []
+
+
 def plot_fitline(data, fit_params, ftype, phys_x, outstub):
     logging.info("ploting")
 
@@ -106,15 +109,17 @@ def plot_fitline(data, fit_params, ftype, phys_x, outstub):
 
     xvalues = []
 
+
     for dp, d in data.iteritems():
         xvalue, flow = d
         N = len(flow)
         y = np.mean(flow)
         err = np.sqrt((N-1)*(np.std(flow)**2))
         logging.info("{}, {}={}, err={}".format(dp, ftype, y, err))
-        # patch = plt.errorbar(xvalue, y, yerr=err, color=c, ecolor=c, mec=c, **plotsettings)
-
+        patch = plt.errorbar(xvalue, y, yerr=err, color=c, ecolor=c, mec=c, label="ms={}".format(dp.s_mass), **plotsettings)
         xvalues.append(xvalue)
+
+    legend_handles.append(patch)
 
     xdata = np.arange(phys_x-0.01, max(xvalues)+0.005, 0.001)
     mydata = fit_params.values["A"]*(1+fit_params.values["C"]*xdata)
@@ -146,7 +151,7 @@ def plot_fitline(data, fit_params, ftype, phys_x, outstub):
     return t0_ch, t0_ch_std
 
 
-def finish_plot(beta, ftype, xlabel, legend_handles, outstub):
+def finish_plot(beta, ftype, xlabel, legend_handles, outstub, pdf=False):
     fontsettings = dict(fontsize=20)
 
     plt.title(r'$\beta={}$    ${}$'.format(beta, ftype), **fontsettings)
@@ -155,10 +160,13 @@ def finish_plot(beta, ftype, xlabel, legend_handles, outstub):
 
     plt.legend(handles=sorted(legend_handles), loc=0, **fontsettings)
 
+    fileformat = ".pdf" if pdf else ".png"
+
     if outstub is not None:
         fig = plt.gcf()
         fig.set_size_inches(18.5, 10.5)
-        filename = outstub+".png"
+
+        filename = outstub+fileformat
         logging.info("Saving plot to {}".format(filename))
         plt.savefig(filename, dpi=200)
     else:
@@ -203,7 +211,6 @@ def interpolate_wilsonflow(options):
 
     logging.info("Attempting to extrapolate to {}={}".format(options.xaxis, phys_x))
 
-    legend_handles = []
 
     stranges = set(i.s_mass for i in alldata.keys())
 
@@ -235,7 +242,7 @@ def interpolate_wilsonflow(options):
 
     xlabels = {"mud": r"$t_0^{1/2} m_{ud}$", "tmpisqr": r"$t_0 (m_{\pi})^2$",
                "t_2mksqr-mpisqr": r"$t_0 (2m_k^2+m_{\pi}^2)^2$"}
-    finish_plot(beta, ftype, xlabels[options.xaxis], legend_handles, options.output_stub)
+    finish_plot(beta, ftype, xlabels[options.xaxis], legend_handles, options.output_stub, options.pdf)
 
 
 if __name__ == "__main__":
@@ -245,6 +252,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="script to interpolate the heavy mass")
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="increase output verbosity")
+    parser.add_argument("--pdf", action="store_true",
+                        help="produce a pdf instead of a png")
     parser.add_argument("--seperate_strange", action="store_true",
                         help="fit different strange values seperately")
     parser.add_argument("-o", "--output_stub", type=str, required=False,

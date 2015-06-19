@@ -205,7 +205,7 @@ def plot_fitline(datagroups, fit_params, ftype, phys_x, outstub):
     return axes, (t0_ch0, t0_ch1), (t0_ch_std0, t0_ch_std1)
 
 
-def finish_plot(axes, betas, ftype, xlabel, legend_handles, outstub):
+def finish_plot(axes, betas, ftype, xlabel, legend_handles, outstub, pdf=False):
     fontsettings = dict(fontsize=20)
 
     for i in range(len(betas)):
@@ -215,10 +215,13 @@ def finish_plot(axes, betas, ftype, xlabel, legend_handles, outstub):
 
     plt.legend(handles=sorted(legend_handles), loc=0, **fontsettings)
 
+    fileformat = ".pdf" if pdf else ".png"
+
+
     if outstub is not None:
         fig = plt.gcf()
         fig.set_size_inches(18.5, 10.5)
-        filename = outstub+".png"
+        filename = outstub+fileformat
         logging.info("Saving plot to {}".format(filename))
         plt.savefig(filename, dpi=200)
     else:
@@ -294,7 +297,7 @@ def interpolate_wilsonflow(options):
 
     xlabels = {"mud": r"$t_0^{1/2} m_{ud}$", "tmpisqr": r"$t_0 (m_{\pi})^2$",
                "t_2mksqr-mpisqr": r"$t_0 (2m_k^2+m_{\pi}^2)^2$"}
-    finish_plot(axes, betas, ftype, xlabels[options.xaxis], legend_handles, options.output_stub)
+    finish_plot(axes, betas, ftype, xlabels[options.xaxis], legend_handles, options.output_stub, options.pdf)
 
 
 if __name__ == "__main__":
@@ -304,6 +307,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="script to interpolate the heavy mass")
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="increase output verbosity")
+    parser.add_argument("--pdf", action="store_true",
+                        help="produce a pdf instead of a png")
     parser.add_argument("--seperate_strange", action="store_true",
                         help="fit different strange values seperately")
     parser.add_argument("-o", "--output_stub", type=str, required=False,
