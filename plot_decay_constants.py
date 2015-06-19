@@ -36,7 +36,7 @@ def round(x,y):
     return x,y
 
 
-def auto_fit_range(minval, maxval, zero=False, buff=0.4):
+def auto_fit_range(minval, maxval, zero=False, buff=0.5):
     spread = maxval - minval
     if zero:
         fitrange = (0, maxval+spread*buff)
@@ -103,12 +103,17 @@ def strange_legend(s_mass):
     return mark
 
 
-def colors_and_legend(data_properties, legend_mode="all"):
+def colors_and_legend(data_properties, legend_mode="betaLs"):
 
     p = data_properties
-    if legend_mode == "all":
+    if legend_mode == "betaLs":
         color, mark, mfc = auto_key((p.beta, p.s_mass, p.latsize))
-        legend_label = r'$\beta = {}, L={}, ms={}$'.format(p.beta, p.latsize[:2], p.s_mass)
+        legend_label = r'$\beta = {}, L={}, m_s={}$'.format(p.beta, p.latsize[:2], p.s_mass)
+
+    if legend_mode == "betaL":
+        color, mark, mfc = auto_key((p.beta, p.s_mass))
+        legend_label = r'$\beta = {}, L={}$'.format(p.beta, p.latsize[:2])
+
 
     if legend_mode == "strange":
         color, mark, mfc = auto_key(p.s_mass)
@@ -320,12 +325,14 @@ def plot_decay_constant(options):
                 summaryfile.write(i)
 
         fig.set_size_inches(18.5, 10.5)
-        if args.eps:
-            logging.info("Saving plot to {}".format(options.output_stub+".eps"))
-            plt.savefig(options.output_stub+".eps")
-        else:
-            logging.info("Saving plot to {}".format(options.output_stub+".png"))
-            plt.savefig(options.output_stub+".png", dpi=200)
+        file_extension = ".png"
+        if options.eps:
+            file_extension = ".eps"
+        if options.pdf:
+            file_extension = ".pdf"
+        filename = options.output_stub + file_extension
+        logging.info("Saving plot to {}".format(filename))
+        plt.savefig(filename)
         return
 
     print "".join(summary_lines)
@@ -335,7 +342,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="average data files")
 
     axis_choices = ["mud", "mud_s", "mpi", "mpisqr", "2mksqr-mpisqr"]
-    legend_choices = ["beta", "strange", "flavor", "heavy"]
+    legend_choices = ["betaLs", "betaL", "heavy", "smearing", "flavor", "strange"]
 
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="increase output verbosity")
@@ -345,6 +352,8 @@ if __name__ == "__main__":
                         help="stub of name to write output to")
     parser.add_argument("-e", "--eps", action="store_true",
                         help="save as eps not png")
+    parser.add_argument("--pdf", action="store_true",
+                        help="save as pdf not png")
     parser.add_argument("-b", "--box", action="store_true",
                         help="max boxplots instead")
     parser.add_argument("-c", "--scatter", action="store_true",
@@ -356,7 +365,7 @@ if __name__ == "__main__":
     parser.add_argument("--xaxis", required=False, choices=axis_choices,
                         help="what to set on the xaxis", default="mud")
     parser.add_argument("--legend_mode", required=False, choices=legend_choices,
-                        help="what to use for the legend", default="all")
+                        help="what to use for the legend", default="betaLs")
     parser.add_argument("--fitdata", required=False, type=str,
                         help="folder for fitdata when needed")
     parser.add_argument("-t", "--title", type=str, required=False,
