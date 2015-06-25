@@ -8,6 +8,10 @@ import matplotlib.pyplot as plt
 from scipy.optimize import leastsq
 import glob
 
+from iminuit import Minuit
+
+from ensamble_info import scale
+
 heavymap = {}
 heavymap[("4.17", "m0")] = 0.35
 heavymap[("4.17", "m1")] = 0.445
@@ -19,7 +23,6 @@ heavymap[("4.47", "m0")] = 0.150
 heavymap[("4.47", "m1")] = 0.206
 heavymap[("4.47", "m2")] = 0.250
 
-scale = {"4.17": 2490, "4.35": 3660, "4.47": 4600}
 
 
 def read_files(basefile, spinaverage=None):
@@ -71,10 +74,60 @@ def interpolate(data, physical=None):
 
     cmass = []
     mmasses = []
+    stds = []
 
     for heavymass, mesonmass in data.iteritems():
         cmass.append(heavymass)
-        mmasses.append(mesonmass)
+        mmasses.append(np.mean(mesonmass))
+        stds.append(np.std(mesonmass))
+
+
+    cmass = np.array(cmass)
+    mmasses = np.array(mmasses)
+    stds = np.array(stds)
+
+    print cmass
+    print mmasses
+    print stds
+
+    # def weighted_sqr_diff(M,C):
+    #     sqr_diff = (mmasses - (C+M*cmass))**2
+    #     return np.sum(sqr_diff/(stds**2))
+
+    print "physical", physical
+
+    def weighted_sqr_diff(M,C):
+        sqr_diff = (mmasses - (M*(cmass-C)+physical))**2
+        return np.sum(sqr_diff/(stds**2))
+
+
+    dof = float(len(mmasses)-2)
+    print dof
+
+    print weighted_sqr_diff(1, 1)
+    print weighted_sqr_diff(0, 1)
+
+    slope_guess = (max(mmasses)-min(mmasses)) / (max(cmass) - min(cmass))
+    int_guess = min(mmasses) - min(cmass)*slope_guess
+
+    print slope_guess
+    print int_guess
+    print weighted_sqr_diff(slope_guess, int_guess)
+
+
+    m = Minuit(weighted_sqr_diff, M=slope_guess, error_M=slope_guess*0.01,
+               C=int_guess, error_C=int_guess*0.01, errordef=dof,
+               print_level=0, pedantic=True)
+
+    results = m.migrad()
+    logging.info(results)
+
+    logging.info("chi^2={}, dof={}, chi^2/dof={}".format(m.fval, dof, m.fval/dof))
+    logging.info('covariance {}'.format(m.covariance))
+
+    return m
+
+    exit(-1)
 
     def line(v, x, y):
         return (v[0]*x+v[1]) - y
@@ -129,14 +182,14 @@ def plot_fitline(data, fitline, m_cc, physical, outstub):
         plt.show()
 
 
-def write_data(m_cc, output_stub, suffix):
+def write_data(m_cc, m_cc_error, output_stub, suffix):
     if output_stub is None:
         logging.info("Not writing output")
         return
     outfilename = output_stub + suffix
     logging.info("writing mcc to {}".format(outfilename))
     with open(outfilename, "w") as ofile:
-        ofile.write("{}\n".format(m_cc))
+        ofile.write("{} +/- {}\n".format(m_cc, m_cc_error))
 
 def write_shifted_data(shifted_data, mcc, output_stub, suffix):
     if output_stub is None:
@@ -161,18 +214,19 @@ def interpolate_heavymass(options):
     data = read_files(options.basefile, spinaverage=options.spinaverage)
 
 
-    line_params = interpolate(data)
-    line_params = np.median(line_params, axis=0)
+    fit_params = interpolate(data, physical=options.physical/scale[beta])
+    # line_params = np.median(line_params, axis=0)
 
-    fitline = gen_line_func(line_params)
+    print fit_params
+    print fit_params.values
+    print fit_params.errors
 
-    logging.info("Using physical point {} to set the scale".format(options.physical))
+    m_cc = fit_params.values["C"]
+    m_cc_error = fit_params.errors["C"]
 
-    m_cc = get_physical_point(options.physical/scale[beta], line_params)
+    # plot_fitline(data, fitline, m_cc, options.physical/scale[beta], options.output_stub)
 
-    plot_fitline(data, fitline, m_cc, options.physical/scale[beta], options.output_stub)
-
-    write_data(m_cc, options.output_stub, ".mcc")
+    write_data(m_cc, m_cc_error, options.output_stub, ".mcc")
 
 
 
