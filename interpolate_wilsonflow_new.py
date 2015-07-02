@@ -146,6 +146,9 @@ def interpolate(data, phys_mpi, phys_mk, phys_t0):
     logging.info("chi^2={}, dof={}, chi^2/dof={}".format(m.fval, dof, m.fval/dof))
     logging.info('covariance {}'.format(m.covariance))
 
+    if not m.get_fmin().is_valid:
+        print "NOT VALID"
+        exit(-1)
 
     return m
 
