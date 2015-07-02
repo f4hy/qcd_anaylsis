@@ -37,7 +37,7 @@ def read_files(files, fitdata):
 
         pion_masses = read_fit_mass(dp, "ud-ud", fitdata)
 
-        pion_mass_sqr = pion_masses.median()**2
+        pion_mass_sqr = pion_masses.mean()**2
         data[s_mass][pion_mass_sqr] = df
 
     return data
@@ -53,39 +53,43 @@ def interpolate(data, physical=None, debug=False):
 
     pisqr_masses = []
     mmasses = []
+    stds = []
+
 
     for pisqr_mass, mesonmass in data.iteritems():
         pisqr_masses.append(pisqr_mass)
-        mmasses.append(mesonmass)
+        mmasses.append(np.mean(mesonmass.values))
+        stds.append(np.std(mesonmass))
 
     def line(v, x, y):
         return (v[0]*x+v[1]) - y
 
-    Nconfigs = len(mmasses[0])
 
     A = np.array(pisqr_masses)
     fits = []
 
-    for i in range(Nconfigs):
-        mmass = [m["mass"][i] for m in mmasses]
-        B = np.array(mmass)
+    #for i in range(Nconfigs):
+    #mmass = [m["mass"][i] for m in mmasses]
+    B = np.array(mmasses)
 
-        slope_guess = (max(mmass)-min(mmass)) / (max(pisqr_masses) - min(pisqr_masses))
-        int_guess = min(mmass) - min(pisqr_masses)*slope_guess
-        guess = [slope_guess, int_guess]
-        logging.info("guessing a line with y={}x+{}".format(*guess))
-        best_fit, _, info, mesg, ierr = leastsq(line, guess, args=(A, B),
-                                                maxfev=10000, full_output=True)
-        logging.info("found a line with y={}x+{}".format(*best_fit))
-        fits.append(best_fit)
 
-        if debug:
-            plt.scatter(A, B)
-            xdata = np.arange(0, 0.02, 0.001)
-            ydata = [best_fit[0]*x+best_fit[1] for x in xdata]
-            plt.plot()
-            plt.plot(xdata, ydata)
-            plt.show()
+    slope_guess = (max(mmasses)-min(mmasses)) / (max(pisqr_masses) - min(pisqr_masses))
+    int_guess = min(mmasses) - min(pisqr_masses)*slope_guess
+    guess = [slope_guess, int_guess]
+    logging.info("guessing a line with y={}x+{}".format(*guess))
+    best_fit, _, info, mesg, ierr = leastsq(line, guess, args=(A, B),
+                                            maxfev=10000, full_output=True)
+    logging.info("found a line with y={}x+{}".format(*best_fit))
+    fits.append(best_fit)
+
+    if debug:
+        plt.scatter(A, B)
+        xdata = np.arange(0, 0.05, 0.001)
+        ydata = [best_fit[0]*x+best_fit[1] for x in xdata]
+        plt.plot()
+        plt.plot(xdata, ydata)
+        plt.show()
+
 
     return fits
 
@@ -105,9 +109,9 @@ def plot_fitline(data, fitline, label):
 
     for heavymass, mesonmass in data.iteritems():
         errs = plot_helpers.error(mesonmass.values)
-        plt.errorbar(heavymass, mesonmass.median(), yerr=errs, ms=8, c=color)
-        miny = min(miny, mesonmass.median().values)
-        maxy = max(maxy, mesonmass.median().values)
+        plt.errorbar(heavymass, mesonmass.mean(), yerr=errs, ms=8, c=color)
+        miny = min(miny, mesonmass.mean().values)
+        maxy = max(maxy, mesonmass.mean().values)
 
     xdata = np.arange(0.0, max(data.keys())+0.005, 0.001)
     ydata = [fitline(x) for x in xdata]
@@ -133,7 +137,7 @@ def display_plots(outstub, physical_x, physical_y, beta):
     if outstub is not None:
         filename = outstub+".png"
         if args.eps:
-            filename = outstub+".eps"
+            filename = outstub+".pdf"
         logging.info("Saving plot to {}".format(filename))
         plt.savefig(filename, dpi=200)
     else:
@@ -173,10 +177,11 @@ def interpolate_strangemass(options):
 
     alldata = read_files(options.files, options.fitdata)
 
+
     fitted_s = {}
     for strangeness, data in alldata.iteritems():
         line_params = interpolate(data)
-        line_params = np.median(line_params, axis=0)
+        line_params = np.mean(line_params, axis=0)
 
         fitline = gen_line_func(line_params)
 
