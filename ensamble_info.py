@@ -4,10 +4,11 @@ import re
 
 flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH", "KPratio": "KPratio", "2k-pi": "2m_K-m_\pi", "Omega": "\Omega", 't0': 't_0', 'w0': "w_0"}
 scale = {"4.17": 2492, "4.35": 3660, "4.47": 4600}
+scale = {"4.17": 2473, "4.35": 3618, "4.47": 4600}
+scale = {"4.17": 2453.1, "4.35": 3609.7, "4.47": 4496.1}
 
 
 def determine_flavor(f):
-    print f
     flavors = flavor_map.keys()
     for flavor in flavors:
         if flavor in f:
@@ -18,9 +19,15 @@ def determine_flavor(f):
 class data_params(object):
 
     def __init__(self, filename):
+        filename = filename.replace(".binned_to_20","")
+
         self.filename = filename
+
         self.ud_mass = float(re.search("mud([0-9]\.[0-9]*)_", filename).group(1))
         strange_mass = re.search("ms([a-z0-9.]+)", filename).group(1)
+        strange_mass = strange_mass.replace(".jack", "")
+        strange_mass = strange_mass.replace(".binned", "")
+
         try:
             self.s_mass = float(strange_mass)
         except ValueError:
@@ -37,6 +44,11 @@ class data_params(object):
             self.latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
         except AttributeError:
             self.latsize = None
+        if self.latsize is None:
+            try:
+                self.latsize = re.search("L([0-9]+)", filename).group(1)
+            except AttributeError:
+                pass
 
         try:
             self.heavyness = re.search("_([a-z][a-z0-9])_", filename).group(1)
@@ -48,6 +60,9 @@ class data_params(object):
             self.heavymass = re.search("_([ms][012])_", filename).group(1)
         else:
             self.heavymass = None
+
+        self.ratio = "ratio" in filename
+
 
     def __repr__(self):
         if self.heavyness == "ll":
