@@ -4,7 +4,7 @@ import logging
 
 used_colors = {}
 
-colorcycle = cycle('brcmkg')
+colorcycle = cycle('brmckg')
 
 markercycle = cycle('o<^>Dp8')
 facecycle = cycle([None, "white"])
@@ -17,9 +17,7 @@ mark_ids = {}
 face_ids = {}
 
 
-def auto_key(identifier):
-    print memoized_ids
-    print color_ids, mark_ids, face_ids
+def auto_key(identifier, verbose=False):
     if identifier in memoized_ids:
         return memoized_ids[identifier]
 
@@ -47,15 +45,14 @@ def auto_key(identifier):
         memoized_ids[identifier] = (c,m,f)
         return c,m,f
 
-    print "new", new
-    print face_ids
+    nowhite = len(new) > 2
     if c is None:
         c = colorcycle.next()
         color_ids[new.pop(0)] = c
     if m is None and new:
         m = markercycle.next()
         mark_ids[new.pop(0)] = m
-    if f is None and new:
+    if f is None and new and not nowhite:
         f = facecycle.next()
         if f == None:
             f = c

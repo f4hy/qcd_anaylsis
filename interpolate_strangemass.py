@@ -172,8 +172,8 @@ def interpolate_strangemass(options):
     if not all([beta in f for f in options.files]):
         raise RuntimeError("Not all the same beta")
 
-    physical_pisqr = 138.0**2/(scale[beta]**2)
-    physical_s = (2*(497.6**2)-138.0**2)/(scale[beta]**2)
+    physical_pisqr = 138.04**2/(scale[beta]**2)
+    physical_s = (2*(495.646**2)-138.04**2)/(scale[beta]**2)
 
     alldata = read_files(options.files, options.fitdata)
 

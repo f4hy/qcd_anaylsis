@@ -143,6 +143,102 @@ def colors_and_legend(data_properties, legend_mode="betaLs"):
     return handel
 
 
+def add_interpolate(axe, xran, fit_file, chiral_fit_file=None):
+
+    values = {}
+    errors = {}
+
+    phys_mpisqr = (138.04)**2
+
+    for i in fit_file:
+        if i.startswith("#"):
+            chisqr_dof = float(i.split(" ")[-1])
+            continue
+
+        name, val, err = (j.strip() for j in i.replace("+/-",",").split(","))
+
+        values[name] = float(val)
+        errors[name] = float(err)
+
+    print values
+    print errors
+
+    x =  np.linspace(phys_mpisqr, xran[1])
+
+
+    #y = values["phys_obs"]+values["M_pi"]*(x-phys_mpisqr)*np.log(1.0/x)
+    #y = values["F_PI"]+values["M_pi"]*(x-phys_mpisqr)*np.log(1.0/x)
+    y = values["phys_obs"]+values["M_pi"]*(x-phys_mpisqr)
+
+    yerr = errors["phys_obs"]+errors["M_pi"]*(x-phys_mpisqr)
+
+    print x
+    print y
+    print yerr
+    p = axe.plot(x,y, label="Linear fit $\chi^2$/dof:{:.2}".format(chisqr_dof), color='g', lw=2)
+    # hbar_c = 197.327
+    # y_417 = y + +values["A"]*((hbar_c/scale["4.17"])**2)
+    # color = auto_key(("4.17", 0, 0))[0]
+    # p.extend(axe.plot(x,y_417, color=color, ls="-.", label="fit at a^2 for beta=4.17"))
+
+    # axe.fill_between(x,y, y+yerr, facecolor='g', alpha=0.1, lw=0, zorder=-10)
+    # axe.fill_between(x,y, y-yerr, facecolor='g', alpha=0.1, lw=0, zorder=-10)
+
+    axe.errorbar(phys_mpisqr, values["phys_obs"], yerr=errors["phys_obs"], color='g', elinewidth=4, capsize=8,
+                 capthick=2, mec='g', mew=2)
+
+    if not chiral_fit_file:
+        return p
+
+
+
+    for i in chiral_fit_file:
+        if i.startswith("#"):
+            continue
+
+        name, val, err = (j.strip() for j in i.replace("+/-",",").split(","))
+
+        values[name] = float(val)
+        errors[name] = float(err)
+
+
+    rho_mass = 775.4
+    LAMBDA = values["LAMBDA"]
+
+
+    XI = x/(8*(np.pi**2)*(values["F_PI"])**2)
+    y = values["F_PI"] * (1 - XI*np.log(x/(LAMBDA)**2))
+    # y = values["F_PI"] * (1 - XI*np.log(x/(LAMBDA)**2)
+    #                       - 1.0/4.0 * (XI**2)*(np.log(x/values["OMEGA_F"]**2))**2  )
+
+    # y = values["F_PI"] * (1 - XI*np.log(x/(LAMBDA))
+    #                       - 1.0/4.0 * (XI**2)*(np.log(x/values["OMEGA_F"]))**2 + values["c_F"]*XI**2 )
+
+
+    #yerr = errors["F_PI"] + errors["F_PI"]*x/(8*np.pi*values["F_PI"])**2*np.log(x/(LAMBDA)**2)
+
+    print x
+    print y
+    p.extend(axe.plot(x,y, label="LO chiral fit", color='b', ls="--", lw=2))
+    #plt.show()
+    return p
+
+    #
+    # y = values["phys_obs"]+values["M_pi"]*(x-phys_mpisqr)+values["A"]*((hbar_c/scale["4.17"])**2)
+    # axe.plot(x,y, ls="-")
+    # y = values["phys_obs"]+values["M_pi"]*(x-phys_mpisqr)+values["A"]*((hbar_c/scale["4.35"])**2)
+    # axe.plot(x,y, ls="--")
+    # y = values["phys_obs"]+values["M_pi"]*(x-phys_mpisqr)+values["A"]*((hbar_c/scale["4.47"])**2)
+    # axe.plot(x,y, ls="-.")
+
+    # # print auto_key("4.17")
+    # # print auto_key("4.35")
+    # foobar = auto_key("4.47")
+    # print "fobarbaz"
+    # print "4.47", foobar
+    # print foobar, "test", "4.47"
+    # exit(-1)
+
 def plot_decay_constant(options):
 
 
@@ -199,7 +295,7 @@ def plot_decay_constant(options):
             color="#9999FF"
 
         xs = xvalues(options.xaxis, p, options)
-        x = xs.median()
+        x = xs.mean()
         xerr = xs.std()
         xerr = plot_helpers.error(xs)
         y = float(df.median())
@@ -231,7 +327,7 @@ def plot_decay_constant(options):
             elif options.scatter:
                 axe.scatter(xs, df["decay"]*sc, c=color)
             else:
-                axe.errorbar(x, y*sc, yerr=scaled_err, xerr=xerr, zorder=0, **plotsettings)
+                axe.errorbar(x, y*sc, yerr=scaled_err, zorder=0, **plotsettings)
             ymax = max(ymax,y*sc)
             ymin = min(ymin,y*sc)
             xmax = max(xmax,x)
@@ -259,19 +355,26 @@ def plot_decay_constant(options):
             x = x_physicals[options.xaxis]
         else:
             x = 0.001
-        physplot = axe.errorbar(x, y, yerr=err, marker="o", ecolor="k", color="k", label="physical",
-                                ms=15, elinewidth=3, capsize=1, capthick=2, mec='m', mew=3, mfc='m')
-        legend_handles.append(physplot)
+        physplot = axe.errorbar(x, y, yerr=err, marker="x",
+                                ecolor="k", color="k", label="PDG",
+                                ms=15, elinewidth=3, capsize=1,
+                                capthick=2, mec='k', mew=3, mfc='k',
+                                zorder=100)
+        symbol = mpl.lines.Line2D([], [], color="k", mec="k", marker="x", markersize=15, mew=3,
+                                  linestyle="None", label="PDG", mfc="k")
+        legend_handles.append(symbol)
         ymax = max(ymax,y)
         ymin = min(ymin,y)
 
+
     if options.xrange:
         logging.info("setting x range to {}".format(options.xrange))
-        plt.xlim(options.xrange)
+        xran = options.xrange
     else:
         logging.info("auto setting x range")
-        plt.xlim(auto_fit_range(0, xmax, zero=True))
+        xran = auto_fit_range(0, xmax, zero=True)
 
+    plt.xlim(xran)
 
     if options.yrange:
         logging.info("setting y range to {}".format(options.yrange))
@@ -284,14 +387,18 @@ def plot_decay_constant(options):
             plt.ylim(auto_fit_range(ymin, ymax))
 
 
-    if options.title:
-        axe.set_title(options.title, **fontsettings)
+    # if options.title:
+    #     axe.set_title(options.title, **fontsettings)
 
     #axe.set_xlabel("$m_{%s}+m_{res}+m_{%s}+m_{res}$" % (rawflavor.split("-")[0], rawflavor.split("-")[1]), **fontsettings)
 
     xlabel = {"mud": u"$m_{l}+m_{res}$", "mud_s": u"$m_{l}+m_s+2m_{res}$", "mpi": u"$m_{\pi}$",
-              "mpisqr": u"$m^2_{\pi}$", "2mksqr-mpisqr": u"$2m^2_{K}-m^2_{\pi}$" }
+              "mpisqr": u"$m^2_{\pi}$ [MeV^2]", "2mksqr-mpisqr": u"$2m^2_{K}-m^2_{\pi}$" }
 
+
+    if options.interpolate:
+        interp_line = add_interpolate(axe, xran, options.interpolate, chiral_fit_file=options.chiral_fit_file)
+        legend_handles.extend(interp_line)
 
     if options.xlabel:
         axe.set_xlabel(options.ylabel, **fontsettings)
@@ -300,7 +407,7 @@ def plot_decay_constant(options):
 
 
     if options.ylabel:
-        axe.set_ylabel(options.ylabel, **fontsettings)
+        axe.set_ylabel("{} [MeV]".format(options.ylabel), **fontsettings)
     elif options.scale:
         if options.scalesquared:
             axe.set_ylabel("MeV^2", **fontsettings)
@@ -314,9 +421,8 @@ def plot_decay_constant(options):
     def legsort(i):
         return i.get_label()
 
-
     if not options.box:
-        leg = axe.legend(handles=sorted(legend_handles, key=legsort), loc=0, **fontsettings )
+        leg = axe.legend(handles=sorted(legend_handles, key=legsort), loc=0, fontsize=20, numpoints=1)
     if(options.output_stub):
         summaryfilename = options.output_stub + ".txt"
         logging.info("Writting summary to {}".format(summaryfilename))
@@ -380,6 +486,10 @@ if __name__ == "__main__":
                         help="scale the values squared")
     parser.add_argument("-p", "--physical", type=float, nargs=2,
                         help="add physical point")
+    parser.add_argument("-I", "--interpolate", type=argparse.FileType('r'), required=False,
+                        help="add interpolated lines")
+    parser.add_argument("--chiral_fit_file", type=argparse.FileType('r'), required=False,
+                        help="add chiral interpolated lines")
     args = parser.parse_args()
 
     if args.verbose:

@@ -25,6 +25,10 @@ def read_files(files, fitdata):
 
     for f in files:
         logging.info("reading file {}".format(f))
+        if "32x64x12" in f and "0.0035" in f:
+            logging.warn("skipping file {}".format(f))
+            continue
+
         dp = data_params(f)
         if "decay" in f:
             df = pd.read_csv(f, comment='#', names=["observable"])
@@ -37,7 +41,12 @@ def read_files(files, fitdata):
         logging.info("read {} giving mpi={}, <observable>={}".format(dp, np.mean(mpisqr), df.observable.mean()))
         #data[dp] = (scale[dp.beta], np.mean(xvalue), df.observable.values)
         hbar_c = 197.327
-        data[dp] = (hbar_c/scale[dp.beta], np.mean(mpisqr)*scale[dp.beta]**2, np.mean(mKsqr)*scale[dp.beta]**2, df.observable.values*scale[dp.beta])
+
+        if "ratio" in f:
+            data[dp] = (hbar_c/scale[dp.beta], np.mean(mpisqr)*scale[dp.beta]**2, np.mean(mKsqr)*scale[dp.beta]**2, df.observable.values)
+        else:
+            data[dp] = (hbar_c/scale[dp.beta], np.mean(mpisqr)*scale[dp.beta]**2, np.mean(mKsqr)*scale[dp.beta]**2, df.observable.values*scale[dp.beta])
+
     return data
 
 

@@ -2,7 +2,7 @@ import logging
 import pandas as pd
 import re
 
-flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH", "KPratio": "KPratio", "2k-pi": "2m_K-m_\pi", "Omega": "\Omega", 't0': 't_0', 'w0': "w_0"}
+flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH", "KPratio": "KPratio", "2k-pi": "2m_K-m_\pi", "Omega": "\Omega", 't0': 't_0', 'w0': "w_0", "fds_fd_ratio": "fds/fd" , "fk_fpi_ratio": "fk/fpi"}
 scale = {"4.17": 2492, "4.35": 3660, "4.47": 4600}
 scale = {"4.17": 2473, "4.35": 3618, "4.47": 4600}
 scale = {"4.17": 2453.1, "4.35": 3609.7, "4.47": 4496.1}
@@ -78,7 +78,8 @@ def read_fit_mass(data_properties, flavor, fitdata):
     fitdatafiles = glob.glob(fitdata.strip("'\""))
     fitdatafiles = [f for f in fitdatafiles if flavor in f ]
     for i in [data_properties.ud_mass, data_properties.s_mass, data_properties.latsize, data_properties.beta]:
-        fitdatafiles = [f for f in fitdatafiles if str(i) in f ]
+        if i is not None:
+            fitdatafiles = [f for f in fitdatafiles if str(i) in f ]
     if len(fitdatafiles) != 1:
         logging.critical("Unique fit file not found!")
         logging.error("found: {}".format(fitdatafiles))

@@ -81,7 +81,7 @@ s_mass_marks = {}
 markers = ['o', "D", "^", "<", ">", "v", "x", "p", "8", 'o', "D"]
 colors = ['b', 'r', 'k', 'm', 'c', 'y', 'b', 'r', 'k', 'm', 'c', 'y']*2
 
-beta_colors = {"4.17": 'b', "4.35": 'r', "4.47": 'k'}
+beta_colors = {"4.17": 'b', "4.35": 'r', "4.47": 'm'}
 
 heavy_colors = {"m0": 'b', "m1": 'r', 'm2': 'm', 's0': 'c'}
 heavy_colors = {}
@@ -112,7 +112,7 @@ def colors_and_legend(data_properties, legend_mode="beta"):
         if p.s_mass not in added_handles:
             s_mass_colors[p.s_mass] = colors.pop()
             color = s_mass_colors[p.s_mass]
-            legend_handles.append(mpatches.Patch(color=color, label='$ms:{}$'.format(p.s_mass)))
+            legend_handles.append(mpatches.Patch(color=color, label='$m_s:{}$'.format(p.s_mass)))
             added_handles.append(p.s_mass)
         else:
             color = s_mass_colors[p.s_mass]
@@ -172,6 +172,47 @@ def read_bootstraps(f, options):
     else:
         return df["mass"]
 
+
+def add_interpolate(axe, xran, fit_file):
+
+    values = {}
+    errors = {}
+
+    phys_mpisqr = (138.04)**2
+
+    for i in fit_file:
+        if i.startswith("#"):
+            chisqr_dof = float(i.split(" ")[-1])
+            continue
+
+        name, val, err = (j.strip() for j in i.replace("+/-",",").split(","))
+
+        values[name] = float(val)
+        errors[name] = float(err)
+
+    print values
+    print errors
+
+    x =  np.linspace(phys_mpisqr, xran[1])
+
+    y = values["phys_obs"]+values["M_pi"]*(x-phys_mpisqr)
+
+    print x
+    print y
+
+    p = axe.plot(x,y, label="linear fit at a^2=0 $\chi^2$/dof:{:.2}".format(chisqr_dof), color='g', lw=2)
+    hbar_c = 197.327
+    y = values["phys_obs"]+values["M_pi"]*(x-phys_mpisqr)+values["A"]*((hbar_c/scale["4.17"])**2)
+    color = "b"
+    p.extend(axe.plot(x,y, color=color, ls="-.", label="linear fit at a^2 for beta=4.17", lw=2))
+
+
+    axe.errorbar(phys_mpisqr, values["phys_obs"], yerr=errors["phys_obs"], color='g', elinewidth=4, capsize=8,
+                 capthick=2, mec='g', mew=2)
+
+    return p
+
+
 def plot_mass(options):
 
 
@@ -229,6 +270,10 @@ def plot_mass(options):
         x = xs.median()
         xerr = xs.std()
 
+        if "32x64" in f and p.ud_mass < 0.004:
+            alpha = 0.6
+            color="#9999FF"
+
         alpha = 1.0
         if has_shifted and p.s_mass != "shifted":
             alpha = 0.3
@@ -247,7 +292,7 @@ def plot_mass(options):
             if options.box:
                 b = axe.boxplot(data*scale[p.beta], positions=[x], widths=[0.001*scale[p.beta]], patch_artist=True)
             else:
-                axe.errorbar(x, y*scale[p.beta], yerr=e*scale[p.beta], xerr=xerr, zorder=0, **plotsettings)
+                axe.errorbar(x, y*scale[p.beta], yerr=e*scale[p.beta], zorder=0, **plotsettings)
             ymax = max(ymax,y*scale[p.beta])
             ymin = min(ymin,y*scale[p.beta])
             xmax = max(xmax,x)
@@ -270,18 +315,23 @@ def plot_mass(options):
     if options.physical:
         x_physicals = {"mud": 2.2, "mud_s": 97.2, "mpisqr": 138.0**2, "2mksqr-mpisqr": 2*(497.6**2)-138.0**2}
         y, err = options.physical
-        physplot = axe.errorbar(x_physicals[options.xaxis], y, yerr=err, marker="o", ecolor="k", color="k", label="physical",
-                                ms=15, elinewidth=3, capsize=1, capthick=2, mec="k", mew=3, mfc='m')
-        legend_handles.append(physplot)
+        physplot = axe.errorbar(x_physicals[options.xaxis], y, yerr=err, marker="x", ecolor="k",
+                                color="k", label="PDG", ms=15, elinewidth=3, capsize=1, capthick=2,
+                                mec="k", mew=3, mfc='k', zorder=100)
+        symbol = mpl.lines.Line2D([], [], color="k", mec="k", marker="x", markersize=15,
+                                  linestyle="None", label="PDG", mfc="k")
+
+        legend_handles.append(symbol)
         ymax = max(ymax,y)
         ymin = min(ymin,y)
 
     if options.xrange:
         logging.info("setting x range to {}".format(options.xrange))
-        plt.xlim(options.xrange)
+        xran = options.xrange
     else:
         logging.info("auto setting x range")
-        plt.xlim(auto_fit_range(0, xmax, zero=True))
+        xran = auto_fit_range(0, xmax, zero=True)
+    plt.xlim(xran)
 
 
     if options.yrange:
@@ -297,23 +347,32 @@ def plot_mass(options):
     if options.title:
         axe.set_title(options.title, **fontsettings)
 
+    if options.interpolate:
+        interp_line = add_interpolate(axe, xran, options.interpolate)
+        legend_handles.extend(interp_line)
+
+
     #axe.set_xlabel("$m_{%s}+m_{res}+m_{%s}+m_{res}$" % (rawflavor.split("-")[0], rawflavor.split("-")[1]), **fontsettings)
 
     xlabel = {"mud": u"$m_{l}+m_{res}$", "mud_s": u"$m_{l}+m_s+2m_{res}$", "mpi": u"$m_{\pi}$",
-              "mpisqr": u"$m^2_{\pi}$", "2mksqr-mpisqr": u"$2m^2_{K}-m^2_{\pi}$" }
+              "mpisqr": u"$m^2_{\pi}$ [MeV^2]", "2mksqr-mpisqr": u"$2m^2_{K}-m^2_{\pi}$" }
 
     axe.set_xlabel(xlabel[options.xaxis], **fontsettings)
 
-    if options.scale:
+    if options.ylabel:
+        axe.set_ylabel("{} [MeV]".format(options.ylabel), **fontsettings)
+    elif options.scale:
         axe.set_ylabel("MeV", **fontsettings)
     else:
         axe.set_ylabel("lattice units", **fontsettings)
 
     axe.tick_params(axis='both', which='major', labelsize=20)
 
+    def legsort(i):
+        return i.get_label()
 
     if not options.box:
-        leg = axe.legend(handles=sorted(legend_handles), loc=0, **fontsettings )
+        leg = axe.legend(handles=sorted(legend_handles, key=legsort), loc=0, fontsize=20, numpoints=1 )
     if(options.output_stub):
         summaryfilename = options.output_stub + ".txt"
         logging.info("Writting summary to {}".format(summaryfilename))
@@ -321,12 +380,15 @@ def plot_mass(options):
             for i in summary_lines:
                 summaryfile.write(i)
         fig.set_size_inches(18.5, 10.5)
+        file_extention = ".png"
+
         if args.eps:
-            logging.info("Saving plot to {}".format(options.output_stub+".eps"))
-            plt.savefig(options.output_stub+".eps")
-        else:
-            logging.info("Saving plot to {}".format(options.output_stub+".png"))
-            plt.savefig(options.output_stub+".png", dpi=200)
+            file_extention = ".eps"
+        if args.pdf:
+            file_extention = ".pdf"
+        filename = options.output_stub+file_extention
+        logging.info("Saving plot to {}".format(filename))
+        plt.savefig(filename)
         return
 
     print "".join(summary_lines)
@@ -346,6 +408,8 @@ if __name__ == "__main__":
                         help="stub of name to write output to")
     parser.add_argument("-e", "--eps", action="store_true",
                         help="save as eps not png")
+    parser.add_argument("--pdf", action="store_true",
+                        help="save as pdf not png")
     parser.add_argument("-b", "--box", action="store_true",
                         help="max boxplots instead")
     parser.add_argument("-y", "--yrange", type=float, required=False, nargs=2,
@@ -356,6 +420,8 @@ if __name__ == "__main__":
                         help="what to set on the xaxis", default="mud")
     parser.add_argument("--legend_mode", required=False, choices=legend_choices,
                         help="what to use for the legend", default="beta")
+    parser.add_argument("--ylabel", type=str, required=False,
+                        help="ylabel", default=None)
     parser.add_argument("--fitdata", required=False, type=str,
                         help="folder for fitdata when needed")
     parser.add_argument("-t", "--title", type=str, required=False,
@@ -366,6 +432,8 @@ if __name__ == "__main__":
                         help="spinaverage vector with pseudoscalar")
     parser.add_argument("-p", "--physical", type=float, nargs=2,
                         help="add physical point")
+    parser.add_argument("-I", "--interpolate", type=argparse.FileType('r'), required=False,
+                        help="add interpolated lines")
     args = parser.parse_args()
 
     if args.verbose:
