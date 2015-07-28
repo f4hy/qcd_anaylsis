@@ -160,8 +160,8 @@ def add_interpolate(axe, xran, fit_file, chiral_fit_file=None):
         values[name] = float(val)
         errors[name] = float(err)
 
-    print values
-    print errors
+    logging.debug(values)
+    logging.debug(errors)
 
     x =  np.linspace(phys_mpisqr, xran[1])
 
@@ -187,10 +187,14 @@ def add_interpolate(axe, xran, fit_file, chiral_fit_file=None):
     axe.errorbar(phys_mpisqr, values["phys_obs"], yerr=errors["phys_obs"], color='g', elinewidth=4, capsize=8,
                  capthick=2, mec='g', mew=2)
 
-    if not chiral_fit_file:
-        return p
+    return p
 
+def add_chiral_fit(axe, xran, chiral_fit_file=None):
 
+    values = {}
+    errors = {}
+
+    phys_mpisqr = (138.04)**2
 
     for i in chiral_fit_file:
         if i.startswith("#"):
@@ -205,6 +209,7 @@ def add_interpolate(axe, xran, fit_file, chiral_fit_file=None):
     rho_mass = 775.4
     LAMBDA = values["LAMBDA"]
 
+    x =  np.linspace(phys_mpisqr, xran[1])
 
     XI = x/(8*(np.pi**2)*(values["F_PI"])**2)
     y = values["F_PI"] * (1 - XI*np.log(x/(LAMBDA)**2))
@@ -217,9 +222,7 @@ def add_interpolate(axe, xran, fit_file, chiral_fit_file=None):
 
     #yerr = errors["F_PI"] + errors["F_PI"]*x/(8*np.pi*values["F_PI"])**2*np.log(x/(LAMBDA)**2)
 
-    print x
-    print y
-    p.extend(axe.plot(x,y, label="LO chiral fit", color='b', ls="--", lw=2))
+    p = axe.plot(x,y, label="LO chiral fit", color='b', ls="--", lw=2)
     #plt.show()
     return p
 
@@ -397,8 +400,13 @@ def plot_decay_constant(options):
 
 
     if options.interpolate:
-        interp_line = add_interpolate(axe, xran, options.interpolate, chiral_fit_file=options.chiral_fit_file)
+        interp_line = add_interpolate(axe, xran, options.interpolate)
         legend_handles.extend(interp_line)
+
+    if options.chiral_fit_file:
+        chiral_line = add_chiral_fit(axe, xran, options.chiral_fit_file)
+        legend_handles.extend(chiral_line)
+
 
     if options.xlabel:
         axe.set_xlabel(options.ylabel, **fontsettings)
@@ -441,7 +449,7 @@ def plot_decay_constant(options):
         plt.savefig(filename)
         return
 
-    print "".join(summary_lines)
+    logging.info("".join(summary_lines))
     plt.show()
 
 if __name__ == "__main__":
