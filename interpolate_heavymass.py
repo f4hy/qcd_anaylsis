@@ -11,6 +11,7 @@ import glob
 from iminuit import Minuit
 
 from ensamble_info import scale
+from ensamble_info import phys_pion, phys_kaon
 
 heavymap = {}
 heavymap[("4.17", "m0")] = 0.35

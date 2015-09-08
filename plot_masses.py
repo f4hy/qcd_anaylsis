@@ -18,6 +18,7 @@ from residualmasses import residual_masses
 
 from ensamble_info import flavor_map, scale, data_params, determine_flavor, read_fit_mass
 from ensamble_info import all_same_beta, all_same_heavy, all_same_flavor
+from ensamble_info import phys_pion, phys_kaon
 
 
 
@@ -313,7 +314,7 @@ def plot_mass(options):
 
 
     if options.physical:
-        x_physicals = {"mud": 2.2, "mud_s": 97.2, "mpisqr": 138.0**2, "2mksqr-mpisqr": 2*(497.6**2)-138.0**2}
+        x_physicals = {"mud": 2.2, "mud_s": 97.2, "mpisqr": phys_pion**2, "2mksqr-mpisqr": 2*(phys_kaon**2)-phys_pion**2}
         y, err = options.physical
         physplot = axe.errorbar(x_physicals[options.xaxis], y, yerr=err, marker="x", ecolor="k",
                                 color="k", label="PDG", ms=15, elinewidth=3, capsize=1, capthick=2,

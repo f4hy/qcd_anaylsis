@@ -10,6 +10,7 @@ from iminuit import Minuit
 from residualmasses import residual_mass
 
 from ensamble_info import data_params, read_fit_mass, scale
+from ensamble_info import phys_pion, phys_kaon
 
 
 colors = ['b', 'k', 'c', 'y', 'm', 'b']
@@ -254,7 +255,7 @@ def interpolate_chiral_spacing(options):
 
     alldata = read_files(options.files, options.fitdata)
 
-    phys_mpisqr = (138.04)**2
+    phys_mpisqr = (phys_pion)**2
 
 
     fit_paramsters = interpolate(alldata, phys_mpisqr)

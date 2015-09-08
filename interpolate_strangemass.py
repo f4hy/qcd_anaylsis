@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import leastsq
 import plot_helpers
 
-from ensamble_info import scale, data_params, read_fit_mass
+from ensamble_info import scale, data_params, read_fit_mass, phys_pion, phys_kaon
 
 colors = ['b', 'r', 'k', 'm', 'c', 'y', 'b', 'r', 'k', 'm', 'c', 'y']
 
@@ -172,8 +172,8 @@ def interpolate_strangemass(options):
     if not all([beta in f for f in options.files]):
         raise RuntimeError("Not all the same beta")
 
-    physical_pisqr = 138.04**2/(scale[beta]**2)
-    physical_s = (2*(495.646**2)-138.04**2)/(scale[beta]**2)
+    physical_pisqr = phys_pion**2/(scale[beta]**2)
+    physical_s = (2*(phys_kaon**2)-phys_pion**2)/(scale[beta]**2)
 
     alldata = read_files(options.files, options.fitdata)
 

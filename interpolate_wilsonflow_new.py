@@ -9,7 +9,7 @@ from iminuit import Minuit
 
 from residualmasses import residual_mass
 
-from ensamble_info import data_params, read_fit_mass
+from ensamble_info import data_params, read_fit_mass, phys_pion, phys_kaon
 
 colors = ['b', 'k', 'c', 'y', 'm', 'b']
 
@@ -233,12 +233,12 @@ def interpolate_wilsonflow(options):
     # if options.xaxis == "mud":
     #     phys_x = 0
     # if options.xaxis == "tmpisqr":
-    #     phys_x = ((0.1465/hbar_c)*135.0)**2
+    #     phys_x = ((0.1465/hbar_c)*phys_pion)**2
     # if options.xaxis == "t_2mksqr-mpisqr":
-    #     phys_x = ((0.1465/hbar_c)**2)*(2*(495**2) + 138.0**2)
+    #     phys_x = ((0.1465/hbar_c)**2)*(2*(phys_kaon**2) + phys_pion**2)
 
-    phys_mk = 495.0
-    phys_mpi = 138.0
+    phys_mk = phys_kaon
+    phys_mpi = phys_pion
     phys_t0 = (0.1465/hbar_c)
 
 
