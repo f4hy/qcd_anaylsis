@@ -8,7 +8,7 @@ import readinput
 import os
 
 from residualmasses import residual_mass
-
+from ensamble_info import  data_params
 
 def lines_without_comments(filename, comment="#"):
     from cStringIO import StringIO
@@ -67,6 +67,8 @@ def decay_constant(filename, options):
 
     df = read_file(filename)
 
+    dp = data_params(filename)
+
     beta = re.search("_b(4\.[0-9]*)_", filename).group(1)
 
     masses = {}
@@ -107,18 +109,25 @@ def decay_constant(filename, options):
         quarkmass1 = masses[quarktype1]
         quarkmass2 = masses[quarktype2]
 
+    if options.volume:
+        volumefactor = dp.volume
+    else:
+        volumefactor = 1
+    logging.info("dividing amplitudes by volume {}".format(volumefactor))
+
+
     if options.function == "axial":
-        decay_constant = np.sqrt( (quarkmass1 + quarkmass2)*2*df.amp / (df.mass**2))
+        decay_constant = np.sqrt( (quarkmass1 + quarkmass2)*2*(df.amp/volumefactor) / (df.mass**2))
     if options.function == "axialsimul01-11":
-        decay_constant = np.sqrt( 2*(df.amp1**2 / df.amp2) /(df.mass) )
+        decay_constant = np.sqrt( 2*((df.amp1/volumefactor)**2 / (df.amp2/volumefactor)) /(df.mass) )
     if options.function == "axialsimul00-11":
-        decay_constant = np.sqrt( (quarkmass1 + quarkmass2)*2*df.amp1 / (df.mass**2))
+        decay_constant = np.sqrt( (quarkmass1 + quarkmass2)*2*(df.amp1/volumefactor) / (df.mass**2))
     if options.function == "simul01-11":
-        decay_constant = (quarkmass1 + quarkmass2) * np.sqrt(2*(df.amp1**2 / df.amp2) / (df.mass**3))
+        decay_constant = (quarkmass1 + quarkmass2) * np.sqrt(2*((df.amp1/volumefactor)**2 / (df.amp2/volumefactor)) / (df.mass**3))
     if options.function == "simul00-11" or options.function == "simul00-01":
-        decay_constant = (quarkmass1 + quarkmass2) * np.sqrt(2*df.amp1 / (df.mass**3))
+        decay_constant = (quarkmass1 + quarkmass2) * np.sqrt(2*(df.amp1/volumefactor) / (df.mass**3))
     if options.function == "standard":
-        decay_constant = (quarkmass1 + quarkmass2) * np.sqrt(2*df.amp / (df.mass**3))
+        decay_constant = (quarkmass1 + quarkmass2) * np.sqrt(2*(df.amp/volumefactor) / (df.mass**3))
 
 
     if options.out_stub:
@@ -155,6 +164,8 @@ if __name__ == "__main__":
                         help="The heavyquarkmass to use")
     parser.add_argument("-b", "--bothquarks", action="store_true",
                         help="use both quark masses as the x value")
+    parser.add_argument("-V", "--volume", action="store_true",
+                        help="divide amplitudes by the volume")
     args = parser.parse_args()
 
     if args.function is None:
