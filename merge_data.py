@@ -2,6 +2,7 @@
 import logging
 import argparse
 import numpy as np
+import re
 
 def check_done(lines):
     ends = [l == "" for l in lines]
@@ -58,13 +59,18 @@ class filewriter:
 
     def add_data(self,line,fromfile):
 
-        if fromfile not in self.data.keys():
-            self.data[fromfile] = []
+        if self.shift == "auto":
+            shift = args.stride*int(re.search("src([0-9]+)", fromfile).group(1))
+        else:
+            shift = self.shift
+
+        if (fromfile,shift) not in self.data.keys():
+            self.data[(fromfile,shift)] = []
 
         time = int(line.strip().split()[0])
         data = ", ".join(line.strip().split()[1:])
 
-        self.data[fromfile].append((time, data) )
+        self.data[(fromfile,shift)].append((time, data) )
 
     def write(self):
         ofile_name = "{}_{}_{}-{}_{}".format(args.output_stub, self.flavor, self.snk, self.src, self.correlatortype)
@@ -72,8 +78,8 @@ class filewriter:
         ofile = open(ofile_name, "w")
         logging.info("writing data")
 
-        def index(i, period):
-            new = i+self.shift
+        def index(i, period, shift):
+            new = i+shift
             if new >= period:
                 return new - period
             return new
@@ -85,11 +91,12 @@ class filewriter:
             #     return i+period-self.shift
 
 
-        for cfg, data in self.data.iteritems():
+        for key, data in self.data.iteritems():
+            _, shift = key
             ddata = dict(data)
             period = max(ddata.keys())+1
             for i in range(max(ddata.keys())+1):
-                ofile.write("{}, {}".format(i,ddata[index(i, period)]))
+                ofile.write("{}, {}".format(i,ddata[index(i, period, shift)]))
                 ofile.write("\n")
 
 def split_data(args):
@@ -137,6 +144,8 @@ if __name__ == "__main__":
                         help="stub of name to write output to")
     parser.add_argument("-s", "--shift", type=int, default=0, required=False,
                         help="shift the times on the data")
+    parser.add_argument("--stride", type=int, required=False,
+                        help="each source has an offset of STRIDE")
     parser.add_argument('--err', nargs='?', type=argparse.FileType('w'),
                         default=None)
     parser.add_argument('files', metavar='f', type=str, nargs='+',
@@ -158,5 +167,7 @@ if __name__ == "__main__":
         ch.setFormatter(formatter)
         root.addHandler(ch)
 
+    if args.stride:
+        args.shift = "auto"
 
     split_data(args)
