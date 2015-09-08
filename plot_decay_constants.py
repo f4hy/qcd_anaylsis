@@ -20,6 +20,9 @@ import plot_helpers
 
 from ensamble_info import flavor_map, scale, data_params, determine_flavor, read_fit_mass
 from ensamble_info import all_same_beta, all_same_heavy, all_same_flavor
+from ensamble_info import phys_pion, phys_kaon, phys_mq
+from ensamble_info import Zs, Zv
+
 from auto_key import auto_key
 
 
@@ -73,6 +76,15 @@ def xvalues(xaxis_type, data_properties, options):
         kaonmass = read_fit_mass(data_properties, "ud-s", options.fitdata)
         return 2.0*(s*kaonmass)**2 - (s*pionmass)**2
 
+    if xaxis_type == "mpisqr/mq":
+        pionmass = read_fit_mass(data_properties, "ud-ud", options.fitdata)
+        mq = data_properties.ud_mass * 1.0/Zs[data_properties.beta]
+        return (s*pionmass)**2 / (s*mq)
+
+    if xaxis_type == "mq":
+        residual = residual_mass(data_properties.ud_mass, data_properties.s_mass)
+        mq = (data_properties.ud_mass+residual) * 1.0/Zs[data_properties.beta]
+        return np.array((s*mq))
 
 
 
@@ -148,7 +160,7 @@ def add_interpolate(axe, xran, fit_file, chiral_fit_file=None):
     values = {}
     errors = {}
 
-    phys_mpisqr = (138.04)**2
+    phys_mpisqr = (phys_pion)**2
 
     for i in fit_file:
         if i.startswith("#"):
@@ -194,16 +206,23 @@ def add_chiral_fit(axe, xran, chiral_fit_file=None):
     values = {}
     errors = {}
 
-    phys_mpisqr = (138.04)**2
-
     for i in chiral_fit_file:
         if i.startswith("#"):
             continue
 
         name, val, err = (j.strip() for j in i.replace("+/-",",").split(","))
-
         values[name] = float(val)
         errors[name] = float(err)
+
+
+    if "OMEGA_F" in values.keys():
+        return add_NLO_chiral_fit(axe, xran, values, errors)
+    else:
+        return add_LO_chiral_fit(axe, xran, values, errors)
+
+def add_LO_chiral_fit(axe, xran, values, errors):
+
+    phys_mpisqr = (phys_pion)**2
 
 
     rho_mass = 775.4
@@ -242,6 +261,48 @@ def add_chiral_fit(axe, xran, chiral_fit_file=None):
     # print foobar, "test", "4.47"
     # exit(-1)
 
+def add_NLO_chiral_fit(axe, xran, values, errors):
+
+
+    phys_mpisqr = (phys_pion)**2
+
+
+    rho_mass = 775.4
+    LAMBDA = values["LAMBDA"]
+
+    x =  np.linspace(phys_mpisqr, xran[1])
+
+    XI = x/(8*(np.pi**2)*(values["F_PI"])**2)
+    y = values["F_PI"] * (1 - XI*np.log(x/(LAMBDA)**2)
+                          - 1.0/4.0 * (XI**2)*(np.log(x/values["OMEGA_F"]**2))**2  )
+
+    # y = values["F_PI"] * (1 - XI*np.log(x/(LAMBDA))
+    #                       - 1.0/4.0 * (XI**2)*(np.log(x/values["OMEGA_F"]))**2 + values["c_F"]*XI**2 )
+
+
+    #yerr = errors["F_PI"] + errors["F_PI"]*x/(8*np.pi*values["F_PI"])**2*np.log(x/(LAMBDA)**2)
+
+    p = axe.plot(x,y, label="NLO chiral fit", color='m', ls="-.", lw=2)
+    #plt.show()
+    return p
+
+    #
+    # y = values["phys_obs"]+values["M_pi"]*(x-phys_mpisqr)+values["A"]*((hbar_c/scale["4.17"])**2)
+    # axe.plot(x,y, ls="-")
+    # y = values["phys_obs"]+values["M_pi"]*(x-phys_mpisqr)+values["A"]*((hbar_c/scale["4.35"])**2)
+    # axe.plot(x,y, ls="--")
+    # y = values["phys_obs"]+values["M_pi"]*(x-phys_mpisqr)+values["A"]*((hbar_c/scale["4.47"])**2)
+    # axe.plot(x,y, ls="-.")
+
+    # # print auto_key("4.17")
+    # # print auto_key("4.35")
+    # foobar = auto_key("4.47")
+    # print "fobarbaz"
+    # print "4.47", foobar
+    # print foobar, "test", "4.47"
+    # exit(-1)
+
+
 def plot_decay_constant(options):
 
 
@@ -270,18 +331,30 @@ def plot_decay_constant(options):
 
         label = "$f_{}$ s{}".format(p.flavor, p.s_mass)
 
-        df = pd.read_csv(f,comment='#', names=["decay"])
+        if "decay" in f:
+            logging.info("Is a decay constant file")
+            names = ["decay"]
+            dataname = "decay"
+        else:
+            names = ["bootstrap", "mass", "amp1", "amp2"]
+            dataname = "mass"
 
+        df = pd.read_csv(f,comment='#', names=names)
+
+        if options.mpisqrbymq:
+            if options.scale:
+                res = residual_mass(p.ud_mass, p.s_mass)
+                df[dataname] = ((scale[p.beta]*df[dataname])**2 / (scale[p.beta]*(p.ud_mass+res) * 1.0/Zs[p.beta]))
+            else:
+                df[dataname] = ((df[dataname])**2 / (p.ud_mass * 1.0/Zs[p.beta]))
 
 
         mark = markers[index % len(markers)]
-        # color = colors[index % len(colors)]
 
         mfc = 'white'
 
         mark = strange_legend(p.s_mass)
 
-        #mark, color, mfc = colors_and_legend(p, options.legend_mode)
         color, mark, mfc = colors_and_legend(p, options.legend_mode)
 
         # if "48x96x12" in f:
@@ -301,11 +374,11 @@ def plot_decay_constant(options):
         x = xs.mean()
         xerr = xs.std()
         xerr = plot_helpers.error(xs)
-        y = float(df.median())
-        e = float(df.std().values)
-        e = plot_helpers.error(df.values)
+        y = float(df[dataname].mean())
+        e = float(df[dataname].std())
+        e = plot_helpers.error(df[dataname])
 
-        summary_lines.append("{}, {}, {}\n".format(p, y, df.std().values))
+        summary_lines.append("{}, {}, {}\n".format(p, y, df[dataname].std()))
 
         scalepower = 1.0
         if options.scalesquared:
@@ -323,12 +396,14 @@ def plot_decay_constant(options):
         logging.info("plotting {} {} {}".format(x,y,e))
         if options.scale:
             sc = scale[p.beta]**scalepower
-            scaled_err = plot_helpers.error(df.values*sc)
+            if options.mpisqrbymq:
+                sc=1.0
+            scaled_err = plot_helpers.error(df[dataname]*sc)
 
             if options.box:
-                b = axe.boxplot(df["decay"]*sc, positions=[x], widths=[0.001*sc], patch_artist=True)
+                b = axe.boxplot(df[dataname]*sc, positions=[x], widths=[0.001*sc], patch_artist=True)
             elif options.scatter:
-                axe.scatter(xs, df["decay"]*sc, c=color)
+                axe.scatter(xs, df[dataname]*sc, c=color)
             else:
                 axe.errorbar(x, y*sc, yerr=scaled_err, zorder=0, **plotsettings)
             ymax = max(ymax,y*sc)
@@ -337,7 +412,7 @@ def plot_decay_constant(options):
 
         else:
             if options.box:
-                b = axe.boxplot(df["decay"], positions=[x], widths=[0.001], patch_artist=True)
+                b = axe.boxplot(df[dataname], positions=[x], widths=[0.001], patch_artist=True)
             else:
                 axe.errorbar(x, y, yerr=e, xerr=xerr, zorder=0, **plotsettings)
             ymax = max(ymax,y)
@@ -352,7 +427,7 @@ def plot_decay_constant(options):
 
 
     if options.physical:
-        x_physicals = {"mud": 2.2, "mud_s": 97.2, "mpisqr": 138.0**2, "2mksqr-mpisqr": 2*(497.6**2)-138.0**2}
+        x_physicals = {"mud": 2.2, "mud_s": 97.2, "mpisqr": phys_pion**2, "2mksqr-mpisqr": 2*(phys_kaon**2)-phys_pion**2, "mpisqr/mq": (phys_pion**2)/(phys_mq), "mq": (phys_mq)}
         y, err = options.physical
         if options.scale:
             x = x_physicals[options.xaxis]
@@ -396,26 +471,35 @@ def plot_decay_constant(options):
     #axe.set_xlabel("$m_{%s}+m_{res}+m_{%s}+m_{res}$" % (rawflavor.split("-")[0], rawflavor.split("-")[1]), **fontsettings)
 
     xlabel = {"mud": u"$m_{l}+m_{res}$", "mud_s": u"$m_{l}+m_s+2m_{res}$", "mpi": u"$m_{\pi}$",
-              "mpisqr": u"$m^2_{\pi}$ [MeV^2]", "2mksqr-mpisqr": u"$2m^2_{K}-m^2_{\pi}$" }
+              "mpisqr": u"$m^2_{\pi}$", "2mksqr-mpisqr": u"$2m^2_{K}-m^2_{\pi}$", "mpisqr/mq": u"$m^2_{\pi}/m_q$", "mq": u"$m_q$" }
+
+    if options.scale:
+        xlabel = {"mud": u"$m_{l}+m_{res}$", "mud_s": u"$m_{l}+m_s+2m_{res}$", "mpi": u"$m_{\pi}$",
+                  "mpisqr": u"$m^2_{\pi}$ [MeV^2]", "2mksqr-mpisqr": u"$2m^2_{K}-m^2_{\pi}$", "mpisqr/mq": u"$m^2_{\pi}/m_q$ [MeV]", "mq": u"$m_q$ [MeV]" }
 
 
-    if options.interpolate:
-        interp_line = add_interpolate(axe, xran, options.interpolate)
-        legend_handles.extend(interp_line)
+    if options.xaxis == "mpisqr":
+        if options.interpolate:
+            interp_line = add_interpolate(axe, xran, options.interpolate)
+            legend_handles.extend(interp_line)
 
-    if options.chiral_fit_file:
-        chiral_line = add_chiral_fit(axe, xran, options.chiral_fit_file)
-        legend_handles.extend(chiral_line)
+        if options.chiral_fit_file:
+            for i in options.chiral_fit_file:
+                chiral_line = add_chiral_fit(axe, xran, i)
+                legend_handles.extend(chiral_line)
 
 
     if options.xlabel:
-        axe.set_xlabel(options.ylabel, **fontsettings)
+        axe.set_xlabel(options.xlabel, **fontsettings)
     else:
         axe.set_xlabel(xlabel[options.xaxis], **fontsettings)
 
 
     if options.ylabel:
-        axe.set_ylabel("{} [MeV]".format(options.ylabel), **fontsettings)
+        if options.scale:
+            axe.set_ylabel("{} [MeV]".format(options.ylabel), **fontsettings)
+        else:
+            axe.set_ylabel("{}".format(options.ylabel), **fontsettings)
     elif options.scale:
         if options.scalesquared:
             axe.set_ylabel("MeV^2", **fontsettings)
@@ -455,7 +539,7 @@ def plot_decay_constant(options):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="average data files")
 
-    axis_choices = ["mud", "mud_s", "mpi", "mpisqr", "2mksqr-mpisqr"]
+    axis_choices = ["mud", "mud_s", "mpi", "mpisqr", "2mksqr-mpisqr", "mpisqr/mq", "xi", "mq" ]
     legend_choices = ["betaLs", "betaL", "heavy", "smearing", "flavor", "strange"]
 
     parser.add_argument("-v", "--verbose", action="store_true",
@@ -496,8 +580,10 @@ if __name__ == "__main__":
                         help="add physical point")
     parser.add_argument("-I", "--interpolate", type=argparse.FileType('r'), required=False,
                         help="add interpolated lines")
-    parser.add_argument("--chiral_fit_file", type=argparse.FileType('r'), required=False,
+    parser.add_argument("--chiral_fit_file", type=argparse.FileType('r'), required=False, action='append',
                         help="add chiral interpolated lines")
+    parser.add_argument("--mpisqrbymq", action="store_true",
+                        help="compute mpisqr divided by mq, strange edge case")
     args = parser.parse_args()
 
     if args.verbose:
