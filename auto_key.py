@@ -7,7 +7,7 @@ used_colors = {}
 colorcycle = cycle('brmckg')
 
 markercycle = cycle('o<^>Dp8')
-facecycle = cycle([None, "white"])
+facecycle = cycle(["white", None])
 
 
 memoized_ids = {}
@@ -45,11 +45,11 @@ def auto_key(identifier, verbose=False):
         memoized_ids[identifier] = (c,m,f)
         return c,m,f
 
-    nowhite = len(new) > 2
+    nowhite = len(new) > 1
     if c is None:
         c = colorcycle.next()
         color_ids[new.pop(0)] = c
-    if m is None and new:
+    if m is None and [i for i in new if i[0] == 1]:
         m = markercycle.next()
         mark_ids[new.pop(0)] = m
     if f is None and new and not nowhite:
