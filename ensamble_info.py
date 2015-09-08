@@ -7,6 +7,25 @@ scale = {"4.17": 2492, "4.35": 3660, "4.47": 4600}
 scale = {"4.17": 2473, "4.35": 3618, "4.47": 4600}
 scale = {"4.17": 2453.1, "4.35": 3609.7, "4.47": 4496.1}
 
+phys_pion = 134.8
+phys_kaon = 494.2
+
+# pdg m_u=2.3 m_d = 4.8 , so (m_d+m_d)/2 = 3.55
+phys_mq = 3.55
+
+# Zv(=Za)<MSbar>
+# beta4.17: Zv = 0.9517(58)(10)(33)
+# beta4.35: Zv = 0.9562(42)(8)(20)
+# beta4.47: Zv = 0.9624(33)(7)(20)
+Zv = {"4.17": 0.9517, "4.35": 0.9562, "4.47": 0.9624}
+
+# Zs(=Zp):<MSbar, 2GeV>
+# beta4.17: Zs = 1.024(15)(84)(6)
+# beta4.35: Zs = 0.922(11)(45)(5)
+# beta4.47: Zs = 0.880(7)(38)(4)
+Zs = {"4.17": 1.024, "4.35": 0.922, "4.47": 0.880}
+
+
 
 def determine_flavor(f):
     flavors = flavor_map.keys()
@@ -42,11 +61,13 @@ class data_params(object):
 
         try:
             self.latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
+            self.volume = int(self.latsize.split("x")[0])**3
         except AttributeError:
             self.latsize = None
         if self.latsize is None:
             try:
                 self.latsize = re.search("L([0-9]+)", filename).group(1)
+                self.volume = int(self.latsize[1:])**3
             except AttributeError:
                 pass
 
