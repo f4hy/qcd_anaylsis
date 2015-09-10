@@ -20,7 +20,7 @@ import plot_helpers
 
 from ensamble_info import flavor_map, scale, data_params, determine_flavor, read_fit_mass
 from ensamble_info import all_same_beta, all_same_heavy, all_same_flavor
-from ensamble_info import phys_pion, phys_kaon, phys_mq
+from ensamble_info import phys_pion, phys_kaon, phys_mq, phys_Fpi
 from ensamble_info import Zs, Zv
 
 from auto_key import auto_key
@@ -85,6 +85,17 @@ def xvalues(xaxis_type, data_properties, options):
         residual = residual_mass(data_properties.ud_mass, data_properties.s_mass)
         mq = (data_properties.ud_mass+residual) * 1.0/Zs[data_properties.beta]
         return np.array((s*mq))
+
+    if xaxis_type == "xi":
+        # if options.XI is None:
+        #     logging.error("Must specify -XI file")
+        #     raise RuntimeError("No XI file specified")
+        print options.fitdata
+        XI = read_fit_mass(data_properties, "xi", options.fitdata)
+        # XI = pd.read_csv(options.XI, comment='#', names=["XI"])
+        print XI
+        #exit(-1)
+        return XI
 
 
 
@@ -427,7 +438,7 @@ def plot_decay_constant(options):
 
 
     if options.physical:
-        x_physicals = {"mud": 2.2, "mud_s": 97.2, "mpisqr": phys_pion**2, "2mksqr-mpisqr": 2*(phys_kaon**2)-phys_pion**2, "mpisqr/mq": (phys_pion**2)/(phys_mq), "mq": (phys_mq)}
+        x_physicals = {"mud": 2.2, "mud_s": 97.2, "mpisqr": phys_pion**2, "2mksqr-mpisqr": 2*(phys_kaon**2)-phys_pion**2, "mpisqr/mq": (phys_pion**2)/(phys_mq), "mq": (phys_mq), "xi": (phys_pion**2)/((phys_Fpi**2)*8*np.pi**2) }
         y, err = options.physical
         if options.scale:
             x = x_physicals[options.xaxis]
@@ -471,11 +482,11 @@ def plot_decay_constant(options):
     #axe.set_xlabel("$m_{%s}+m_{res}+m_{%s}+m_{res}$" % (rawflavor.split("-")[0], rawflavor.split("-")[1]), **fontsettings)
 
     xlabel = {"mud": u"$m_{l}+m_{res}$", "mud_s": u"$m_{l}+m_s+2m_{res}$", "mpi": u"$m_{\pi}$",
-              "mpisqr": u"$m^2_{\pi}$", "2mksqr-mpisqr": u"$2m^2_{K}-m^2_{\pi}$", "mpisqr/mq": u"$m^2_{\pi}/m_q$", "mq": u"$m_q$" }
+              "mpisqr": u"$m^2_{\pi}$", "2mksqr-mpisqr": u"$2m^2_{K}-m^2_{\pi}$", "mpisqr/mq": u"$m^2_{\pi}/m_q$", "mq": u"$m_q$", "xi": "$xi$" }
 
     if options.scale:
         xlabel = {"mud": u"$m_{l}+m_{res}$", "mud_s": u"$m_{l}+m_s+2m_{res}$", "mpi": u"$m_{\pi}$",
-                  "mpisqr": u"$m^2_{\pi}$ [MeV^2]", "2mksqr-mpisqr": u"$2m^2_{K}-m^2_{\pi}$", "mpisqr/mq": u"$m^2_{\pi}/m_q$ [MeV]", "mq": u"$m_q$ [MeV]" }
+                  "mpisqr": u"$m^2_{\pi}$ [MeV^2]", "2mksqr-mpisqr": u"$2m^2_{K}-m^2_{\pi}$", "mpisqr/mq": u"$m^2_{\pi}/m_q$ [MeV]", "mq": u"$m_q$ [MeV]", "xi": "$xi$" }
 
 
     if options.xaxis == "mpisqr":

@@ -10,6 +10,8 @@ scale = {"4.17": 2453.1, "4.35": 3609.7, "4.47": 4496.1}
 phys_pion = 134.8
 phys_kaon = 494.2
 
+phys_Fpi = 130.41
+
 # pdg m_u=2.3 m_d = 4.8 , so (m_d+m_d)/2 = 3.55
 phys_mq = 3.55
 
@@ -107,6 +109,9 @@ def read_fit_mass(data_properties, flavor, fitdata):
         raise SystemExit("Unique fit file not found!")
 
     with open(fitdatafiles[0]) as fitfile:
+        if flavor is "xi":
+            df = pd.read_csv(fitfile,comment='#', names=["xi"])
+            return df.xi
         df = pd.read_csv(fitfile,comment='#', names=["config", "mass", "amp1", "amp2"])
         return df.mass
 
