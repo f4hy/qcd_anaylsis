@@ -14,7 +14,7 @@ from cStringIO import StringIO
 import numpy as np
 import re
 
-from residualmasses import residual_mass
+from residualmasses import residual_mass, residual_mass_errors
 
 import plot_helpers
 
@@ -25,6 +25,7 @@ from ensamble_info import Zs, Zv
 
 from auto_key import auto_key
 
+from add_chiral_fits import add_chiral_fit
 
 def round5(x):
     return int(5 * np.around(x/5.0))
@@ -60,11 +61,11 @@ def xvalues(xaxis_type, data_properties, options):
         s = 1.0
 
     if xaxis_type == "mud":
-        residual = residual_mass(data_properties.ud_mass, data_properties.s_mass)
+        residual = residual_mass(data_properties)
         return pd.Series(s*(data_properties.ud_mass + residual))
 
     if xaxis_type == "mud_s":
-        residual = residual_mass(data_properties.ud_mass, data_properties.s_mass)
+        residual = residual_mass(data_properties)
         return pd.Serites(s*(data_properties.ud_mass + residual + data_properties.s_mass + residual))
 
     if xaxis_type == "mpisqr":
@@ -82,7 +83,7 @@ def xvalues(xaxis_type, data_properties, options):
         return (s*pionmass)**2 / (s*mq)
 
     if xaxis_type == "mq":
-        residual = residual_mass(data_properties.ud_mass, data_properties.s_mass)
+        residual = residual_mass(data_properties)
         mq = (data_properties.ud_mass+residual) * 1.0/Zs[data_properties.beta]
         return np.array((s*mq))
 
@@ -90,11 +91,8 @@ def xvalues(xaxis_type, data_properties, options):
         # if options.XI is None:
         #     logging.error("Must specify -XI file")
         #     raise RuntimeError("No XI file specified")
-        print options.fitdata
         XI = read_fit_mass(data_properties, "xi", options.fitdata)
         # XI = pd.read_csv(options.XI, comment='#', names=["XI"])
-        print XI
-        #exit(-1)
         return XI
 
 
@@ -212,107 +210,6 @@ def add_interpolate(axe, xran, fit_file, chiral_fit_file=None):
 
     return p
 
-def add_chiral_fit(axe, xran, chiral_fit_file=None):
-
-    values = {}
-    errors = {}
-
-    for i in chiral_fit_file:
-        if i.startswith("#"):
-            continue
-
-        name, val, err = (j.strip() for j in i.replace("+/-",",").split(","))
-        values[name] = float(val)
-        errors[name] = float(err)
-
-
-    if "OMEGA_F" in values.keys():
-        return add_NLO_chiral_fit(axe, xran, values, errors)
-    else:
-        return add_LO_chiral_fit(axe, xran, values, errors)
-
-def add_LO_chiral_fit(axe, xran, values, errors):
-
-    phys_mpisqr = (phys_pion)**2
-
-
-    rho_mass = 775.4
-    LAMBDA = values["LAMBDA"]
-
-    x =  np.linspace(phys_mpisqr, xran[1])
-
-    XI = x/(8*(np.pi**2)*(values["F_PI"])**2)
-    y = values["F_PI"] * (1 - XI*np.log(x/(LAMBDA)**2))
-    # y = values["F_PI"] * (1 - XI*np.log(x/(LAMBDA)**2)
-    #                       - 1.0/4.0 * (XI**2)*(np.log(x/values["OMEGA_F"]**2))**2  )
-
-    # y = values["F_PI"] * (1 - XI*np.log(x/(LAMBDA))
-    #                       - 1.0/4.0 * (XI**2)*(np.log(x/values["OMEGA_F"]))**2 + values["c_F"]*XI**2 )
-
-
-    #yerr = errors["F_PI"] + errors["F_PI"]*x/(8*np.pi*values["F_PI"])**2*np.log(x/(LAMBDA)**2)
-
-    p = axe.plot(x,y, label="LO chiral fit", color='b', ls="--", lw=2)
-    #plt.show()
-    return p
-
-    #
-    # y = values["phys_obs"]+values["M_pi"]*(x-phys_mpisqr)+values["A"]*((hbar_c/scale["4.17"])**2)
-    # axe.plot(x,y, ls="-")
-    # y = values["phys_obs"]+values["M_pi"]*(x-phys_mpisqr)+values["A"]*((hbar_c/scale["4.35"])**2)
-    # axe.plot(x,y, ls="--")
-    # y = values["phys_obs"]+values["M_pi"]*(x-phys_mpisqr)+values["A"]*((hbar_c/scale["4.47"])**2)
-    # axe.plot(x,y, ls="-.")
-
-    # # print auto_key("4.17")
-    # # print auto_key("4.35")
-    # foobar = auto_key("4.47")
-    # print "fobarbaz"
-    # print "4.47", foobar
-    # print foobar, "test", "4.47"
-    # exit(-1)
-
-def add_NLO_chiral_fit(axe, xran, values, errors):
-
-
-    phys_mpisqr = (phys_pion)**2
-
-
-    rho_mass = 775.4
-    LAMBDA = values["LAMBDA"]
-
-    x =  np.linspace(phys_mpisqr, xran[1])
-
-    XI = x/(8*(np.pi**2)*(values["F_PI"])**2)
-    y = values["F_PI"] * (1 - XI*np.log(x/(LAMBDA)**2)
-                          - 1.0/4.0 * (XI**2)*(np.log(x/values["OMEGA_F"]**2))**2  )
-
-    # y = values["F_PI"] * (1 - XI*np.log(x/(LAMBDA))
-    #                       - 1.0/4.0 * (XI**2)*(np.log(x/values["OMEGA_F"]))**2 + values["c_F"]*XI**2 )
-
-
-    #yerr = errors["F_PI"] + errors["F_PI"]*x/(8*np.pi*values["F_PI"])**2*np.log(x/(LAMBDA)**2)
-
-    p = axe.plot(x,y, label="NLO chiral fit", color='m', ls="-.", lw=2)
-    #plt.show()
-    return p
-
-    #
-    # y = values["phys_obs"]+values["M_pi"]*(x-phys_mpisqr)+values["A"]*((hbar_c/scale["4.17"])**2)
-    # axe.plot(x,y, ls="-")
-    # y = values["phys_obs"]+values["M_pi"]*(x-phys_mpisqr)+values["A"]*((hbar_c/scale["4.35"])**2)
-    # axe.plot(x,y, ls="--")
-    # y = values["phys_obs"]+values["M_pi"]*(x-phys_mpisqr)+values["A"]*((hbar_c/scale["4.47"])**2)
-    # axe.plot(x,y, ls="-.")
-
-    # # print auto_key("4.17")
-    # # print auto_key("4.35")
-    # foobar = auto_key("4.47")
-    # print "fobarbaz"
-    # print "4.47", foobar
-    # print foobar, "test", "4.47"
-    # exit(-1)
-
 
 def plot_decay_constant(options):
 
@@ -338,6 +235,9 @@ def plot_decay_constant(options):
 
     for f in options.files:
 
+        extra_error = 0.0
+
+
         p = data_params(f)
 
         label = "$f_{}$ s{}".format(p.flavor, p.s_mass)
@@ -354,10 +254,17 @@ def plot_decay_constant(options):
 
         if options.mpisqrbymq:
             if options.scale:
-                res = residual_mass(p.ud_mass, p.s_mass)
-                df[dataname] = ((scale[p.beta]*df[dataname])**2 / (scale[p.beta]*(p.ud_mass+res) * 1.0/Zs[p.beta]))
+                res = residual_mass(p)
+                res_err = residual_mass_errors(p)
+                extra_error = (res_err**2)*(scale[p.beta]*Zs[p.beta]*((df[dataname])**2 / ((p.ud_mass+res)**2 )))**2
+                extra_error = np.sqrt(np.mean(extra_error))
+                df[dataname] = scale[p.beta]*Zs[p.beta]*((df[dataname])**2 / ((p.ud_mass+res) ))
+
             else:
                 df[dataname] = ((df[dataname])**2 / (p.ud_mass * 1.0/Zs[p.beta]))
+        else:
+            res_err = residual_mass_errors(p)
+            extra_error =   np.sqrt((res_err**2) * np.mean(df[dataname])**2)
 
 
         mark = markers[index % len(markers)]
@@ -380,16 +287,20 @@ def plot_decay_constant(options):
         if "32x64" in f and p.ud_mass < 0.004:
             alpha = 0.6
             color="#9999FF"
+            continue
 
         xs = xvalues(options.xaxis, p, options)
         x = xs.mean()
         xerr = xs.std()
         xerr = plot_helpers.error(xs)
         y = float(df[dataname].mean())
-        e = float(df[dataname].std())
-        e = plot_helpers.error(df[dataname])
 
-        summary_lines.append("{}, {}, {}\n".format(p, y, df[dataname].std()))
+        e = float(df[dataname].std())+extra_error
+        print float(df[dataname].std()), extra_error, float(df[dataname].std())+extra_error
+        #e = plot_helpers.error(df[dataname])
+
+
+        summary_lines.append("{}, {}, {}\n".format(p, y, e))
 
         scalepower = 1.0
         if options.scalesquared:
@@ -409,7 +320,7 @@ def plot_decay_constant(options):
             sc = scale[p.beta]**scalepower
             if options.mpisqrbymq:
                 sc=1.0
-            scaled_err = plot_helpers.error(df[dataname]*sc)
+            scaled_err = plot_helpers.error(df[dataname]*sc)+extra_error
 
             if options.box:
                 b = axe.boxplot(df[dataname]*sc, positions=[x], widths=[0.001*sc], patch_artist=True)
@@ -473,7 +384,7 @@ def plot_decay_constant(options):
         if options.box:
             plt.ylim(auto_fit_range(ymin, ymax, buff=5.5))
         else:
-            plt.ylim(auto_fit_range(ymin, ymax))
+            plt.ylim(auto_fit_range(ymin, ymax, buff=0.5))
 
 
     # if options.title:
@@ -482,12 +393,16 @@ def plot_decay_constant(options):
     #axe.set_xlabel("$m_{%s}+m_{res}+m_{%s}+m_{res}$" % (rawflavor.split("-")[0], rawflavor.split("-")[1]), **fontsettings)
 
     xlabel = {"mud": u"$m_{l}+m_{res}$", "mud_s": u"$m_{l}+m_s+2m_{res}$", "mpi": u"$m_{\pi}$",
-              "mpisqr": u"$m^2_{\pi}$", "2mksqr-mpisqr": u"$2m^2_{K}-m^2_{\pi}$", "mpisqr/mq": u"$m^2_{\pi}/m_q$", "mq": u"$m_q$", "xi": "$xi$" }
+              "mpisqr": u"$m^2_{\pi}$", "2mksqr-mpisqr": u"$2m^2_{K}-m^2_{\pi}$", "mpisqr/mq": u"$m^2_{\pi}/m_q$", "mq": u"$m_q$", "xi": "$\\xi$" }
 
     if options.scale:
         xlabel = {"mud": u"$m_{l}+m_{res}$", "mud_s": u"$m_{l}+m_s+2m_{res}$", "mpi": u"$m_{\pi}$",
-                  "mpisqr": u"$m^2_{\pi}$ [MeV^2]", "2mksqr-mpisqr": u"$2m^2_{K}-m^2_{\pi}$", "mpisqr/mq": u"$m^2_{\pi}/m_q$ [MeV]", "mq": u"$m_q$ [MeV]", "xi": "$xi$" }
+                  "mpisqr": u"$m^2_{\pi}$ [MeV^2]", "2mksqr-mpisqr": u"$2m^2_{K}-m^2_{\pi}$", "mpisqr/mq": u"$m^2_{\pi}/m_q$ [MeV]", "mq": u"$m_q$ [MeV]", "xi": "$\\xi$" }
 
+    # if options.xaxis == "xi":
+    #     for i in options.chiral_fit_file:
+    #         chiral_line = add_chiral_fit(axe, xran, i)
+    #         legend_handles.extend(chiral_line)
 
     if options.xaxis == "mpisqr":
         if options.interpolate:

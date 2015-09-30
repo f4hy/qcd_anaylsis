@@ -36,11 +36,11 @@ def xvalues(xaxis_type, data_properties, fitdata, t_0=None):
     logging.info("using xaxis type {}".format(xaxis_type))
 
     if xaxis_type == "mud":
-        residual = residual_mass(data_properties.ud_mass, data_properties.s_mass)
+        residual = residual_mass(data_properties)
         return (t_0)*pd.Series((data_properties.ud_mass + residual))
 
     if xaxis_type == "mud_s":
-        residual = residual_mass(data_properties.ud_mass, data_properties.s_mass)
+        residual = residual_mass(data_properties)
         return pd.Serites((data_properties.ud_mass + residual + data_properties.s_mass + residual))
 
     if xaxis_type == "tmpisqr":

@@ -14,7 +14,7 @@ from cStringIO import StringIO
 import numpy as np
 import re
 
-from residualmasses import residual_masses
+from residualmasses import residual_mass
 
 from ensamble_info import flavor_map, scale, data_params, determine_flavor, read_fit_mass
 from ensamble_info import all_same_beta, all_same_heavy, all_same_flavor
@@ -56,11 +56,11 @@ def xvalues(xaxis_type, data_properties, options):
         s = 1.0
 
     if xaxis_type == "mud":
-        residual = residual_masses[(data_properties.ud_mass, data_properties.s_mass)]
+        residual = residual_mass(data_properties)
         return pd.Series(s*(data_properties.ud_mass + residual))
 
     if xaxis_type == "mud_s":
-        residual = residual_masses[(data_properties.ud_mass, data_properties.s_mass)]
+        residual = residual_mass(data_properties)
         return mp.Series(s*(data_properties.ud_mass + residual + data_properties.s_mass + residual))
 
     if xaxis_type == "mpisqr":

@@ -103,8 +103,8 @@ def decay_constant(filename, options):
     logging.debug("quarktypes".format(quarktype1, quarktype2))
 
     if heavyness == "ll":
-        quarkmass1 = masses[quarktype1]+residual_mass(masses["ud"], masses["s"])
-        quarkmass2 = masses[quarktype2]+residual_mass(masses["ud"], masses["s"])
+        quarkmass1 = masses[quarktype1]+residual_mass(dp)
+        quarkmass2 = masses[quarktype2]+residual_mass(dp)
     else:
         quarkmass1 = masses[quarktype1]
         quarkmass2 = masses[quarktype2]
@@ -135,7 +135,7 @@ def decay_constant(filename, options):
         #     heavyness = heavyness+"_heavy{}".format(options.heavyquarkmass)
         f1, f2 = flavor.split("-")
         logging.debug("flavors {},{}".format(f1, f2))
-        x = masses[f1]+residual_mass(masses["ud"], masses["s"])
+        x = masses[f1]+residual_mass(dp)
         header = "#{}, {}, {}\n".format(x, decay_constant.mean(), decay_constant.std())
         logging.info(header)
         outfilename = "{}_{}_{}_{}_b{}_mud{}_ms{}_decayconstant_{}-{}.boot".format(options.out_stub, size, heavyness, smearing, beta, masses["ud"], strange_mass,
@@ -147,7 +147,7 @@ def decay_constant(filename, options):
             outfile.write(csv_txt)
     else:
         print(decay_constant)
-        print("{}, {}, {}\n".format(masses["ud"]+residual_mass(masses["ud"], masses["s"]), decay_constant.mean(), decay_constant.std()))
+        print("{}, {}, {}\n".format(masses["ud"]+residual_mass(dp), decay_constant.mean(), decay_constant.std()))
 
 if __name__ == "__main__":
     functs = ["axial", "standard", "simul00-01", "simul00-11", "simul01-11", "axialsimul", "axialsimul01-11", "axialsimul00-11"]

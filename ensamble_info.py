@@ -56,10 +56,12 @@ class data_params(object):
             self.s_mass = strange_mass
         self.beta = re.search("_b(4\.[0-9]*)_", filename).group(1)
         try:
-            self.smearing = re.search("fixed_(.*)/", filename).group(1)
+            self.smearing = re.search("(\d_\d-\d_\d)", filename).group(1)
         except:
             self.smearing = "none"
-        self.flavor = flavor_map[determine_flavor(filename)]
+
+        self.flavor_string = determine_flavor(filename)
+        self.flavor = flavor_map[self.flavor_string]
 
         try:
             self.latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
