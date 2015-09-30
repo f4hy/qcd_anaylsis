@@ -8,12 +8,14 @@ class ensemble_data(object):
 
 
 
-    def __init__(self, ensamble_info, fit_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_fit_uncorrelated_*/*.boot", decay_file_wildcard="decay_constants/*light_fixed_0_2-2_2/decay_*_decayconstant_*.boot"):
+    def __init__(self, ensamble_info, fit_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_fit_uncorrelated_*/*.boot", decay_file_wildcard="decay_constants/*light_fixed_0_2-2_2/decay_*_decayconstant_*.boot", xi_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/xi/xi.dat"):
 
         self.dp = ensamble_info
 
         self.fit_file_wildcard = fit_file_wildcard
         self.decay_file_wildcard = decay_file_wildcard
+        self.xi_file_wildcard = xi_file_wildcard
+
 
         self.fit_file = self.narrow_wildcard(fit_file_wildcard)
         self.decay_file = self.narrow_wildcard(decay_file_wildcard)
@@ -41,10 +43,9 @@ class ensemble_data(object):
         print fitdatafiles
         print dp.smearing
         for i in [dp.ud_mass, dp.s_mass, dp.latsize, dp.beta, flavor_str, dp.smearing]:
-            print i
+            print "narrowing using", i
             if i is not None:
                 fitdatafiles = [f for f in fitdatafiles if str(i) in f ]
-                print fitdatafiles
         if len(fitdatafiles) != 1:
             logging.critical("Unique fit file not found!")
             logging.error("found: {}".format(fitdatafiles))
@@ -71,6 +72,12 @@ class ensemble_data(object):
 
     def kaon_mass(self):
         return self.get_mass("ud-s")
+
+    def xi(self):
+        print self.xi_file_wildcard
+        xi_file = self.narrow_wildcard(self.xi_file_wildcard, flavor="xi")
+        print xi_file
+        exit(-1)
 
     def fit_mass(self):
 
