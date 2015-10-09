@@ -8,9 +8,11 @@ class ensemble_data(object):
 
 
 
-    def __init__(self, ensamble_info, fit_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_fit_uncorrelated_*/*.boot", decay_file_wildcard="decay_constants/*light_fixed_0_2-2_2/decay_*_decayconstant_*.boot", xi_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/xi/xi.dat"):
+    def __init__(self, ensamble_info, fit_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_fit_uncorrelated_*/*.boot", decay_file_wildcard="decay_constants/*light_fixed_0_2-2_2/decay_*_decayconstant_*.boot", xi_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/xi/xi.out"):
 
         self.dp = ensamble_info
+
+        self.scale = scale[self.dp.beta]
 
         self.fit_file_wildcard = fit_file_wildcard
         self.decay_file_wildcard = decay_file_wildcard
@@ -21,12 +23,11 @@ class ensemble_data(object):
         self.decay_file = self.narrow_wildcard(decay_file_wildcard)
 
         self.mass_data = {}
+        self.decay_data = {}
         self.fit_mass_data = None
         self.fit_amp_data = None
-        self.decay_data = None
+        self.xi_data = None
 
-        print self.fit_file
-        print self.decay_file
 
 
 
@@ -39,11 +40,13 @@ class ensemble_data(object):
         else:
             flavor_str = flavor
 
+        smearing = dp.smearing
+        if flavor == "xi":
+            smearing = None
+
+
         fitdatafiles = glob.glob(fit_file_wildcard.strip("'\""))
-        print fitdatafiles
-        print dp.smearing
-        for i in [dp.ud_mass, dp.s_mass, dp.latsize, dp.beta, flavor_str, dp.smearing]:
-            print "narrowing using", i
+        for i in [dp.ud_mass, dp.s_mass, dp.latsize, dp.beta, flavor_str, smearing]:
             if i is not None:
                 fitdatafiles = [f for f in fitdatafiles if str(i) in f ]
         if len(fitdatafiles) != 1:
@@ -67,17 +70,43 @@ class ensemble_data(object):
         return self.mass_data[flavor]
 
 
-    def pion_mass(self):
+    def get_decay(self, flavor):
+        if flavor in self.decay_data.keys():
+            return self.decay_data[flavor]
+
+        decay_file = self.narrow_wildcard(self.decay_file_wildcard, flavor=flavor)
+
+        with open(self.decay_file) as decayfile:
+            df = pd.read_csv(decayfile,comment='#', names=["decay"])
+            self.decay_data[flavor] = df.decay
+        return self.decay_data[flavor]
+
+
+    def pion_mass(self, scaled=False):
+        if scaled:
+            return self.scale*self.get_mass("ud-ud")
         return self.get_mass("ud-ud")
 
-    def kaon_mass(self):
+    def kaon_mass(self, scaled=False):
+        if scaled:
+            return self.scale*self.get_mass("ud-s")
         return self.get_mass("ud-s")
 
-    def xi(self):
-        print self.xi_file_wildcard
-        xi_file = self.narrow_wildcard(self.xi_file_wildcard, flavor="xi")
-        print xi_file
-        exit(-1)
+    def xi(self, scaled=False):
+        if self.xi_data is None:
+            xi_file = self.narrow_wildcard(self.xi_file_wildcard, flavor="xi")
+            with open(xi_file) as xifile:
+                df = pd.read_csv(xifile,comment='#', names=["xi"])
+                self.xi_data = df.xi
+        if scaled:
+            return self.scale*self.xi_data
+        return self.xi_data
+
+    def fpi(self, scaled=False):
+        if scaled:
+            return self.scale*self.get_decay("ud-ud")
+        return self.get_decay("ud-ud")
+
 
     def fit_mass(self):
 
