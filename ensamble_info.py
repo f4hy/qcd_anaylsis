@@ -27,7 +27,7 @@ Zv = {"4.17": 0.9517, "4.35": 0.9562, "4.47": 0.9624}
 # beta4.47: Zs = 0.880(7)(38)(4)
 Zs = {"4.17": 1.024, "4.35": 0.922, "4.47": 0.880}
 
-
+hbar_c = 197.3269788
 
 def determine_flavor(f):
     flavors = flavor_map.keys()
@@ -55,6 +55,9 @@ class data_params(object):
             logging.warning("Found strange mass to be {}".format(strange_mass))
             self.s_mass = strange_mass
         self.beta = re.search("_b(4\.[0-9]*)_", filename).group(1)
+
+        self.latspacing = hbar_c/scale[self.beta]
+
         try:
             self.smearing = re.search("(\d_\d-\d_\d)", filename).group(1)
         except:
