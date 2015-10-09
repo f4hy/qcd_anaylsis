@@ -64,6 +64,10 @@ class filewriter:
         else:
             shift = self.shift
 
+        if args.offset:
+            if args.offset_condition in fromfile:
+                shift += args.offset
+
         if (fromfile,shift) not in self.data.keys():
             self.data[(fromfile,shift)] = []
 
@@ -146,6 +150,10 @@ if __name__ == "__main__":
                         help="shift the times on the data")
     parser.add_argument("--stride", type=int, required=False,
                         help="each source has an offset of STRIDE")
+    parser.add_argument("--offset", type=int, required=False,
+                        help="offset of the sources")
+    parser.add_argument("--offset_condition", type=str, required=False,
+                        help="condition to apply the offset")
     parser.add_argument('--err', nargs='?', type=argparse.FileType('w'),
                         default=None)
     parser.add_argument('files', metavar='f', type=str, nargs='+',
