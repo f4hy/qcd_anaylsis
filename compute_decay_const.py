@@ -10,6 +10,9 @@ import os
 from residualmasses import residual_mass
 from ensamble_info import  data_params
 
+from ensamble_info import Zs, Zv
+
+
 def lines_without_comments(filename, comment="#"):
     from cStringIO import StringIO
     s = StringIO()
@@ -115,19 +118,21 @@ def decay_constant(filename, options):
         volumefactor = 1
     logging.info("dividing amplitudes by volume {}".format(volumefactor))
 
+    renorm_2qm = (quarkmass1 + quarkmass2) / Zs[dp.beta]
+    renorm_2qm = (quarkmass1 + quarkmass2)
 
     if options.function == "axial":
-        decay_constant = np.sqrt( (quarkmass1 + quarkmass2)*2*(df.amp/volumefactor) / (df.mass**2))
+        decay_constant = np.sqrt( renorm_2qm*2*(df.amp/volumefactor) / (df.mass**2))
     if options.function == "axialsimul01-11":
         decay_constant = np.sqrt( 2*((df.amp1/volumefactor)**2 / (df.amp2/volumefactor)) /(df.mass) )
     if options.function == "axialsimul00-11":
-        decay_constant = np.sqrt( (quarkmass1 + quarkmass2)*2*(df.amp1/volumefactor) / (df.mass**2))
+        decay_constant = np.sqrt( renorm_2qm*2*(df.amp1/volumefactor) / (df.mass**2))
     if options.function == "simul01-11":
-        decay_constant = (quarkmass1 + quarkmass2) * np.sqrt(2*((df.amp1/volumefactor)**2 / (df.amp2/volumefactor)) / (df.mass**3))
+        decay_constant = renorm_2qm * np.sqrt(2*(((df.amp1)**2 / (df.amp2))/volumefactor) / (df.mass**3))
     if options.function == "simul00-11" or options.function == "simul00-01":
-        decay_constant = (quarkmass1 + quarkmass2) * np.sqrt(2*(df.amp1/volumefactor) / (df.mass**3))
+        decay_constant = renorm_2qm * np.sqrt(2*(df.amp1/volumefactor) / (df.mass**3))
     if options.function == "standard":
-        decay_constant = (quarkmass1 + quarkmass2) * np.sqrt(2*(df.amp/volumefactor) / (df.mass**3))
+        decay_constant = renorm_2qm * np.sqrt(2*(df.amp/volumefactor) / (df.mass**3))
 
 
     if options.out_stub:
