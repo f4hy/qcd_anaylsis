@@ -52,6 +52,21 @@ def determine_flavor(f):
             return flavor
     raise RuntimeError("Flavor not found")
 
+def get_heavyq_mass(beta, heavytype):
+    if heavytype is None:
+        return None
+    print beta
+    if beta == "4.17":
+        #0.44037 0.55046 0.68808 0.86001
+        heavymap = {"m0": 0.44037, "m1": 0.55046, "m2": 0.68808, "m3": 0.86001, "m4": float("NAN"), "m5": float("NAN")}
+    if beta == "4.35":
+        #0.27287 0.34109 0.42636 0.53295 0.66619 0.83273
+        heavymap = {"m0": 0.27287, "m1": 0.34109, "m2": 0.42636, "m3": 0.53295, "m4": 0.66619, "m5": 0.83273}
+    if beta == "4.47":
+        #0.210476 0.263095 0.328869 0.4110859 0.5138574 0.6423218
+        heavymap = {"m0": 0.210476, "m1": 0.263095, "m2": 0.328869, "m3": 0.4110859, "m4": 0.5138574, "m5": 0.6423218}
+    print heavymap, heavytype
+    return heavymap[heavytype]
 
 class data_params(object):
 
@@ -77,7 +92,7 @@ class data_params(object):
         try:
             self.smearing = re.search("(\d_\d-\d_\d)", filename).group(1)
         except:
-            self.smearing = "none"
+            self.smearing = None
 
         self.flavor_string = determine_flavor(filename)
         self.flavor = flavor_map[self.flavor_string]
@@ -101,11 +116,18 @@ class data_params(object):
 
         if self.heavyness != "ll" and self.heavyness is not None:
             #self.heavymass = re.search("_heavy(0.[0-9]*)_", filename).group(1)
-            self.heavymass = re.search("_([ms][012])_", filename).group(1)
+            self.heavymass = re.search("_([ms][012345])_", filename).group(1)
         else:
             self.heavymass = None
 
+        self.heavyq_mass = get_heavyq_mass(self.beta, self.heavymass)
+
         self.ratio = "ratio" in filename
+
+        self.operator = None
+        for i in ["PP", "A4P", "PA4", "vectorave", "decayconst"]:
+            if i in filename:
+                self.operator = i
 
 
     def __repr__(self):
