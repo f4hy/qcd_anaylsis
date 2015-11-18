@@ -44,12 +44,14 @@ def compute_xi(options):
 
     xi = mpisqr_data / (decaysqr_data * 8 * np.pi**2)
 
-
+    count = 0
     if options.output_stub:
         outfilename = options.output_stub + ".out"
+        logging.info("writing to {}".format(outfilename))
         with open(outfilename, 'w') as outfile:
-            outfile.write("#xi, {}, {}".format(xi.mean(), xi.std()))
+            outfile.write("#xi, {}, {}\n".format(xi.mean(), xi.std()))
             for d in xi:
+                count += 1
                 outfile.write("{}\n".format(d))
     else:
         print "Xi mean: ", xi.mean()
