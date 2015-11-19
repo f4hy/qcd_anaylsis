@@ -4,11 +4,15 @@ import pandas as pd
 import re
 from ensamble_info import flavor_map, scale, data_params, determine_flavor, read_fit_mass
 
+class MissingData(RuntimeError):
+    pass
+
+
 class ensemble_data(object):
 
 
 
-    def __init__(self, ensamble_info, fit_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_fit_uncorrelated_*/*.boot", decay_file_wildcard="decay_constants/*light_fixed_0_2-2_2/decay_*_decayconstant_*.boot", xi_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/xi/xi.out"):
+    def __init__(self, ensamble_info, fit_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_fit_uncorrelated_*/*.boot", decay_file_wildcard="decay_constants/*_fixed_0_2-2_2/decay_*_decayconstant_*.boot", xi_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/xi/xi.out"):
 
         self.dp = ensamble_info
 
@@ -19,8 +23,6 @@ class ensemble_data(object):
         self.xi_file_wildcard = xi_file_wildcard
 
 
-        self.fit_file = self.narrow_wildcard(fit_file_wildcard)
-        self.decay_file = self.narrow_wildcard(decay_file_wildcard)
 
         self.mass_data = {}
         self.decay_data = {}
@@ -44,16 +46,30 @@ class ensemble_data(object):
         if flavor == "xi":
             smearing = None
 
+        heavyness = dp.heavyness
+        if heavyness == "ll":
+            heavyness = None
+        if heavyness is not None:
+            heavyness = "_"+heavyness
 
         fitdatafiles = glob.glob(fit_file_wildcard.strip("'\""))
-        for i in [dp.ud_mass, dp.s_mass, dp.latsize, dp.beta, flavor_str, smearing]:
+        fitdatafiles = [f for f in fitdatafiles if "vectorave" not in f]
+        fitdatafiles = [f for f in fitdatafiles if "axial" not in f]
+
+
+        search_params = [dp.ud_mass, dp.s_mass, dp.latsize, dp.beta, flavor_str, smearing]
+        if dp.heavyness != "ll":
+            if flavor is None:
+                search_params = [heavyness, dp.ud_mass, dp.s_mass, dp.latsize, dp.beta, flavor_str, smearing]
+            elif "heavy" in flavor:
+                search_params = [heavyness, dp.ud_mass, dp.s_mass, dp.latsize, dp.beta, flavor_str, smearing]
+        for i in search_params:
             if i is not None:
                 fitdatafiles = [f for f in fitdatafiles if str(i) in f ]
         if len(fitdatafiles) != 1:
             logging.critical("Unique fit file not found!")
             logging.error("found: {}".format(fitdatafiles))
-            raise SystemExit("Unique fit file not found!")
-
+            raise MissingData("Unique fit file not found!")
 
         return fitdatafiles[0]
 
@@ -74,9 +90,9 @@ class ensemble_data(object):
         if flavor in self.decay_data.keys():
             return self.decay_data[flavor]
 
-        decay_file = self.narrow_wildcard(self.decay_file_wildcard, flavor=flavor)
 
-        with open(self.decay_file) as decayfile:
+        decay_file = self.narrow_wildcard(self.decay_file_wildcard, flavor=flavor)
+        with open(decay_file) as decayfile:
             df = pd.read_csv(decayfile,comment='#', names=["decay"])
             self.decay_data[flavor] = df.decay
         return self.decay_data[flavor]
@@ -92,6 +108,16 @@ class ensemble_data(object):
             return self.scale*self.get_mass("ud-s")
         return self.get_mass("ud-s")
 
+    def D_mass(self, scaled=False):
+        if scaled:
+            return self.scale*self.get_mass("heavy-ud")
+        return self.get_mass("heavy-ud")
+
+    def Ds_mass(self, scaled=False):
+        if scaled:
+            return self.scale*self.get_mass("heavy-s")
+        return self.get_mass("heavy-s")
+
     def xi(self, scaled=False):
         if self.xi_data is None:
             xi_file = self.narrow_wildcard(self.xi_file_wildcard, flavor="xi")
@@ -106,6 +132,27 @@ class ensemble_data(object):
         if scaled:
             return self.scale*self.get_decay("ud-ud")
         return self.get_decay("ud-ud")
+
+    def fK(self, scaled=False):
+        if scaled:
+            return self.scale*self.get_decay("ud-s")
+        return self.get_decay("ud-s")
+
+
+    def fD(self, scaled=False):
+        if scaled:
+            return self.scale*self.get_decay("heavy-ud")
+        return self.get_decay("heavy-ud")
+
+    def fDs(self, scaled=False):
+        if scaled:
+            return self.scale*self.get_decay("heavy-s")
+        return self.get_decay("heavy-s")
+
+    def fDsbyfD(self, scaled=False):
+        if scaled:
+            return (self.scale*self.get_decay("heavy-s"))/(self.scale*self.get_decay("heavy-ud"))
+        return self.get_decay("heavy-s")/self.get_decay("heavy-ud")
 
 
     def fit_mass(self):
