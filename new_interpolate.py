@@ -133,6 +133,24 @@ class Model(object):
             params.update(paramdict("c3", c3_GUESS, c3_GUESS/10))
             fun = self.mpisqrbymq_xi_NLO
 
+        elif self.type_string == "mpisqrbymq_xi_NLO_inverse":
+            params = paramdict("B", B_GUESS, 50)
+            params.update(paramdict("Lambda3", LAMBDA3_GUESS, LAMBDA3_GUESS/10.0, limits=(0, None)))
+            fun = self.mpisqrbymq_xi_NLO_inverse
+
+
+        elif self.type_string == "combined_XI_NNLO":
+            # """F_0, B, c3, c4, beta, ellphys"""
+            params = paramdict("B", B_GUESS, 50)
+            params.update(paramdict("F_0", np.mean(self.fpi), np.mean(self.fpi)/10.0))
+            params.update(paramdict("ellphys", -32.0, 4.3))
+            params.update(paramdict("c3", c3_GUESS, c3_GUESS/10))
+            params.update(paramdict("c4", c4_GUESS, c4_GUESS/10))
+            params.update(paramdict("beta", 1.0, 1.0))
+            params.update(paramdict("alpha", 1.0, 1.0))
+            fun = self.combined_XI_NNLO
+
+
         elif self.type_string == "mpisqrbymq_x_NLO":
             params = paramdict("B", B_GUESS, 50)
             params.update(paramdict("Lambda3", LAMBDA3_GUESS, LAMBDA3_GUESS/10.0, limits=(0, None)))
@@ -150,16 +168,301 @@ class Model(object):
             params.update(paramdict("c4", LAMBDA4_GUESS, LAMBDA4_GUESS/10))
             fun = self.FPI_XI_NLO_only
 
+        elif self.type_string == "FPI_XI_NNLO_only":
+            params = paramdict("F_0", np.mean(self.fpi), np.mean(self.fpi)/10.0)
+            params.update(paramdict("ellphys", -32.0, 4.3))
+            params.update(paramdict("c4", np.mean(self.fpi), np.mean(self.fpi)/10))
+            params.update(paramdict("beta", 8000.0, 8000.0/100, limits=(0, None)))
+            fun = self.FPI_XI_NNLO_only
+
+
         elif self.type_string == "FPI_XI_NLO_inverse_only":
             params = paramdict("F_0", np.mean(self.fpi), np.mean(self.fpi)/10.0)
             params.update(paramdict("Lambda4", LAMBDA4_GUESS, LAMBDA4_GUESS/10, limits=(0, None)))
             fun = self.FPI_XI_NLO_inverse_only
+
+        elif self.type_string == "FPI_XI_NLO_inverse_phys":
+            params = paramdict("F_P", np.mean(self.fpi), np.mean(self.fpi)/10.0)
+            params.update(paramdict("Lambda4", LAMBDA4_GUESS, LAMBDA4_GUESS/10, limits=(0, None)))
+            fun = self.FPI_XI_NLO_inverse_phys
+
+
+
+        elif self.type_string == "combined_x_NLO":
+            params = paramdict("F_0", np.mean(self.fpi), np.mean(self.fpi)/10.0, limits=(0, None))
+            params.update(paramdict("B", 2826.1, 68.66))
+            params.update(paramdict("Lambda3", LAMBDA3_GUESS, LAMBDA3_GUESS/10.0, limits=(0, None)))
+            params.update(paramdict("Lambda4", LAMBDA4_GUESS, LAMBDA4_GUESS/10, limits=(0, None)))
+            fun = self.combined_x_NLO_only
+
+        elif self.type_string == "combined_x_NLO_all":
+            params = paramdict("F_0", np.mean(self.fpi), np.mean(self.fpi)/10.0, limits=(0, None))
+            params.update(paramdict("B", 2826.1, 68.66))
+            params.update(paramdict("Lambda3", LAMBDA3_GUESS, LAMBDA3_GUESS/10.0, limits=(0, None)))
+            params.update(paramdict("Lambda4", LAMBDA4_GUESS, LAMBDA4_GUESS/10, limits=(0, None)))
+
+            params.update(paramdict("gamma_1", 0.0, 0.1))
+            params.update(paramdict("gamma_2", 0.0, 0.1))
+            params.update(paramdict("gamma_s1", 0.0, 0.1))
+            params.update(paramdict("gamma_s2", 0.0, 0.1))
+
+            fun = self.combined_x_NLO_all
+
+
+        elif self.type_string == "combined_x_NNLO":
+            #colangelo
+            # l1 = -0.4 \pm 0.6
+            # l2 = 4.3 \pm 0.1
+
+            params = paramdict("F_0", F_0_GUESS, F_0_GUESS/100.0, limits=(0, None))
+            params.update(paramdict("B", B_GUESS, B_GUESS/10.0))
+
+            params.update(paramdict("Lambda3", 609.7, 146.2, limits=(0, None)))
+            params.update(paramdict("Lambda4", 1169.7, 140.55, limits=(0, None)))
+            # params.update(paramdict("Lambda12", 3.4517, 0.1, limits=(0, None), fix=True))
+            params.update(paramdict("km", 1.0, 0.01))
+            params.update(paramdict("kf", 1.0, 0.01))
+            fun = self.combined_x_NNLO_only
+
+        elif self.type_string == "combined_x_NNLO_all":
+            #colangelo
+            # l1 = -0.4 \pm 0.6
+            # l2 = 4.3 \pm 0.1
+
+            params = paramdict("F_0", F_0_GUESS, F_0_GUESS/100.0, limits=(0, None))
+            params.update(paramdict("B", B_GUESS, B_GUESS/10.0))
+
+            params.update(paramdict("Lambda3", 609.7, 146.2, limits=(0, None)))
+            params.update(paramdict("Lambda4", 1169.7, 140.55, limits=(0, None)))
+            # params.update(paramdict("Lambda12", 3.4517, 0.1, limits=(0, None), fix=True))
+            params.update(paramdict("km", 1.0, 0.01))
+            params.update(paramdict("kf", 1.0, 0.01))
+
+            params.update(paramdict("gamma_1", 0.0, 0.1))
+            params.update(paramdict("gamma_2", 0.0, 0.1))
+            params.update(paramdict("gamma_s1", 0.0, 0.1))
+            params.update(paramdict("gamma_s2", 0.0, 0.1))
+            fun = self.combined_x_NNLO_all
+
+        elif self.type_string == "combined_x_NNLO_fixa0":
+            #colangelo
+            # l1 = -0.4 \pm 0.6
+            # l2 = 4.3 \pm 0.1
+
+            params = paramdict("F_0", F_0_GUESS, F_0_GUESS/100.0, limits=(0, None))
+            params.update(paramdict("B", B_GUESS, B_GUESS/10.0))
+
+            params.update(paramdict("Lambda3", 609.7, 146.2, limits=(0, None)))
+            params.update(paramdict("Lambda4", 1169.7, 140.55, limits=(0, None)))
+            # params.update(paramdict("Lambda12", 3.4517, 0.1, limits=(0, None), fix=True))
+            params.update(paramdict("km", 1.0, 0.01))
+            params.update(paramdict("kf", 1.0, 0.01))
+
+            params.update(paramdict("gamma_1", 0.0, 0.1))
+            params.update(paramdict("gamma_2", 0.0, 0.1))
+            params.update(paramdict("gamma_s1", 0.0, 0.1))
+            params.update(paramdict("gamma_s2", 0.0, 0.1))
+            fun = self.combined_x_NNLO_fixa0
+
+
+
+        elif self.type_string == "combined_XI_inverse_NNLO":
+            params = paramdict("F_0", F_0_GUESS, F_0_GUESS/100.0, limits=(0, None))
+            params.update(paramdict("B", B_GUESS, B_GUESS/10.0))
+
+            params.update(paramdict("Lambda3", 609.7, 146.2, limits=(0, None)))
+            params.update(paramdict("Lambda4", 1169.7, 140.55, limits=(0, None)))
+            l1, l2 = -0.4, 4.3
+            l12_guess = (7.0*l1+8.0*l2)/15.0
+            params.update(paramdict("l12", 3.0, 0.3, fix=True))
+            params.update(paramdict("cm", 3.0, 0.01))
+            params.update(paramdict("cf", 6.0, 0.01))
+            fun = self.combined_XI_inverse_NNLO
+
+        elif self.type_string == "combined_XI_inverse_NNLO_phys":
+            params = paramdict("F_P", F_0_GUESS, F_0_GUESS/100.0, limits=(0, None))
+            params.update(paramdict("B", B_GUESS, B_GUESS/10.0))
+
+            params.update(paramdict("Lambda3", 609.7, 146.2, limits=(0, None)))
+            params.update(paramdict("Lambda4", 1169.7, 140.55, limits=(0, None)))
+            l1, l2 = 0.4, 4.3
+            l12_guess = (7.0*l1+8.0*l2)/15.0
+            params.update(paramdict("l12", l12_guess, 0.3, fix=True))
+            params.update(paramdict("cm", 3.0, 0.01))
+            params.update(paramdict("cf", 6.0, 0.01))
+
+            params.update(paramdict("gamma_1", 0.0, 0.1))
+            params.update(paramdict("gamma_2", 0.0, 0.1))
+            params.update(paramdict("gamma_s1", 0.0, 0.1))
+            params.update(paramdict("gamma_s2", 0.0, 0.1))
+            fun = self.combined_XI_inverse_NNLO_phys
+
+
+        elif self.type_string == "combined_XI_inverse_NNLO_all":
+            params = paramdict("F_0", F_0_GUESS, F_0_GUESS/100.0, limits=(0, None))
+            params.update(paramdict("B", B_GUESS, B_GUESS/10.0))
+
+            params.update(paramdict("Lambda3", 609.7, 146.2, limits=(0, None)))
+            params.update(paramdict("Lambda4", 1169.7, 140.55, limits=(0, None)))
+            l1, l2 = 0.4, 4.3
+            l12_guess = (7.0*l1+8.0*l2)/15.0
+            #params.update(paramdict("l12", 3.0, 0.3, fix=True))
+            params.update(paramdict("l12", l12_guess, 0.3, fix=True))
+            params.update(paramdict("cm", 3.0, 0.01))
+            params.update(paramdict("cf", 6.0, 0.01))
+
+            params.update(paramdict("gamma_1", 0.0, 0.1))
+            params.update(paramdict("gamma_2", 0.0, 0.1))
+            params.update(paramdict("gamma_s1", 0.0, 0.1))
+            params.update(paramdict("gamma_s2", 0.0, 0.1))
+
+            fun = self.combined_XI_inverse_NNLO_all
+
+        elif self.type_string == "fD_chiral":
+            params = paramdict("f_D0", 210, 10)
+            params.update(paramdict("g", 0.59, 0.071, fix=True))
+            params.update(paramdict("mu", 10.0, 100.0, limits=(0, None)))
+            params.update(paramdict("c1", 0.0, 0.01))
+            fun = self.fD_chiral
+
+        elif self.type_string == "fDsbyfD_chiral":
+            params = paramdict("mu", 100.0, 10.0, limits=(0, None))
+            params.update(paramdict("k", 1.0, 0.1, limits=(0, None)))
+            params.update(paramdict("f", 114.640, 6.26, fix=True))
+            params.update(paramdict("c1", 0.0, 0.01))
+            fun = self.fDsbyfD_chiral
+
+
+        elif self.type_string == "MD_linear_mpisqr_asqr_mss":
+            params = paramdict("MDphys", np.mean(self.mD), np.mean(self.mD_var), limits=(0, None))
+
+            params.update(paramdict("b", 0.0, 0.1))
+            params.update(paramdict("gamma_1", 0.0, 0.1))
+            params.update(paramdict("gamma_s1", 0.0, 0.1))
+
+            fun = self.MD_linear_mpisqr_asqr_mss
+
+        elif self.type_string == "MDs_linear_mpisqr_asqr_mss":
+            params = paramdict("MDsphys", np.mean(self.mDs), np.mean(self.mDs_var), limits=(0, None))
+
+            params.update(paramdict("b", 0.0, 0.1))
+            params.update(paramdict("gamma_1", 0.0, 0.1))
+            params.update(paramdict("gamma_s1", 0.0, 0.1))
+
+            fun = self.MDs_linear_mpisqr_asqr_mss
+
+        elif self.type_string == "FD_linear_mpisqr_asqr_mss":
+            params = paramdict("FDphys", np.mean(self.fD), np.mean(self.fD_var), limits=(0, None))
+
+            params.update(paramdict("b", 0.0, 0.1))
+            params.update(paramdict("gamma_1", 0.0, 0.1))
+            params.update(paramdict("gamma_s1", 0.0, 0.1))
+
+            fun = self.FD_linear_mpisqr_asqr_mss
+
+        elif self.type_string == "FDs_linear_mpisqr_asqr_mss":
+            params = paramdict("FDsphys", np.mean(self.fDs), np.mean(self.fDs_var), limits=(0, None))
+
+            params.update(paramdict("b", 0.0, 0.1))
+            params.update(paramdict("gamma_1", 0.0, 0.1))
+            params.update(paramdict("gamma_s1", 0.0, 0.1))
+
+            fun = self.FDs_linear_mpisqr_asqr_mss
+
+        elif self.type_string == "FDsbyFD_linear_mpisqr_asqr_mss":
+            params = paramdict("FDsbyFDphys", 1.2, 0.1, limits=(0, None))
+
+            params.update(paramdict("b", 0.0, 0.1))
+            params.update(paramdict("gamma_1", 0.0, 0.1))
+            params.update(paramdict("gamma_s1", 0.0, 0.1))
+
+            fun = self.FDsbyFD_linear_mpisqr_asqr_mss
+
 
         else:
             logging.error("Function not supported yet")
             raise RuntimeError("Function {} not supported yet".format(self.type_string))
 
         return params, fun
+
+    def MD_linear_mpisqr_asqr_mss(self, b, gamma_1, gamma_s1, MDphys):
+        Mss = (2.0*self.mKsqr) - self.mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+        delta_Mss = Mss - phys_Mss
+        M = (1+gamma_1*(self.a**2)+gamma_s1*delta_Mss)* MDphys*(1.0+b*(self.mpisqr-phys_pion**2))
+
+        data = self.mD
+        var = self.mD_var
+        sqr_diff = (data - M)**2
+        return np.sum(sqr_diff/var)
+
+    def MDs_linear_mpisqr_asqr_mss(self, b, gamma_1, gamma_s1, MDsphys):
+        Mss = (2.0*self.mKsqr) - self.mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+        delta_Mss = Mss - phys_Mss
+        M = (1+gamma_1*(self.a**2)+gamma_s1*delta_Mss)* MDsphys*(1.0+b*(self.mpisqr-phys_pion**2))
+
+        data = self.mDs
+        var = self.mDs_var
+        sqr_diff = (data - M)**2
+        return np.sum(sqr_diff/var)
+
+    def FD_linear_mpisqr_asqr_mss(self, b, gamma_1, gamma_s1, FDphys):
+        Mss = (2.0*self.mKsqr) - self.mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+        delta_Mss = Mss - phys_Mss
+        M = (1+gamma_1*(self.a**2)+gamma_s1*delta_Mss)* FDphys*(1.0+b*(self.mpisqr-phys_pion**2))
+
+        data = self.fD
+        var = self.fD_var
+        sqr_diff = (data - M)**2
+        return np.sum(sqr_diff/var)
+
+    def FDs_linear_mpisqr_asqr_mss(self, b, gamma_1, gamma_s1, FDsphys):
+        Mss = (2.0*self.mKsqr) - self.mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+        delta_Mss = Mss - phys_Mss
+        M = (1+gamma_1*(self.a**2)+gamma_s1*delta_Mss)* FDsphys*(1.0+b*(self.mpisqr-phys_pion**2))
+
+        data = self.fDs
+        var = self.fDs_var
+        sqr_diff = (data - M)**2
+        return np.sum(sqr_diff/var)
+
+    def FDsbyFD_linear_mpisqr_asqr_mss(self, b, gamma_1, gamma_s1, FDsbyFDphys):
+        Mss = (2.0*self.mKsqr) - self.mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+        delta_Mss = Mss - phys_Mss
+        M = (1+gamma_1*(self.a**2)+gamma_s1*delta_Mss)* FDsbyFDphys*(1.0+b*(self.mpisqr-phys_pion**2))
+
+        data = self.fDs/self.fD
+
+        var = self.fDsbyfD_var
+        sqr_diff = (data - M)**2
+        return np.sum(sqr_diff/var)
+
+
+
+    def fD_chiral(self, f_D0, g, mu, c1):
+
+        factor = 3.0*(1+3.0*g**2) / 4.0
+        F = 114.64
+        arg = self.mpisqr / mu**2
+        M = f_D0*(1.0 -  factor*(self.mpisqr/(8*(np.pi**2)*(F**2)))*np.log(arg) + c1*self.mpisqr   )
+
+        data = self.fD
+        var = self.fD_var
+        sqr_diff = (data - M)**2
+        return np.sum(sqr_diff/var)
+
+    def fDsbyfD_chiral(self, k, mu, c1, f):
+
+        arg = self.mpisqr / mu**2
+        M = (1.0 +  k*(self.mpisqr/(8*(np.pi**2)*(f**2)))*np.log(arg) + c1*self.mpisqr   )
+        data = self.fDs/self.fD
+        var = self.fDsbyfD_var
+        sqr_diff = (data - M)**2
+        return np.sum(sqr_diff/var)
 
     def mpisqrbymq_const(self, B):
 
@@ -175,10 +478,34 @@ class Model(object):
         data = self.mpisqr / self.renorm_qmass
         var = (mpierr/self.renorm_qmass)**2 + (self.res_err*data/(self.qmass))**2
 
-        M = 2*B*(1.0+0.5*self.xi*np.log(self.xi) + 0.5*c3*self.xi)
+        M = 2*B*(1.0+0.5*self.xi*np.log(self.xi) ) + c3*self.xi
         sqr_diff = (data - M)**2
 
         return np.sum(sqr_diff/var)
+
+    def mpisqrbymq_xi_NLO_inverse(self, B, Lambda3):
+        mpierr = self.mpisqr_std
+        data = self.mpisqr / self.renorm_qmass
+        var = (mpierr/self.renorm_qmass)**2 + (self.res_err*data/(self.qmass))**2
+
+        arg = Lambda3**2 / self.mpisqr
+
+        M = 2*B/(1.0+0.5*self.xi*np.log(arg) )
+        sqr_diff = (data - M)**2
+
+        return np.sum(sqr_diff/var)
+
+    def mpisqrbymq_xi_NNLO(self, B, c3, c4, beta, ellphys):
+        mpierr = self.mpisqr_std
+        data = self.mpisqr / self.renorm_qmass
+        var = (mpierr/self.renorm_qmass)**2 + (self.res_err*data/(self.qmass))**2
+        xi = self.xi
+        M = 2*B*(1.0+0.5*xi*np.log(xi) +7.0/8.0*(xi*np.log(xi))**2+
+                 (c4/F_0 - 1.0/3.0 *(ellphys+16) )*np.log(xi)*xi**2) + c3*xi*(1-5*xi*np.log(xi)) + alpha*xi**2
+        sqr_diff = (data - M)**2
+
+        return np.sum(sqr_diff/var)
+
 
     def mpisqrbymq_x_NLO(self, B, F_0, Lambda3):
         Msqr = B*(self.renorm_qmass+self.renorm_qmass)
@@ -192,6 +519,420 @@ class Model(object):
         sqr_diff = (data - M)**2
 
         return np.sum(sqr_diff/var)
+
+    def combined_x_NLO_only(self, F_0, B, Lambda3, Lambda4):
+        Msqr = B*(self.renorm_qmass+self.renorm_qmass)
+        x = Msqr/(8*(np.pi**2)*(F_0**2))
+        arg1 = (Lambda4**2)/Msqr
+        arg2 = (Lambda3**2)/Msqr
+
+        data = self.mpisqr / self.renorm_qmass
+        mpierr = self.mpisqr_std
+        var = (mpierr/self.renorm_qmass)**2 + (self.res_err*data/(self.qmass))**2
+
+
+        M1 = 2*B*(1.0-0.5*x*np.log(arg2))
+
+        M2 = F_0 * (1 + x*np.log(arg1))
+        sqr_diff1 = (self.fpi - M2)**2
+        sqr_diff2 = (data - M1)**2
+
+
+        return np.sum(sqr_diff1/self.fpi_var)+np.sum(sqr_diff2/var)
+
+    def combined_x_NLO_all(self, F_0, B, Lambda3, Lambda4, gamma_1, gamma_2, gamma_s1, gamma_s2):
+        Msqr = B*(self.renorm_qmass+self.renorm_qmass)
+        x = Msqr/(8*(np.pi**2)*(F_0**2))
+        arg1 = (Lambda4**2)/Msqr
+        arg2 = (Lambda3**2)/Msqr
+
+        data = self.mpisqr / self.renorm_qmass
+        mpierr = self.mpisqr_std
+        var = (mpierr/self.renorm_qmass)**2 + (self.res_err*data/(self.qmass))**2
+
+        Mss = (2.0*self.mKsqr) - self.mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = Mss - phys_Mss
+
+        M1 = (1-gamma_1*(self.a**2)+gamma_s1*delta_Mss)*2*B*(1.0-0.5*x*np.log(arg2))
+
+        M2 = (1+gamma_2*(self.a**2)+gamma_s2*delta_Mss)*F_0 * (1 + x*np.log(arg1))
+        sqr_diff1 = (self.fpi - M2)**2
+        sqr_diff2 = (data - M1)**2
+
+
+        return np.sum(sqr_diff1/self.fpi_var)+np.sum(sqr_diff2/var)
+
+
+    # def combined_x_NNLO_only(self, F_0, B, Lambda3, Lambda4, Lambda12, km, kf):
+    #     Msqr = B*(self.renorm_qmass+self.renorm_qmass)
+    #     x = Msqr/(8*(np.pi**2)*(F_0**2))
+    #     arg4 = (Lambda4**2)/Msqr
+    #     arg3 = (Lambda3**2)/Msqr
+
+    #     arg12 = (Lambda12**2)/Msqr
+
+
+    #     lm = 1.0/51.0 * (60.0*np.log(arg12) - 9.0*np.log(arg3)+49.0)
+    #     lf = 1.0/30.0 * (30.0*np.log(arg12) + 6.0*np.log(arg3)-6.0*np.log(arg4)+23.0)
+
+    #     data = self.mpisqr / self.renorm_qmass
+    #     mpierr = self.mpisqr_std
+    #     var = (mpierr/self.renorm_qmass)**2 + (self.res_err*data/(self.qmass))**2
+
+
+    #     M1 = 2*B*(1.0-0.5*x*np.log(arg3)+17.0/8.0*(x**2)*(lm)**2 + km*x**2 )
+
+    #     M2 = F_0 * (1.0 + x*np.log(arg4)-5.0/4.0*(x**2)*(lf)**2+kf*x**2)
+
+    #     sqr_diff1 = (data - M1)**2
+    #     sqr_diff2 = (self.fpi - M2)**2
+
+
+    #     return np.sum(sqr_diff2/self.fpi_var)+np.sum(sqr_diff1/var)
+
+    def combined_x_NNLO_only(self, F_0, B, Lambda3, Lambda4, km, kf):
+        Msqr = B*(self.renorm_qmass+self.renorm_qmass)
+        x = Msqr/(8*(np.pi**2)*(F_0**2))
+        arg3 = (Lambda3**2)/Msqr
+        arg4 = (Lambda4**2)/Msqr
+
+        # arg12 = (Lambda12**2)/Msqr
+
+        l1 = -0.4
+        l2 = 4.3
+        #colangelo
+        # l1 = -0.4 \pm 0.6
+        # l2 = 4.3 \pm 0.1
+
+
+        Lambda1sqr = (phys_pion**2)*np.exp(l1)
+        Lambda2sqr = (phys_pion**2)*np.exp(l2)
+
+        lnLambda12sqr = (7.0*np.log(Lambda1sqr) + 8.0*np.log(Lambda2sqr))/15.0
+        lambda12sqr = np.exp(lnLambda12sqr)
+
+        arg12 = lambda12sqr/Msqr
+
+        lm = 1.0/51.0 * (60.0*np.log(arg12) - 9.0*np.log(arg3)+49.0)
+        lf = 1.0/30.0 * (30.0*np.log(arg12) + 6.0*np.log(arg3)-6.0*np.log(arg4)+23.0)
+
+        data = self.mpisqr / self.renorm_qmass
+        mpierr = self.mpisqr_std
+        var = (mpierr/self.renorm_qmass)**2 + (self.res_err*data/(self.qmass))**2
+
+
+        M1 = 2*B*(1.0-0.5*x*np.log(arg3)+17.0/8.0*(x**2)*(lm)**2 + km*x**2 )
+
+        M2 = F_0 * (1.0 + x*np.log(arg4)-5.0/4.0*(x**2)*(lf)**2 + kf*x**2)
+
+        sqr_diff1 = (data - M1)**2
+        sqr_diff2 = (self.fpi - M2)**2
+
+
+        return np.sum(sqr_diff2/self.fpi_var)+np.sum(sqr_diff1/var)
+
+
+    def combined_x_NNLO_all(self, F_0, B, Lambda3, Lambda4, km, kf, gamma_1, gamma_2, gamma_s1, gamma_s2):
+        Msqr = B*(self.renorm_qmass+self.renorm_qmass)
+        x = Msqr/(8*(np.pi**2)*(F_0**2))
+        arg3 = (Lambda3**2)/Msqr
+        arg4 = (Lambda4**2)/Msqr
+
+        # arg12 = (Lambda12**2)/Msqr
+
+        l1 = -0.4
+        l2 = 4.3
+        #colangelo
+        # l1 = -0.4 \pm 0.6
+        # l2 = 4.3 \pm 0.1
+
+
+        Lambda1sqr = (phys_pion**2)*np.exp(l1)
+        Lambda2sqr = (phys_pion**2)*np.exp(l2)
+
+        lnLambda12sqr = (7.0*np.log(Lambda1sqr) + 8.0*np.log(Lambda2sqr))/15.0
+        lambda12sqr = np.exp(lnLambda12sqr)
+
+        arg12 = lambda12sqr/Msqr
+
+        lm = 1.0/51.0 * (60.0*np.log(arg12) - 9.0*np.log(arg3)+49.0)
+        lf = 1.0/30.0 * (30.0*np.log(arg12) + 6.0*np.log(arg3)-6.0*np.log(arg4)+23.0)
+
+        data = self.mpisqr / self.renorm_qmass
+        mpierr = self.mpisqr_std
+        var = (mpierr/self.renorm_qmass)**2 + (self.res_err*data/(self.qmass))**2
+
+        Mss = (2.0*self.mKsqr) - self.mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = Mss - phys_Mss
+
+        M1 = (1-gamma_1*(self.a**2)+gamma_s1*delta_Mss)*2*B*(1.0-0.5*x*np.log(arg3)+17.0/8.0*(x**2)*(lm)**2 + km*x**2 )
+
+        M2 = (1+gamma_2*(self.a**2)+gamma_s2*delta_Mss)*F_0 * (1.0 + x*np.log(arg4)-5.0/4.0*(x**2)*(lf)**2 + kf*x**2)
+
+        sqr_diff1 = (data - M1)**2
+        sqr_diff2 = (self.fpi - M2)**2
+
+
+        return np.sum(sqr_diff2/self.fpi_var)+np.sum(sqr_diff1/var)
+
+    def combined_x_NNLO_fixa0(self, F_0, B, Lambda3, Lambda4, km, kf, gamma_1, gamma_2, gamma_s1, gamma_s2):
+        Msqr = B*(self.renorm_qmass+self.renorm_qmass)
+        x = Msqr/(8*(np.pi**2)*(F_0**2))
+        arg3 = (Lambda3**2)/Msqr
+        arg4 = (Lambda4**2)/Msqr
+
+        # arg12 = (Lambda12**2)/Msqr
+
+        l1 = -0.4
+        l2 = 4.3
+        #colangelo
+        # l1 = -0.4 \pm 0.6
+        # l2 = 4.3 \pm 0.1
+
+
+        Lambda1sqr = (phys_pion**2)*np.exp(l1)
+        Lambda2sqr = (phys_pion**2)*np.exp(l2)
+
+        lnLambda12sqr = (7.0*np.log(Lambda1sqr) + 8.0*np.log(Lambda2sqr))/15.0
+        lambda12sqr = np.exp(lnLambda12sqr)
+
+        arg12 = lambda12sqr/Msqr
+
+        lm = 1.0/51.0 * (60.0*np.log(arg12) - 9.0*np.log(arg3)+49.0)
+        lf = 1.0/30.0 * (30.0*np.log(arg12) + 6.0*np.log(arg3)-6.0*np.log(arg4)+23.0)
+
+        data = self.mpisqr / self.renorm_qmass
+        mpierr = self.mpisqr_std
+        var = (mpierr/self.renorm_qmass)**2 + (self.res_err*data/(self.qmass))**2
+
+        Mss = (2.0*self.mKsqr) - self.mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = Mss - phys_Mss
+
+        denom1 = (1-gamma_1*((0.05)**2))
+        denom2 = (1+gamma_2*((0.05)**2))
+
+        M1 = ((1-gamma_1*(self.a**2)+gamma_s1*delta_Mss)/denom1)*2*B*(1.0-0.5*x*np.log(arg3)+17.0/8.0*(x**2)*(lm)**2 + km*x**2 )
+
+        M2 = ((1+gamma_2*(self.a**2)+gamma_s2*delta_Mss)/denom2)*F_0 * (1.0 + x*np.log(arg4)-5.0/4.0*(x**2)*(lf)**2 + kf*x**2)
+
+        sqr_diff1 = (data - M1)**2
+        sqr_diff2 = (self.fpi - M2)**2
+
+
+        return np.sum(sqr_diff2/self.fpi_var)+np.sum(sqr_diff1/var)
+
+
+
+    # def combined_x_NNLO_only(self, F_0, B, l1, l2, l3, l4, km, kf):
+    #     Msqr = B*(self.renorm_qmass+self.renorm_qmass)
+    #     x = Msqr/(8*(np.pi**2)*(F_0**2))
+    #     # arg4 = (Lambda4**2)/Msqr
+    #     # arg3 = (Lambda3**2)/Msqr
+
+    #     # arg12 = (Lambda12**2)/Msqr
+    #     # l1 = -0.4
+    #     # l2 = 4.3
+    #     #colangelo
+    #     # l1 = -0.4 \pm 0.6
+    #     # l2 = 4.3 \pm 0.1
+
+    #     lm = 1.0/51.0 * (28*l1 + 32*l2 - 9.0*l3+49.0)
+    #     lf = 1.0/30.0 * (14*l1 + 16*l2 + 6.0*l3-6.0*l4+23.0)
+
+    #     data = self.mpisqr / self.renorm_qmass
+    #     mpierr = self.mpisqr_std
+    #     var = (mpierr/self.renorm_qmass)**2 + (self.res_err*data/(self.qmass))**2
+
+
+    #     M1 = 2*B*(1.0-0.5*x*l3+17.0/8.0*(x**2)*(lm)**2 + km*x**2 )
+
+    #     M2 = F_0 * (1.0 + x*l4-5.0/4.0*(x**2)*(lf)**2+kf*x**2)
+
+    #     sqr_diff1 = (data - M1)**2
+    #     sqr_diff2 = (self.fpi - M2)**2
+
+
+    #     return np.sum(sqr_diff2/self.fpi_var)+np.sum(sqr_diff1/var)
+
+
+
+    def combined_XI_NNLO(self, F_0, B, c3, c4, alpha, beta, ellphys):
+        mpierr = self.mpisqr_std
+        data = self.mpisqr / self.renorm_qmass
+        var = (mpierr/self.renorm_qmass)**2 + (self.res_err*data/(self.qmass))**2
+        xi = self.xi
+        M1 = F_0 * (1 - xi*np.log(xi) + 5.0/4.0*(xi*np.log(xi))**2 + 1/6.0*(ellphys+53.0/2.0)*xi*xi*np.log(xi) ) + c4*xi*(1-5*xi*np.log(xi)) + beta*xi**2
+        M2 = 2*B*(1.0+0.5*xi*np.log(xi) +7.0/8.0*(xi*np.log(xi))**2+
+                  (c4/F_0 - 1.0/3.0 *(ellphys+16) )*np.log(xi)*xi**2) + c3*xi*(1-5*xi*np.log(xi)) + alpha*xi**2
+        sqr_diff1 = (self.fpi - M1)**2
+        sqr_diff2 = (data - M2)**2
+        return np.sum(sqr_diff1/self.fpi_var)+np.sum(sqr_diff2/var)
+
+
+    def combined_XI_inverse_NNLO(self, F_0, B, Lambda3, Lambda4, l12, cm, cf):
+        mpierr = self.mpisqr_std
+        data = self.mpisqr / self.renorm_qmass
+        var = (mpierr/self.renorm_qmass)**2 + (self.res_err*data/(self.qmass))**2
+        xi = self.xi
+
+        mpisqr = self.mpisqr
+        arg3 = (Lambda3**2)/mpisqr
+        arg4 = (Lambda4**2)/mpisqr
+
+        # arg12 = (Lambda12**2)/Msqr
+
+        lambda12sqr = (phys_pion**2)*np.exp(l12)
+
+        # l1 = -0.4
+        # l2 = 4.3
+        # #colangelo
+        # # l1 = -0.4 \pm 0.6
+        # # l2 = 4.3 \pm 0.1
+
+        # l12 = (7.0*l1+8.0*l2)/15.0
+        # print l12
+
+        # Lambda1sqr = (phys_pion**2)*np.exp(l1)
+        # Lambda2sqr = (phys_pion**2)*np.exp(l2)
+
+        # lnLambda12sqr = (7.0*np.log(Lambda1sqr) + 8.0*np.log(Lambda2sqr))/15.0
+        # lambda12sqr = np.exp(lnLambda12sqr)
+
+
+
+        arg12 = lambda12sqr/mpisqr
+
+
+
+        lnOmegaM = 1.0/15.0 * (60.0*np.log(arg12) - 33.0*np.log(arg3) - 12.0*np.log(arg4)+52.0)
+        lnOmegaF = 1.0/3.0 * (-15.0*np.log(arg12) + 18.0*np.log(arg4) - 29.0/2.0)
+
+        M1 = F_0 / (1.0 - xi*np.log(arg4) - 1.0/4.0*(xi*lnOmegaF)**2 + cf*(xi**2))
+
+        M2 = 2*B / (1.0 + 0.5*xi*np.log(arg3) -5.0/8.0*(xi*lnOmegaM)**2 + cm*(xi**2) )
+
+        sqr_diff1 = (self.fpi - M1)**2
+        sqr_diff2 = (data - M2)**2
+        return np.sum(sqr_diff1/self.fpi_var)+np.sum(sqr_diff2/var)
+
+
+
+    def combined_XI_inverse_NNLO_all(self, F_0, B, Lambda3, Lambda4, l12, cm, cf, gamma_1, gamma_2, gamma_s1, gamma_s2):
+        mpierr = self.mpisqr_std
+        data = self.mpisqr / self.renorm_qmass
+        var = (mpierr/self.renorm_qmass)**2 + (self.res_err*data/(self.qmass))**2
+        xi = self.xi
+
+        mpisqr = self.mpisqr
+        arg3 = (Lambda3**2)/mpisqr
+        arg4 = (Lambda4**2)/mpisqr
+
+        # arg12 = (Lambda12**2)/Msqr
+
+        lambda12sqr = (phys_pion**2)*np.exp(l12)
+
+        # l1 = -0.4
+        # l2 = 4.3
+        # #colangelo
+        # # l1 = -0.4 \pm 0.6
+        # # l2 = 4.3 \pm 0.1
+
+        # l12 = (7.0*l1+8.0*l2)/15.0
+        # print l12
+
+        # Lambda1sqr = (phys_pion**2)*np.exp(l1)
+        # Lambda2sqr = (phys_pion**2)*np.exp(l2)
+
+        # lnLambda12sqr = (7.0*np.log(Lambda1sqr) + 8.0*np.log(Lambda2sqr))/15.0
+        # lambda12sqr = np.exp(lnLambda12sqr)
+
+
+
+        arg12 = lambda12sqr/mpisqr
+
+        Mss = (2.0*self.mKsqr) - self.mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = Mss - phys_Mss
+
+
+        lnOmegaM = 1.0/15.0 * (60.0*np.log(arg12) - 33.0*np.log(arg3) - 12.0*np.log(arg4)+52.0)
+        lnOmegaF = 1.0/3.0 * (-15.0*np.log(arg12) + 18.0*np.log(arg4) - 29.0/2.0)
+
+        M1 = (1-gamma_2*(self.a**2)+gamma_s2*delta_Mss)*F_0 / (1.0 - xi*np.log(arg4) - 1.0/4.0*(xi*lnOmegaF)**2 + cf*(xi**2))
+
+        M2 = (1-gamma_1*(self.a**2)+gamma_s1*delta_Mss)*2*B / (1.0 + 0.5*xi*np.log(arg3) -5.0/8.0*(xi*lnOmegaM)**2 + cm*(xi**2) )
+
+        sqr_diff1 = (self.fpi - M1)**2
+        sqr_diff2 = (data - M2)**2
+        return np.sum(sqr_diff1/self.fpi_var)+np.sum(sqr_diff2/var)
+
+    def combined_XI_inverse_NNLO_phys(self, F_P, B, Lambda3, Lambda4, l12, cm, cf, gamma_1, gamma_2, gamma_s1, gamma_s2):
+        mpierr = self.mpisqr_std
+        data = self.mpisqr / self.renorm_qmass
+        var = (mpierr/self.renorm_qmass)**2 + (self.res_err*data/(self.qmass))**2
+        xi = self.xi
+
+        mpisqr = self.mpisqr
+        arg3 = (Lambda3**2)/mpisqr
+        arg4 = (Lambda4**2)/mpisqr
+
+        # arg12 = (Lambda12**2)/Msqr
+
+        lambda12sqr = (phys_pion**2)*np.exp(l12)
+
+        # l1 = -0.4
+        # l2 = 4.3
+        # #colangelo
+        # # l1 = -0.4 \pm 0.6
+        # # l2 = 4.3 \pm 0.1
+
+        # l12 = (7.0*l1+8.0*l2)/15.0
+        # print l12
+
+        # Lambda1sqr = (phys_pion**2)*np.exp(l1)
+        # Lambda2sqr = (phys_pion**2)*np.exp(l2)
+
+        # lnLambda12sqr = (7.0*np.log(Lambda1sqr) + 8.0*np.log(Lambda2sqr))/15.0
+        # lambda12sqr = np.exp(lnLambda12sqr)
+
+
+
+        arg12 = lambda12sqr/mpisqr
+
+        Mss = (2.0*self.mKsqr) - self.mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = Mss - phys_Mss
+
+
+        lnOmegaM = 1.0/15.0 * (60.0*np.log(arg12) - 33.0*np.log(arg3) - 12.0*np.log(arg4)+52.0)
+        lnOmegaF = 1.0/3.0 * (-15.0*np.log(arg12) + 18.0*np.log(arg4) - 29.0/2.0)
+
+        xiphys = (phys_pion**2) / (8*np.pi**2 * (phys_Fpi**2))
+        arg12phys = lambda12sqr/(phys_pion**2)
+        arg3phys = (Lambda3**2)/(phys_pion**2)
+        arg4phys = (Lambda4**2)/(phys_pion**2)
+
+        lnOmegaMphys = 1.0/15.0 * (60.0*np.log(arg12phys) - 33.0*np.log(arg3phys) - 12.0*np.log(arg4phys)+52.0)
+        lnOmegaFphys = 1.0/3.0 * (-15.0*np.log(arg12phys) + 18.0*np.log(arg4phys) - 29.0/2.0)
+
+        F_0 = F_P * (1.0 - xiphys*np.log(arg4phys) - 1.0/4.0*(xi*lnOmegaFphys)**2 + cf*(xiphys**2))
+
+        M1 = (1-gamma_2*(self.a**2)+gamma_s2*delta_Mss)*F_0 / (1.0 - xi*np.log(arg4) - 1.0/4.0*(xi*lnOmegaF)**2 + cf*(xi**2))
+
+        M2 = (1-gamma_1*(self.a**2)+gamma_s1*delta_Mss)*2*B / (1.0 + 0.5*xi*np.log(arg3) -5.0/8.0*(xi*lnOmegaM)**2 + cm*(xi**2) )
+
+        sqr_diff1 = (self.fpi - M1)**2
+        sqr_diff2 = (data - M2)**2
+        return np.sum(sqr_diff1/self.fpi_var)+np.sum(sqr_diff2/var)
+
 
     def FPI_x_NLO_only(self, F_0, B, Lambda4):
         Msqr = B*(self.renorm_qmass+self.renorm_qmass)
@@ -211,15 +952,33 @@ class Model(object):
         return np.sum(sqr_diff/self.fpi_var)
 
     def FPI_XI_NLO_only(self, F_0, c4):
-        M = F_0 * (1 - self.xi*np.log(self.xi) + c4*self.xi)
+        M = F_0 * (1 - self.xi*np.log(self.xi) ) + c4*self.xi
         sqr_diff = (self.fpi - M)**2
         return np.sum(sqr_diff/self.fpi_var)
+
+    def FPI_XI_NNLO_only(self, F_0, c4, beta, ellphys):
+        xi = self.xi
+        xilnxi = xi*np.log(xi)
+        M = F_0 * (1 - xi*np.log(xi) + 5.0/4.0*(xi*np.log(xi))**2 + 1/6.0*(ellphys+53.0/2.0)*xi*xi*np.log(xi) ) + c4*xi*(1-5*xi*np.log(xi))  + beta*xi**2
+        sqr_diff = (self.fpi - M)**2
+        return np.sum(sqr_diff/self.fpi_var)
+
 
     def FPI_XI_NLO_inverse_only(self, F_0, Lambda4):
         arg = self.mpisqr/(Lambda4**2)
         M = F_0 / (1 + self.xi*np.log(arg))
         sqr_diff = (self.fpi - M)**2
         return np.sum(sqr_diff/self.fpi_var)
+
+    def FPI_XI_NLO_inverse_phys(self, F_P, Lambda4):
+        arg = self.mpisqr/(Lambda4**2)
+        xiphys = (phys_pion**2) / (8*np.pi**2 * (phys_Fpi**2))
+        argphys = (phys_pion**2)/(Lambda4**2)
+        F_0 = F_P * (1 + xiphys*np.log(argphys))
+        M = F_0 / (1 + self.xi*np.log(arg))
+        sqr_diff = (self.fpi - M)**2
+        return np.sum(sqr_diff/self.fpi_var)
+
 
     def FPI_XI_NNLO_inverse_only(self, F_0, Lambda4, Omega_F, cF):
         arg1 = self.mpisqr/(Lambda4**2)
@@ -237,8 +996,15 @@ def interpolate(data, model_str):
     params, model = Model(data, model_str).build_function()
 
     ARGS = inspect.getargspec(model).args[1:]
-    Nfree_params = len(ARGS)
-    dof = float(len(data)-Nfree_params)
+    print params
+    fixed_parms = [p for p in params if "fix" in p and params[p]]
+    Nfree_params = len(ARGS) - len(fixed_parms)
+    if model_str.startswith("combined"):
+        dof = float(len(data)*2-Nfree_params)
+    else:
+        dof = float(len(data)-Nfree_params)
+    # if "all" in model_str:
+    #     dof = dof + 4
 
     logging.info("DOF {}".format(dof))
 
@@ -293,10 +1059,13 @@ def interpolate_chiral_spacing(options):
 
 if __name__ == "__main__":
 
-    models = ["chiral_NLO_only", "chiral_NNLO_only", "chiral_NLO_all", "chiral_NNLO_all", "s_a_pi",
-              "MPI_XI_NLO_only", "FPI_x_NLO_only", "FPI_XI_NLO_only", "FPI_XI_NNLO_only",
-              "FPI_XI_NLO_inverse_only", "FPI_XI_NNLO_inverse_only", "mpisqrbymq_const",
-              "mpisqrbymq_xi_NLO", "mpisqrbymq_x_NLO"]
+    models = ["chiral_NLO_only", "chiral_NNLO_only", "chiral_NLO_all", "chiral_NNLOa_ll", "s_a_pi",
+              "MPI_XI_NLO_only", "FPI_x_NLO_only", "FPI_XI_NLO_only", "FPI_XI_NLO_phys", "FPI_XI_NNLO_only",
+              "FPI_XI_NLO_inverse_only", "FPI_XI_NLO_inverse_phys", "FPI_XI_NNLO_inverse_only", "mpisqrbymq_const",
+              "mpisqrbymq_xi_NLO", "mpisqrbymq_xi_NLO_inverse", "mpisqrbymq_x_NLO", "combined_x_NLO", "combined_XI_NLO",  "combined_XI_NNLO", "combined_x_NNLO",
+              "combined_XI_inverse_NNLO", "combined_x_NLO_all", "combined_x_NNLO_all", "combined_x_NNLO_fixa0", "combined_XI_inverse_NNLO_all" , "combined_XI_inverse_NNLO_phys",
+              "fD_chiral",  "fDsbyfD_chiral",
+              "MD_linear_mpisqr_asqr_mss", "MDs_linear_mpisqr_asqr_mss", "FD_linear_mpisqr_asqr_mss", "FDs_linear_mpisqr_asqr_mss", "FDsbyFD_linear_mpisqr_asqr_mss"]
 
     parser = argparse.ArgumentParser(description="script to interpolate the heavy mass")
     parser.add_argument("-v", "--verbose", action="store_true",
