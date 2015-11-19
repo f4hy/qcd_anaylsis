@@ -9,10 +9,10 @@ from iminuit import Minuit
 
 from residualmasses import residual_mass, residual_mass_errors
 
-from ensamble_info import data_params, read_fit_mass, scale, phys_pion, phys_kaon
+from ensamble_info import data_params, read_fit_mass, scale, phys_pion, phys_kaon, phys_Fpi
 from ensamble_info import Zs, Zv
 
-from ensemble_data import ensemble_data
+from ensemble_data import ensemble_data, MissingData
 
 import inspect
 
@@ -48,26 +48,72 @@ class Model(object):
 
         dps = self.data.keys()
 
-        self.mpisqr = np.array([(data[dp].pion_mass(scaled=True).mean())**2 for dp in dps])
-        self.mpisqr_std = np.array([(data[dp].pion_mass(scaled=True)**2).std() for dp in dps])
-        self.mKsqrs = np.array([(data[dp].kaon_mass(scaled=True).mean())**2 for dp in dps])
-        self.a = np.array([dp.latspacing for dp in dps])
-        self.fpi = np.array([data[dp].fpi(scaled=True).mean() for dp in dps])
-        self.fpi_var = np.array([data[dp].fpi(scaled=True).var() for dp in dps])
-        self.xi = np.array([data[dp].xi(scaled=False).mean() for dp in dps])
+        def safe_array(d):
+            try:
+                return np.array(d)
+            except MissingData:
+                return np.array(float("NAN"))
 
+        def make_array(funname, scaled=False, secondfun=None, sqr=False):
+            def con_sqr(x):
+                if sqr:
+                    return x**2
+                else:
+                    return x
+            try:
+                if secondfun:
+                    return np.array([getattr(con_sqr(getattr(data[dp], funname)(scaled=scaled)),secondfun)()
+                                     for dp in dps])
+                return np.array([con_sqr(getattr(data[dp], funname)(scaled=scaled)) for dp in dps])
+            except MissingData:
+                logging.warning("Missing {} data".format(funname))
+                return None
+
+        self.a = np.array([dp.latspacing for dp in dps])
         self.qmass = np.array([data[dp].scale*(residual_mass(dp)+dp.ud_mass) for dp in dps])
         self.renorm_qmass = np.array([data[dp].scale*(residual_mass(dp)+dp.ud_mass)/Zs[dp.beta] for
                                       dp in dps])
         self.res_err = np.array([data[dp].scale*residual_mass_errors(dp) for dp in dps])
 
+        self.mpisqr = make_array("pion_mass", scaled=True, secondfun="mean", sqr=True)
+        self.mpisqr_std = make_array("pion_mass", scaled=True, secondfun="std", sqr=True)
+
+        self.mKsqr = make_array("kaon_mass", scaled=True, secondfun="mean", sqr=True)
+
+        self.mD = make_array("D_mass", scaled=True, secondfun="mean")
+        self.mD_var =  make_array("D_mass", scaled=True, secondfun="var")
+
+
+        self.mDs = make_array("D_mass", scaled=True, secondfun="mean")
+        self.mDs_var = make_array("D_mass", scaled=True, secondfun="var")
+
+        self.fpi = make_array("fpi", scaled=True, secondfun="mean")
+        self.fpi_var = make_array("fpi", scaled=True, secondfun="var")
+
+        self.xi = make_array("xi", scaled=True, secondfun="mean")
+
+        self.fD = make_array("fD", scaled=True, secondfun="mean")
+        self.fD_var =  make_array("fD", scaled=True, secondfun="var")
+
+        self.fDs = make_array("fDs", scaled=True, secondfun="mean")
+        self.fDs_var =  make_array("fDs", scaled=True, secondfun="var")
+
+        self.fDsbyfD_var = make_array("fDsbyfD", scaled=True, secondfun="var")
+
+
     def build_function(self):
 
-        LAMBDA4_GUESS = 1000.0
+        LAMBDA4_GUESS = 1100.0
         LAMBDA3_GUESS = 600.0
 
-        B_GUESS = 2661.69
+        B_GUESS = 3000.69
         c3_GUESS = 4.0
+        c4_GUESS = 1.0
+        F_0_GUESS = 120.0
+
+        #colangelo
+        # l1 = -0.4 \pm 0.6
+        # l2 = 4.3 \pm 0.1
 
         def paramdict(parameter, guess, err, limits=None, fix=False):
 
