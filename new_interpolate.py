@@ -90,7 +90,7 @@ class Model(object):
         self.fpi = make_array("fpi", scaled=True, secondfun="mean")
         self.fpi_var = make_array("fpi", scaled=True, secondfun="var")
 
-        self.xi = make_array("xi", scaled=True, secondfun="mean")
+        self.xi = make_array("xi", scaled=False, secondfun="mean")
 
         self.fD = make_array("fD", scaled=True, secondfun="mean")
         self.fD_var =  make_array("fD", scaled=True, secondfun="var")
@@ -274,7 +274,7 @@ class Model(object):
             params.update(paramdict("Lambda4", 1169.7, 140.55, limits=(0, None)))
             l1, l2 = -0.4, 4.3
             l12_guess = (7.0*l1+8.0*l2)/15.0
-            params.update(paramdict("l12", 3.0, 0.3, fix=True))
+            params.update(paramdict("l12", l12_guess, l12_guess*0.1, fix=True))
             params.update(paramdict("cm", 3.0, 0.01))
             params.update(paramdict("cf", 6.0, 0.01))
             fun = self.combined_XI_inverse_NNLO
@@ -287,7 +287,7 @@ class Model(object):
             params.update(paramdict("Lambda4", 1169.7, 140.55, limits=(0, None)))
             l1, l2 = 0.4, 4.3
             l12_guess = (7.0*l1+8.0*l2)/15.0
-            params.update(paramdict("l12", l12_guess, 0.3, fix=True))
+            params.update(paramdict("l12", l12_guess, l12_guess*0.1, fix=True))
             params.update(paramdict("cm", 3.0, 0.01))
             params.update(paramdict("cf", 6.0, 0.01))
 
@@ -307,7 +307,7 @@ class Model(object):
             l1, l2 = 0.4, 4.3
             l12_guess = (7.0*l1+8.0*l2)/15.0
             #params.update(paramdict("l12", 3.0, 0.3, fix=True))
-            params.update(paramdict("l12", l12_guess, 0.3, fix=True))
+            params.update(paramdict("l12", l12_guess, l12_guess*0.1, fix=True))
             params.update(paramdict("cm", 3.0, 0.01))
             params.update(paramdict("cf", 6.0, 0.01))
 
