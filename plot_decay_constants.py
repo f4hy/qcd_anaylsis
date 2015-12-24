@@ -98,7 +98,7 @@ def get_data(ed, data_type, options):
     if data_type == "fD":
         data = ed.fD(scaled=options.scale).mean()
         err = ed.fD(scaled=options.scale).std()
-        label = "$F_D$"
+        label = "$f_D$"
         if options.scale:
             label += " [MeV]"
         return data, err, label, phys_FD
@@ -106,7 +106,7 @@ def get_data(ed, data_type, options):
     if data_type == "fDs":
         data = ed.fDs(scaled=options.scale).mean()
         err = ed.fDs(scaled=options.scale).std()
-        label = "$F_{D_s}$"
+        label = "$f_{D_s}$"
         if options.scale:
             label += " [MeV]"
         return data, err, label, phys_FDs
@@ -114,7 +114,7 @@ def get_data(ed, data_type, options):
     if data_type == "fDsbyfD":
         data = (ed.fDs(scaled=options.scale)/ed.fD(scaled=options.scale)).mean()
         err = (ed.fDs(scaled=options.scale)/ed.fD(scaled=options.scale)).std()
-        label = "$F_{D_s}/F_D$"
+        label = "$f_{D_s}/f_D$"
         if options.scale:
             label += " "
         return data, err, label, phys_FDs/phys_FD
@@ -122,7 +122,7 @@ def get_data(ed, data_type, options):
     if data_type == "fKbyfpi":
         data = (ed.fK(scaled=options.scale)/ed.fpi(scaled=options.scale)).mean()
         err = (ed.fK(scaled=options.scale)/ed.fpi(scaled=options.scale)).std()
-        label = "$F_K/F_\pi$"
+        label = "$f_K/f_\pi$"
         if options.scale:
             label += " "
         return data, err, label, phys_FK/phys_Fpi
@@ -131,7 +131,7 @@ def get_data(ed, data_type, options):
     if data_type == "fK":
         data = ed.fK(scaled=options.scale).mean()
         err = ed.fK(scaled=options.scale).std()
-        label = "$F_K$"
+        label = "$f_K$"
         if options.scale:
             label += " [MeV]"
         return data, err, label, phys_FK
@@ -140,7 +140,7 @@ def get_data(ed, data_type, options):
     if data_type == "fpi":
         data = ed.fpi(scaled=options.scale).mean()
         err = ed.fpi(scaled=options.scale).std()
-        label = "$F_\pi$"
+        label = "$f_\pi$"
         if options.scale:
             label += " [MeV]"
         return data, err, label, phys_Fpi
@@ -152,6 +152,15 @@ def get_data(ed, data_type, options):
         if options.scale:
             label += " [MeV]"
         return data, err, label, phys_pion
+
+    if data_type == "mk":
+        data = ed.kaon_mass(scaled=options.scale).mean()
+        err = ed.kaon_mass(scaled=options.scale).std()
+        label = "$M_K$"
+        if options.scale:
+            label += " [MeV]"
+        return data, err, label, phys_pion
+
 
     if data_type == "mD":
         data = ed.D_mass(scaled=options.scale).mean()
@@ -250,7 +259,7 @@ def plot_decay_constant(options):
     xmax = ymax = -10000
     ymin = 100000000
 
-    fontsettings = dict(fontsize=30)
+    fontsettings = dict(fontsize=60)
 
     one_beta = all_same_beta(options.files)
     one_flavor = all_same_flavor(options.files)
@@ -267,9 +276,13 @@ def plot_decay_constant(options):
         y, yerr, ylabel, yphysical = get_data(ed, options.ydata, options)
         x, xerr, xlabel, xphysical = get_data(ed, options.xdata, options)
 
+        e = yerr
+
         label = "$f_{}$ s{}".format(p.flavor, p.s_mass)
 
         color, mark, mfc = colors_and_legend(p, options.legend_mode)
+
+        summary_lines.append("{}, {}, {}\n".format(p, y, e))
 
         alpha = 1.0
         if "32x64" in f and p.ud_mass < 0.004:
@@ -277,9 +290,7 @@ def plot_decay_constant(options):
             color = "#9999FF"
             continue
 
-        e = yerr
 
-        summary_lines.append("{}, {}, {}\n".format(p, y, e))
 
         plotsettings = dict(linestyle="none", c=color, marker=mark,
                             label=label, ms=12, elinewidth=4,
@@ -336,26 +347,32 @@ def plot_decay_constant(options):
             legend_handles.extend(chiral_line)
 
     if options.xlabel:
-        axe.set_xlabel(options.xlabel, **fontsettings)
+        axe.set_xlabel(options.xlabel, labelpad=20, **fontsettings)
     else:
-        axe.set_xlabel(xlabel, **fontsettings)
+        axe.set_xlabel(xlabel, labelpad=20, **fontsettings)
+        if "MeV^2" in xlabel:
+            import matplotlib.ticker as ticker
+            ticks = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/(1000**2)))
+            axe.xaxis.set_major_formatter(ticks)
+            axe.set_xlabel(xlabel.replace("MeV","GeV"), **fontsettings)
+
 
     if options.ylabel:
         if options.scale:
-            axe.set_ylabel("{} [MeV]".format(options.ylabel), **fontsettings)
+            axe.set_ylabel("{} [MeV]".format(options.ylabel), labelpad=10, **fontsettings)
         else:
-            axe.set_ylabel("{}".format(options.ylabel), **fontsettings)
+            axe.set_ylabel("{}".format(options.ylabel), labelpad=10, **fontsettings)
     else:
-        axe.set_ylabel("{}".format(ylabel), **fontsettings)
+        axe.set_ylabel("{}".format(ylabel), labelpad=10, **fontsettings)
 
-    axe.tick_params(axis='both', which='major', labelsize=20)
+    axe.tick_params(axis='both', which='major', labelsize=30)
 
     def legsort(i):
         return i.get_label()
 
     if not options.box:
         leg = axe.legend(handles=sorted(legend_handles, key=legsort), loc=0,
-                         fontsize=20, numpoints=1)
+                         fontsize=30, numpoints=1)
     if(options.output_stub):
         summaryfilename = options.output_stub + ".txt"
         logging.info("Writting summary to {}".format(summaryfilename))
@@ -363,8 +380,9 @@ def plot_decay_constant(options):
             for i in summary_lines:
                 summaryfile.write(i)
 
-        width = 15.0
+        width = 18.0
         fig.set_size_inches(width, width*options.aspect)
+        fig.tight_layout()
         #fig.set_size_inches(28.5, 20.5)
         file_extension = ".png"
         if options.eps:
@@ -385,7 +403,7 @@ if __name__ == "__main__":
     axis_choices = ["mud", "mud_s", "mpi", "mpisqr", "2mksqr-mpisqr", "mpisqr/mq", "xi", "mq"]
     legend_choices = ["betaLs", "betaL", "heavy", "smearing", "flavor", "strange"]
 
-    data_choices = ["mud", "mud_s", "mpi", "mpisqr", "mKsqr", "2mksqr-mpisqr", "mpisqr/mq",
+    data_choices = ["mud", "mud_s", "mpi", "mpisqr", "mKsqr", "2mksqr-mpisqr", "mpisqr/mq", "mk",
                     "xi", "mq", "fpi", "x", "fD", "fDs", "fDsbyfD", "mD", "mDs", "fK", "fKbyfpi", "mheavyq"]
 
     parser.add_argument("-v", "--verbose", action="store_true",
