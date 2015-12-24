@@ -28,6 +28,8 @@ from auto_key import auto_key
 from plot_decay_constants import auto_fit_range
 from add_chiral_fits import format_parameters
 
+first = True
+
 colors = ['b', 'r', 'k', 'm', 'c', 'y']*10
 
 def mark_generator():
@@ -39,6 +41,8 @@ def number_generator():
         yield i
 
 plotindex = number_generator()
+
+summary_lines = []
 
 def plot_constants(axe, chiral_fit_file, options):
 
@@ -219,7 +223,9 @@ def plot_constants(axe, chiral_fit_file, options):
         if options.constant == "f0":
             ydata=F_0
             y_err=F_0_err
-        return axe.errorbar(x=plotindex.next(), y=ydata, yerr=y_err, **plotsettings)
+        thisx = plotindex.next()
+        summary_lines.append("{}, {}, {}\n".format(label, ydata, y_err))
+        return axe.errorbar(x=thisx, y=ydata, yerr=y_err, **plotsettings)
     except UnboundLocalError:
         logging.warn("file {} did not contain {}".format(chiral_fit_file.name, options.constant))
         return []
@@ -272,7 +278,10 @@ def add_others(axe, options):
         axe.errorbar(x=plotindex.next(), y=86.78, yerr=0.25, label="Borsanyi 12", marker=mark_gen.next(), **plotsettings)
         # axe.errorbar(x=plotindex.next(), y=234.3, yerr=17.4, label="JLQCD/TWQCD 10", marker=mark_gen.next(), **plotsettings)
 
-    axe.axvline(x=plotindex.next(), color="k")
+    divlinex = plotindex.next()
+    axe.axvline(x=divlinex, color="k")
+    axe.text(divlinex+0.5, 0.5, 'This work', fontsize=80)
+
     return
 
 if __name__ == "__main__":
@@ -314,22 +323,26 @@ if __name__ == "__main__":
     for i in args.files:
         plots.extend(plot_constants(axe, i, args))
 
-    fontsettings = dict(fontweight='bold', fontsize=25)
+    fontsettings = dict(fontweight='bold', fontsize=50)
 
-    fig.suptitle("${}$".format(format_parameters(args.constant)), **fontsettings)
+    axe.set_title("${}$".format(format_parameters(args.constant)), **fontsettings)
     axe.set_ylabel("${}$".format(format_parameters(args.constant)), **fontsettings)
 
-    axe.tick_params(axis='y', which='major', labelsize=20)
+    axe.tick_params(axis='y', which='major', labelsize=40)
 
 
-    axe.legend(loc=0, fontsize=20, numpoints=1)
-    plt.xlim(0, plotindex.next())
+    axe.legend(loc=0, fontsize=30, numpoints=1)
+    plt.xlim(0, plotindex.next()+3)
 
 
     if(args.output_stub):
-        fig.set_size_inches(28.5, 20.5)
+        fig.set_size_inches(26.5, 9.5)
         summaryfilename = args.output_stub + ".txt"
-
+        logging.info("Writting summary to {}".format(summaryfilename))
+        with open(summaryfilename, 'w') as summaryfile:
+            for i in summary_lines:
+                summaryfile.write(i)
+        fig.tight_layout()
         file_extension = ".png"
         if args.eps:
             file_extension = ".eps"
