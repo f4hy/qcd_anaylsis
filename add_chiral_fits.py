@@ -214,6 +214,7 @@ def add_mpisqrbymq_const_fit(axe, xran, values, errors):
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
+    paramstring = "$ M_\pi<450$ MeV"
     plabel = "const fit: {}".format(paramstring)
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
@@ -234,8 +235,9 @@ def add_mpisqrbymq_xi_NLO_fit(axe, xran, values, errors):
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
-    plabel = "NLO fit: {}".format(paramstring)
-    plabel = "NLO fit"
+    paramstring = "$ M_\pi<450$ MeV"
+    plabel = "NLO {}".format(paramstring)
+    plabel = "NLO $ M_\pi<450$ MeV"
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plots.extend(axe.plot(xi, y, label=plabel,  ls="--", lw=2))
@@ -262,8 +264,12 @@ def add_mpisqrbymq_xi_NNLO_fit(axe, xran, values, errors):
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
-    plabel = "NNLO fit: {}".format(paramstring)
-    plabel = "NNLO fit"
+    paramstring = "$ M_\pi<450$ MeV"
+    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
+                           for k,v in sorted(values.iteritems()) )
+    paramstring = "$ M_\pi<450$ MeV"
+    plabel = "NNLO {}".format(paramstring)
+    plabel = "NNLO"
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plots.extend(axe.plot(xi, y, label=plabel,  ls="--", lw=2))
@@ -291,8 +297,9 @@ def add_mpisqrbymq_x_NLO_fit(axe, xran, values, errors):
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
-    plabel = "NLO fit: {}".format(paramstring)
-    plabel = "NLO fit"
+    paramstring = "$ M_\pi<450$ MeV"
+    plabel = "NLO {}".format(paramstring)
+    plabel = "NLO $M_\pi < 450$ MeV"
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plots.extend(axe.plot(x, y, label=plabel,  ls="--", lw=2))
@@ -323,8 +330,9 @@ def add_mpisqrbymq_x_NLO_all_fit(axe, xran, values, errors):
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
+    paramstring = "$ M_\pi<450$ MeV"
     plabel = "NLO $Mss=0$ $a \\to 0$ fit: {}".format(paramstring)
-    plabel = "NLO $a\\to 0$ $\Delta Mss=0$ "
+    plabel = "NLO $ M_\pi<450$ MeV"
 
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
@@ -349,8 +357,9 @@ def add_X_NLO_fit(axe, xran, values, errors):
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
-    plabel = "NLO fit: {}".format(paramstring)
-    plabel = "NLO fit"
+    paramstring = "$ M_\pi<450$ MeV"
+    plabel = "NLO {}".format(paramstring)
+    plabel = "NLO $M_\pi < 450$ MeV"
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plots.extend(axe.plot(x, y, label=plabel,  ls="--", lw=2))
@@ -379,8 +388,9 @@ def add_X_NLO_all_fit(axe, xran, values, errors):
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
+    paramstring = "$ M_\pi<450$ MeV"
     plabel = "NLO $\Delta Mss=0$ fit: {}".format(paramstring)
-    plabel = "NLO $a\\to 0$ $\Delta Mss=0$ "
+    plabel = "NLO $ M_\pi<450$ MeV"
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plots.extend(axe.plot(x, y, label=plabel,  ls="--", lw=2))
@@ -401,7 +411,11 @@ def add_XI_NLO_fit(axe, xran, values, errors):
 
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
-    plabel = "NLO fit: {}".format(paramstring)
+    print values
+    print values[' M_\pi<']
+    paramstring = "$ M_\pi<${}".format(values[" M_\\pi<"])
+    plabel = "NLO {}".format(paramstring)
+    plabel = "NLO $ M_\pi<450$ MeV"
 
     plots = []
     plots.extend(axe.plot(xi, y, label=plabel, ls="--", lw=2))
@@ -422,7 +436,9 @@ def add_XI_NNLO_fit(axe, xran, values, errors):
 
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
-    plabel = "NNLO fit: {}".format(paramstring)
+    paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    plabel = "NNLO {}".format(paramstring)
+    plabel = "NNLO"
 
     plots = []
     plots.extend(axe.plot(xi, y, label=plabel, ls="--", lw=2))
@@ -470,8 +486,9 @@ def add_X_NNLO_fit(axe, xran, values, errors):
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
-    plabel = "NNLO fit: {}".format(paramstring)
-    plabel = "NNLO fit"
+    paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    plabel = "NNLO {}".format(paramstring)
+    plabel = "NNLO"
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plots.extend(axe.plot(x, y, label=plabel,  ls="--", lw=2))
@@ -520,8 +537,10 @@ def add_X_NNLO_all_fit(axe, xran, values, errors):
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
+    paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "NNLO Mss=0 fit: {}".format(paramstring)
     plabel = "NNLO $a\\to 0$ $\Delta Mss=0$ "
+    plabel = "NNLO"
 
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
@@ -572,7 +591,9 @@ def add_X_NNLO_fixa0_fit(axe, xran, values, errors):
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
+    paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "NNLO Mss=0 fit: {}".format(paramstring)
+    plabel = "NNLO"
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plots.extend(axe.plot(x, y, label=plabel,  ls="--", lw=2))
@@ -617,7 +638,9 @@ def add_mpisqrbymq_x_NNLO_fit(axe, xran, values, errors):
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
-    plabel = "NNLO fit: {}".format(paramstring)
+    paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    plabel = "NNLO {}".format(paramstring)
+    plabel = "NNLO"
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plots.extend(axe.plot(x, y, label=plabel,  ls="--", lw=2))
@@ -661,8 +684,10 @@ def add_mpisqrbymq_x_NNLO_all_fit(axe, xran, values, errors):
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
+    paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "NNLO Mss=0 $a \\to 0$ fit: {}".format(paramstring)
     plabel = "NNLO $a\\to 0$ $\Delta Mss=0$ "
+    plabel = "NNLO"
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plots.extend(axe.plot(x, y, label=plabel,  ls="--", lw=2))
@@ -703,7 +728,9 @@ def add_XI_inverse_NNLO_fit(axe, xran, values, errors):
     del values["l12"]
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
+    paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "NNLO inverse fit: {}".format(paramstring)
+    plabel = "NNLO"
 
     plots = []
     plots.extend(axe.plot(xi, y, label=plabel, ls="--", lw=2))
@@ -750,7 +777,9 @@ def add_fD_chiral(axe, xran, values, errors):
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
-    plabel = "NLO fit: {}".format(paramstring)
+    paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    plabel = "NLO {}".format(paramstring)
+    plabel = "NLO $M_\pi <450$ MeV"
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plots.extend(axe.plot(mpisqr, y, label=plabel,  ls="--", lw=2))
@@ -777,7 +806,8 @@ def add_fDsbyfD_chiral(axe, xran, values, errors):
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
-    plabel = "NLO fit: {}".format(paramstring)
+    paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    plabel = "NLO {}".format(paramstring)
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plots.extend(axe.plot(mpisqr, y, label=plabel,  ls="--", lw=2))
@@ -802,12 +832,13 @@ def add_MD_linear_mpisqr(axe, xran, values, errors):
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
-    plabel = "Linear fit $a\\to 0$"
+    paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    plabel = "Linear fit"
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plots.extend(axe.plot(mpisqr, y, label=plabel,  ls="--", lw=2))
     plots.extend(axe.plot(mpisqr, y1, label="Linear fit $\\beta=4.17$", ls=":", lw=2))
-    axe.errorbar(phys_pion**2, y=MDphys, yerr=errors["MDphys"], **plotsettings)
+    # axe.errorbar(phys_pion**2, y=MDphys, yerr=errors["MDphys"], **plotsettings)
 
     return plots
 
@@ -828,12 +859,13 @@ def add_MDs_linear_mpisqr(axe, xran, values, errors):
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
-    plabel = "Linear fit $a\\to 0$"
+    paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    plabel = "Linear fit"
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plots.extend(axe.plot(mpisqr, y, label=plabel,  ls="--", lw=2))
     plots.extend(axe.plot(mpisqr, y1, label="Linear fit $\\beta=4.17$", ls=":", lw=2))
-    axe.errorbar(phys_pion**2, y=MDsphys, yerr=errors["MDsphys"], **plotsettings)
+    # axe.errorbar(phys_pion**2, y=MDsphys, yerr=errors["MDsphys"], **plotsettings)
 
     return plots
 
@@ -854,12 +886,13 @@ def add_FD_linear_mpisqr(axe, xran, values, errors):
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
-    plabel = "Linear fit $a\\to 0$"
+    paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    plabel = "Linear fit"
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plots.extend(axe.plot(mpisqr, y, label=plabel,  ls="--", lw=2))
-    plots.extend(axe.plot(mpisqr, y1, label="Linear fit $\\beta=4.17$", ls=":", lw=2))
-    axe.errorbar(phys_pion**2, y=FDphys, yerr=errors["FDphys"], **plotsettings)
+    # plots.extend(axe.plot(mpisqr, y1, label="Linear fit $\\beta=4.17$", ls=":", lw=2))
+    # axe.errorbar(phys_pion**2, y=FDphys, yerr=errors["FDphys"], **plotsettings)
 
     return plots
 
@@ -880,12 +913,13 @@ def add_FDs_linear_mpisqr(axe, xran, values, errors):
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
-    plabel = "Linear fit $a\\to 0$"
+    paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    plabel = "Linear fit"
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plots.extend(axe.plot(mpisqr, y, label=plabel,  ls="--", lw=2))
     plots.extend(axe.plot(mpisqr, y1, label="Linear fit $\\beta=4.17$", ls=":", lw=2))
-    axe.errorbar(phys_pion**2, y=FDsphys, yerr=errors["FDsphys"], **plotsettings)
+    # axe.errorbar(phys_pion**2, y=FDsphys, yerr=errors["FDsphys"], **plotsettings)
 
     return plots
 
@@ -906,11 +940,12 @@ def add_FDsbyFD_linear_mpisqr(axe, xran, values, errors):
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
-    plabel = "Linear fit $a\\to 0$"
+    paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    plabel = "Linear fit"
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plots.extend(axe.plot(mpisqr, y, label=plabel,  ls="--", lw=2))
     plots.extend(axe.plot(mpisqr, y1, label="Linear fit $\\beta=4.17$", ls=":", lw=2))
-    axe.errorbar(phys_pion**2, y=FDsbyFDphys, yerr=errors["FDsbyFDphys"], **plotsettings)
+    # axe.errorbar(phys_pion**2, y=FDsbyFDphys, yerr=errors["FDsbyFDphys"], **plotsettings)
 
     return plots
