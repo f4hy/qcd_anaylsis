@@ -10,10 +10,19 @@ scale = {"4.17": 2453.1, "4.35": 3609.7, "4.47": 4496.1}
 phys_pion = 134.8
 phys_kaon = 494.2
 
+phys_eta = 547.862 # +/- 0.018
+
+
 phys_Fpi = 130.41
 phys_FK = 156.1 # MeV
 
+FLAG_FB =  190.5 # \pm 4.2 MeV
+phys_MB = 5279.0
 
+phys_MB_s = 5366.79
+FLAG_FBs = 228.0 # \pm 8 MeV
+
+phys_etac = 2980.3
 
 phys_D = (1864.84 + 2*1869.61)/3.0 #
 phys_Ds = 1968.3
@@ -66,7 +75,10 @@ def get_heavyq_mass(beta, heavytype):
         #0.210476 0.263095 0.328869 0.4110859 0.5138574 0.6423218
         heavymap = {"m0": 0.210476, "m1": 0.263095, "m2": 0.328869, "m3": 0.4110859, "m4": 0.5138574, "m5": 0.6423218}
     print heavymap, heavytype
-    return heavymap[heavytype]
+    try:
+        return heavymap[heavytype]
+    except:
+        return None
 
 class data_params(object):
 

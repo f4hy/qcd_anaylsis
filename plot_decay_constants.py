@@ -12,7 +12,8 @@ from residualmasses import residual_mass, residual_mass_errors
 
 from ensamble_info import flavor_map, scale, data_params, determine_flavor, read_fit_mass
 from ensamble_info import all_same_beta, all_same_heavy, all_same_flavor
-from ensamble_info import phys_pion, phys_kaon, phys_mq, phys_Fpi, phys_FD, phys_FDs, phys_D, phys_Ds, phys_FK, phys_mhq
+from ensamble_info import phys_pion, phys_kaon, phys_mq, phys_Fpi, phys_FD, phys_FDs, phys_D, phys_Ds
+from ensamble_info import phys_eta, phys_etac, phys_FK, phys_mhq
 from ensamble_info import Zs, Zv
 
 from ensemble_data import ensemble_data
@@ -21,6 +22,7 @@ from auto_key import auto_key
 
 from add_chiral_fits import add_chiral_fit
 
+from get_data import get_data
 
 def round5(x):
     return int(5 * np.around(x/5.0))
@@ -74,6 +76,11 @@ def colors_and_legend(data_properties, legend_mode="betaLs"):
         color, mark, mfc = auto_key(p.heavymass)
         legend_label = r'$mh={}$'.format(p.heavymass)
 
+    if legend_mode == "betaheavy":
+        color, mark, mfc = auto_key((p.beta, p.heavymass))
+        legend_label = r'$\beta = {}, mh={}$'.format(p.beta, p.heavymass)
+
+
     if legend_mode == "smearing":
         color, mark, mfc = auto_key(p.smearing)
         legend_label = r'$smearing={}$'.format(p.smearing)
@@ -91,167 +98,6 @@ def colors_and_legend(data_properties, legend_mode="betaLs"):
         legend_handles.append(symbol)
 
     return handel
-
-
-def get_data(ed, data_type, options):
-
-    if data_type == "fD":
-        data = ed.fD(scaled=options.scale).mean()
-        err = ed.fD(scaled=options.scale).std()
-        label = "$f_D$"
-        if options.scale:
-            label += " [MeV]"
-        return data, err, label, phys_FD
-
-    if data_type == "fDs":
-        data = ed.fDs(scaled=options.scale).mean()
-        err = ed.fDs(scaled=options.scale).std()
-        label = "$f_{D_s}$"
-        if options.scale:
-            label += " [MeV]"
-        return data, err, label, phys_FDs
-
-    if data_type == "fDsbyfD":
-        data = (ed.fDs(scaled=options.scale)/ed.fD(scaled=options.scale)).mean()
-        err = (ed.fDs(scaled=options.scale)/ed.fD(scaled=options.scale)).std()
-        label = "$f_{D_s}/f_D$"
-        if options.scale:
-            label += " "
-        return data, err, label, phys_FDs/phys_FD
-
-    if data_type == "fKbyfpi":
-        data = (ed.fK(scaled=options.scale)/ed.fpi(scaled=options.scale)).mean()
-        err = (ed.fK(scaled=options.scale)/ed.fpi(scaled=options.scale)).std()
-        label = "$f_K/f_\pi$"
-        if options.scale:
-            label += " "
-        return data, err, label, phys_FK/phys_Fpi
-
-
-    if data_type == "fK":
-        data = ed.fK(scaled=options.scale).mean()
-        err = ed.fK(scaled=options.scale).std()
-        label = "$f_K$"
-        if options.scale:
-            label += " [MeV]"
-        return data, err, label, phys_FK
-
-
-    if data_type == "fpi":
-        data = ed.fpi(scaled=options.scale).mean()
-        err = ed.fpi(scaled=options.scale).std()
-        label = "$f_\pi$"
-        if options.scale:
-            label += " [MeV]"
-        return data, err, label, phys_Fpi
-
-    if data_type == "mpi":
-        data = ed.pion_mass(scaled=options.scale).mean()
-        err = ed.pion_mass(scaled=options.scale).std()
-        label = "$M_\pi$"
-        if options.scale:
-            label += " [MeV]"
-        return data, err, label, phys_pion
-
-    if data_type == "mk":
-        data = ed.kaon_mass(scaled=options.scale).mean()
-        err = ed.kaon_mass(scaled=options.scale).std()
-        label = "$M_K$"
-        if options.scale:
-            label += " [MeV]"
-        return data, err, label, phys_pion
-
-
-    if data_type == "mD":
-        data = ed.D_mass(scaled=options.scale).mean()
-        err = ed.D_mass(scaled=options.scale).std()
-        label = "$M_D$"
-        if options.scale:
-            label += " [MeV]"
-        return data, err, label, phys_D
-
-    if data_type == "mDs":
-        data = ed.Ds_mass(scaled=options.scale).mean()
-        err = ed.Ds_mass(scaled=options.scale).std()
-        label = "$M_{D_s}$"
-        if options.scale:
-            label += " [MeV]"
-        return data, err, label, phys_Ds
-
-    if data_type == "mpisqr":
-        data = (ed.pion_mass(scaled=options.scale)**2).mean()
-        err = (ed.pion_mass(scaled=options.scale)**2).std()
-        label = "$M_\pi^2$"
-        if options.scale:
-            label += " [MeV^2]"
-        return data, err, label, phys_pion**2
-
-    if data_type == "mKsqr":
-        data = (ed.kaon_mass(scaled=options.scale)**2).mean()
-        err = (ed.kaon_mass(scaled=options.scale)**2).std()
-        label = "$M_K^2$"
-        if options.scale:
-            label += " [MeV^2]"
-        return data, err, label, phys_kaon**2
-
-
-    if data_type == "mpisqr/mq":
-        mpi = ed.pion_mass(scaled=True).mean()
-        mpisqr = mpi**2
-        mpierr = (ed.pion_mass(scaled=True)**2).std()
-        mq = scale[ed.dp.beta] * (ed.dp.ud_mass + residual_mass(ed.dp)) / Zs[ed.dp.beta]
-        res_err = scale[ed.dp.beta]*residual_mass_errors(ed.dp)
-
-        data = mpisqr / mq
-        sqr_err = ((mpierr / mq)**2 +
-                   (res_err * data / (scale[ed.dp.beta]*(ed.dp.ud_mass + residual_mass(ed.dp))))**2)
-        err = np.sqrt(sqr_err)
-        label = "$M_\pi^2 / m_q$"
-        if options.scale:
-            label += " [MeV]"
-
-        return data, err, label, phys_pion**2 / phys_mq
-
-    if data_type == "mud":
-        data = ed.dp.ud_mass + residual_mass(ed.dp)
-        err = residual_mass_errors(ed.dp)
-        label = "$M_{ud}$"
-        if options.scale:
-            data = scale[ed.dp.beta]*data
-            label += " [MeV]"
-        return data, err, label, phys_mq
-
-    if data_type == "mheavyq":
-        data = ed.dp.heavyq_mass / Zs[ed.dp.beta]
-        err = 0.0
-        label = "$M_{q_h}$"
-        if options.scale:
-            data = scale[ed.dp.beta]*data
-            label += " [MeV]"
-        return data, err, label, phys_mhq
-
-
-    if data_type == "xi":
-        mpi = ed.pion_mass(scaled=options.scale)
-        fpi = ed.fpi(scaled=options.scale)
-        xi = ((mpi**2) / (8 * (np.pi**2)*(fpi**2))).mean()
-        data = xi
-        err = ((mpi**2) / (8 * (np.pi**2)*(fpi**2))).std()
-        phys_xi = phys_pion**2 / (8 * (np.pi**2)*(phys_Fpi**2))
-        return data, err, "$\\xi$", phys_xi
-
-    if data_type == "x":
-        B = 2826.1
-        F_0 = 118.03
-        qmass = scale[ed.dp.beta]*(ed.dp.ud_mass + residual_mass(ed.dp)) / Zs[ed.dp.beta]
-        Msqr = B * (qmass + qmass)
-        x = Msqr / (8 * (np.pi**2) * (F_0**2))
-
-        data = x
-        err = 0
-        return data, err, "$x=B(m_q + m_q)/(4 \pi F)^2 $", 0
-
-    raise RuntimeError("{} not supported as a data type yet".format(data_type))
 
 
 def plot_decay_constant(options):
@@ -307,13 +153,14 @@ def plot_decay_constant(options):
         xmax = max(xmax, x)
 
     if options.physical:
-        physplot = axe.errorbar(xphysical, yphysical, yerr=0, marker="x",
-                                ecolor="k", color="k", label="FLAG",
+        logging.info("plotting physical {} {}".format(xphysical, yphysical))
+        physplot = axe.errorbar(xphysical, yphysical, yerr=0, marker="+",
+                                ecolor="k", color="k", label=options.physical,
                                 ms=15, elinewidth=3, capsize=1,
                                 capthick=2, mec='k', mew=3, mfc='k',
                                 zorder=100)
-        symbol = mpl.lines.Line2D([], [], color="k", mec="k", marker="x", markersize=15, mew=3,
-                                  linestyle="None", label="FLAG", mfc="k")
+        symbol = mpl.lines.Line2D([], [], color="k", mec="k", marker="+", markersize=15, mew=3,
+                                  linestyle="None", label=options.physical, mfc="k")
         legend_handles.append(symbol)
         ymax = max(ymax, yphysical)
         ymin = min(ymin, yphysical)
@@ -321,6 +168,20 @@ def plot_decay_constant(options):
     if options.physx:
         physxplot = axe.axvline(xphysical, color='k', ls="--", lw=2, label="physical point")
         legend_handles.append(physxplot)
+
+    if options.addpoint:
+        print options.addpoint
+        px = float(options.addpoint[1])
+        py = float(options.addpoint[2])
+        physplot = axe.errorbar(px, py, yerr=0, marker="x",
+                                ecolor="k", color="k", label=options.addpoint[0],
+                                ms=15, elinewidth=3, capsize=1,
+                                capthick=2, mec='k', mew=3, mfc='k',
+                                zorder=100)
+        symbol = mpl.lines.Line2D([], [], color="k", mec="k", marker="x", markersize=15, mew=3,
+                                  linestyle="None", label=options.addpoint[0], mfc="k")
+        legend_handles.append(symbol)
+
 
     if options.xrange:
         logging.info("setting x range to {}".format(options.xrange))
@@ -371,7 +232,7 @@ def plot_decay_constant(options):
         return i.get_label()
 
     if not options.box:
-        leg = axe.legend(handles=sorted(legend_handles, key=legsort), loc=0,
+        leg = axe.legend(handles=sorted(legend_handles, key=legsort), loc=options.legendloc,
                          fontsize=30, numpoints=1)
     if(options.output_stub):
         summaryfilename = options.output_stub + ".txt"
@@ -380,7 +241,7 @@ def plot_decay_constant(options):
             for i in summary_lines:
                 summaryfile.write(i)
 
-        width = 18.0
+        width = 20.0
         fig.set_size_inches(width, width*options.aspect)
         fig.tight_layout()
         #fig.set_size_inches(28.5, 20.5)
@@ -401,10 +262,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="average data files")
 
     axis_choices = ["mud", "mud_s", "mpi", "mpisqr", "2mksqr-mpisqr", "mpisqr/mq", "xi", "mq"]
-    legend_choices = ["betaLs", "betaL", "heavy", "smearing", "flavor", "strange"]
-
-    data_choices = ["mud", "mud_s", "mpi", "mpisqr", "mKsqr", "2mksqr-mpisqr", "mpisqr/mq", "mk",
-                    "xi", "mq", "fpi", "x", "fD", "fDs", "fDsbyfD", "mD", "mDs", "fK", "fKbyfpi", "mheavyq"]
+    legend_choices = ["betaLs", "betaL", "heavy", "smearing", "flavor", "strange", "betaheavy"]
 
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="increase output verbosity")
@@ -424,8 +282,12 @@ if __name__ == "__main__":
                         help="set the yrange of the plot", default=None)
     parser.add_argument("-x", "--xrange", type=float, required=False, nargs=2,
                         help="set the xrange of the plot", default=None)
+    parser.add_argument("--addpoint", required=False, nargs=3, metavar=("LABEL", "X", "Y"),
+                        help="Add a point", default=None)
     parser.add_argument("--xaxis", required=False, choices=axis_choices,
                         help="what to set on the xaxis", default="mud")
+    parser.add_argument("--legendloc", type=int, required=False, default=0,
+                        help="location of legend")
     parser.add_argument("--legend_mode", required=False, choices=legend_choices,
                         help="what to use for the legend", default="betaLs")
     parser.add_argument("--fitdata", required=False, type=str,
@@ -442,7 +304,7 @@ if __name__ == "__main__":
                         help="scale the values")
     parser.add_argument("-ss", "--scalesquared", action="store_true",
                         help="scale the values squared")
-    parser.add_argument("--physical", action="store_true",
+    parser.add_argument("--physical", type=str, required=False,
                         help="add physical point")
     parser.add_argument("--physx", action="store_true",
                         help="draw line at physical x")
@@ -452,9 +314,9 @@ if __name__ == "__main__":
                         action='append', help="add chiral interpolated lines")
     parser.add_argument("--mpisqrbymq", action="store_true",
                         help="compute mpisqr divided by mq, strange edge case")
-    parser.add_argument("--ydata", required=False, choices=data_choices,
+    parser.add_argument("--ydata", required=False, type=str,
                         help="which data to plot on the yaxis", default="mpi")
-    parser.add_argument("--xdata", required=False, choices=data_choices,
+    parser.add_argument("--xdata", required=False, type=str,
                         help="what to use as the xaxis", default="mud")
     parser.add_argument("--aspect", type=float, default=1.0, required=False,
                         help="determine the plot aspect ratio")

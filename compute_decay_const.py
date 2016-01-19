@@ -91,13 +91,12 @@ def decay_constant(filename, options):
 
     size = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
 
-
-    masses["heavy"] = options.heavyquarkmass
-
+    #masses["heavy"] = options.heavyquarkmass
+    masses["heavy"] = dp.heavyq_mass
 
     heavyness = re.search("_([a-z][a-z0-9])_", filename).group(1)
 
-    if heavyness != "ll" and options.heavyquarkmass is None:
+    if heavyness != "ll" and dp.heavyq_mass is None:
         raise RuntimeError("heavy mass must be specified for heavy quarks")
 
 
@@ -165,8 +164,8 @@ if __name__ == "__main__":
                         help="stub of name to write output to")
     parser.add_argument("-f", "--function", type=str, required=False, choices=functs,
                         help="function to use to compute the decay constant")
-    parser.add_argument("-m", "--heavyquarkmass", type=float, required=False,
-                        help="The heavyquarkmass to use")
+    # parser.add_argument("-m", "--heavyquarkmass", type=float, required=False,
+    #                     help="The heavyquarkmass to use")
     parser.add_argument("-b", "--bothquarks", action="store_true",
                         help="use both quark masses as the x value")
     parser.add_argument("-V", "--volume", action="store_true",
