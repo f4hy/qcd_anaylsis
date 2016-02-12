@@ -38,6 +38,7 @@ def check_control_lines(lines, data_info):
                 logging.info("heavy-heavy has only one sink,src")
                 data_info["snk"] = 0
                 data_info["src"] = 0
+            logging.info("found {} {} {}".format(data_info["flavor"], data_info["snk"], data_info["src"]))
             return True
         elif fline.startswith("="):
             logging.info("line just says the hadron type, skipping")
@@ -45,6 +46,7 @@ def check_control_lines(lines, data_info):
         elif fline.startswith("-"):
             correlatortype = fline.strip("\n -")
             data_info["correlatortype"] = correlatortype
+            logging.info("correlator type {}".format(correlatortype))
             return True
     return False
 
@@ -137,6 +139,7 @@ def split_data(args):
             for line,f in zip(lines,prunedfiles):
                 fw.add_data(line,f)
 
+    fw.write()
     logging.info("Done!")
 
 if __name__ == "__main__":
