@@ -126,6 +126,12 @@ def add_chiral_fit(axe, xran, chiral_fit_file=None, options=None):
     if fittype.startswith("FDsbyFD_linear"):
         return add_FDsbyFD_linear_mpisqr(axe, xran, values, errors)
 
+    if fittype.startswith("Mhs_minus_Mhh"):
+        return add_Mhs_minus_Mhh(axe, xran, values, errors)
+
+    if fittype.startswith("quad_Mhs_minus_Mhh"):
+        return add_quad_Mhs_minus_Mhh(axe, xran, values, errors)
+
     print fittype
     print "not supported"
     exit(-1)
@@ -946,6 +952,70 @@ def add_FDsbyFD_linear_mpisqr(axe, xran, values, errors):
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plots.extend(axe.plot(mpisqr, y, label=plabel,  ls="--", lw=2))
     plots.extend(axe.plot(mpisqr, y1, label="Linear fit $\\beta=4.17$", ls=":", lw=2))
+    # axe.errorbar(phys_pion**2, y=FDsbyFDphys, yerr=errors["FDsbyFDphys"], **plotsettings)
+
+    return plots
+
+
+def add_Mhs_minus_Mhh(axe, xran, values, errors):
+    M_Bs = values["M_Bs"]
+
+    alpha = values["alpha"]
+    gamma_1 = values["gamma_1"]
+    gamma_s1 = values["gamma_s1"]
+
+    mHH_inv =  np.linspace(xran[0], xran[1], num=500)
+
+    a_beta417 = 197.3269788 / scale["4.17"]
+
+    y = ( M_Bs+alpha*(mHH_inv))
+    y1 =(1+gamma_1*(a_beta417**2)) * ( M_Bs + alpha*(mHH_inv))
+
+    plots = []
+    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
+                           for k,v in sorted(values.iteritems()) )
+    paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    plabel = "Linear fit"
+    if "cutoff" in values.keys():
+        plabel += " $M_\pi < {}$".format(values["cutoff"])
+    plots.extend(axe.plot(mHH_inv, y, label=plabel,  ls="--", lw=2))
+    plots.extend(axe.plot(mHH_inv, y1, label="Linear fit $\\beta=4.17$", ls=":", lw=2))
+
+    logging.info("Ploting point at x={}, y={} pm {}".format(1.0/9460.30, M_Bs+alpha*(1.0/9460.30) , errors["M_Bs"]+errors["alpha"]*(1.0/9460.30)))
+
+    axe.errorbar(1.0/9460.30, y=M_Bs+alpha*(1.0/9460.30), yerr=errors["M_Bs"]+errors["alpha"]*(1.0/9460.30), label="test", **plotsettings)
+    # axe.errorbar(phys_pion**2, y=FDsbyFDphys, yerr=errors["FDsbyFDphys"], **plotsettings)
+
+    return plots
+
+def add_quad_Mhs_minus_Mhh(axe, xran, values, errors):
+    M_Bs = values["M_Bs"]
+
+    alpha = values["alpha"]
+    beta = values["beta"]
+    gamma_1 = values["gamma_1"]
+    gamma_s1 = values["gamma_s1"]
+
+    mHH_inv =  np.linspace(xran[0], xran[1], num=500)
+
+    a_beta417 = 197.3269788 / scale["4.17"]
+
+    y = ( M_Bs+alpha*(mHH_inv)+beta*(mHH_inv)**2)
+    y1 =(1+gamma_1*(a_beta417**2)) * ( M_Bs + alpha*(mHH_inv)+ beta*(mHH_inv)**2)
+
+    plots = []
+    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
+                           for k,v in sorted(values.iteritems()) )
+    paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    plabel = "Qaudratic fit"
+    if "cutoff" in values.keys():
+        plabel += " $M_\pi < {}$".format(values["cutoff"])
+    plots.extend(axe.plot(mHH_inv, y, label=plabel,  ls="--", lw=2))
+    plots.extend(axe.plot(mHH_inv, y1, label="Quadratic fit $\\beta=4.17$", ls=":", lw=2))
+
+    logging.info("Ploting point at x={}, y={} pm {}".format(1.0/9460.30, M_Bs+alpha*(1.0/9460.30)+beta*(1.0/9460.30)**2 , errors["M_Bs"]+errors["alpha"]*(1.0/9460.30)+errors["beta"]*(1.0/9460.30)**2))
+
+    axe.errorbar(1.0/9460.30, y=M_Bs+alpha*(1.0/9460.30)+beta*(1.0/9460.30)**2, yerr=errors["M_Bs"]+errors["alpha"]*(1.0/9460.30)+errors["beta"]*(1.0/9460.30)**2, label="test", **plotsettings)
     # axe.errorbar(phys_pion**2, y=FDsbyFDphys, yerr=errors["FDsbyFDphys"], **plotsettings)
 
     return plots
