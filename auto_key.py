@@ -17,7 +17,7 @@ mark_ids = {}
 face_ids = {}
 
 
-def auto_key(identifier, verbose=False):
+def auto_key(identifier, verbose=False, check=True):
     if identifier in memoized_ids:
         return memoized_ids[identifier]
 
@@ -60,7 +60,7 @@ def auto_key(identifier, verbose=False):
     if f == None:
         f = c
 
-    if (c,m,f) in memoized_ids.values():
+    if (c,m,f) in memoized_ids.values() and check:
         print "wtf", (c,m,f), "already memoized"
         print identifier
         exit(-1)
