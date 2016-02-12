@@ -9,11 +9,17 @@ class MissingData(RuntimeError):
     pass
 
 
+class NoStrangeInterp(MissingData):
+    pass
+
+
 class ensemble_data(object):
 
 
 
-    def __init__(self, ensamble_info, fit_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_fit_uncorrelated_*/*.boot", decay_file_wildcard="decay_constants/*_fixed_0_1-1_1/decay_*_decayconstant_*.boot"):
+    def __init__(self, ensamble_info, fit_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_fit_uncorrelated_*/*.boot",
+                 decay_file_wildcard="decay_constants/*_fixed_0_1-1_1/*decay_*_decayconstant_*.boot",
+                 interpstrange=False):
 
         self.dp = ensamble_info
 
@@ -28,10 +34,10 @@ class ensemble_data(object):
         self.fit_amp_data = None
         self.xi_data = None
 
+        self.interpstrange = interpstrange
 
 
-
-    def narrow_wildcard(self, fit_file_wildcard, flavor=None, operator="PP"):
+    def narrow_wildcard(self, fit_file_wildcard, flavor=None, operator="PP", axial=False):
         import glob
         dp = self.dp
 
@@ -53,21 +59,34 @@ class ensemble_data(object):
         if flavor == "heavy-heavy":
             smearing = "0"
 
+        prefix = ""
+        if self.interpstrange:
+            prefix = "interpolated_strange/"
+            if dp.ud_mass < 0.0036 or dp.beta == "4.47":
+                logging.warn("No strange interpolated data for {}".format(dp))
+                raise NoStrangeInterp("No strange interpolated data for {}".format(dp))
 
-        fitdatafiles = glob.glob(fit_file_wildcard.strip("'\""))
-        fitdatafiles = [f for f in fitdatafiles if "axial" not in f]
+
+        fitdatafiles = glob.glob(prefix+fit_file_wildcard.strip("'\""))
 
         logging.debug(fitdatafiles)
-        search_params = [operator, dp.ud_mass, dp.s_mass, dp.latsize, dp.beta, flavor_str, smearing]
+        search_params = [operator, flavor_str, dp.ud_mass, dp.s_mass, dp.latsize, dp.beta, smearing]
+
+
         if dp.heavyness != "ll":
             if flavor is None:
-                search_params = [operator, heavyness, dp.ud_mass, dp.s_mass, dp.latsize, dp.beta, flavor_str, smearing]
+                search_params = [operator, flavor_str, dp.ud_mass, dp.s_mass, dp.latsize, dp.beta, smearing, heavyness]
             elif "heavy" in flavor:
-                search_params = [operator, heavyness, dp.ud_mass, dp.s_mass, dp.latsize, dp.beta, flavor_str, smearing]
+                search_params = [operator, flavor_str, dp.ud_mass, dp.s_mass, dp.latsize, dp.beta, smearing, heavyness]
+
+        if self.interpstrange:
+            search_params[3] = "interpolated"
+
         logging.debug("{}".format(search_params))
         for i in search_params:
             logging.debug(fitdatafiles)
             logging.debug(i)
+
 
             if i is not None:
                 fitdatafiles = [f for f in fitdatafiles if str(i) in f ]
@@ -75,7 +94,7 @@ class ensemble_data(object):
             logging.debug("")
         if len(fitdatafiles) != 1:
             logging.critical("Unique fit file not found!")
-            logging.error("looking for : {} {}".format(fit_file_wildcard, dp))
+            logging.error("looking for : {} {}".format(prefix+fit_file_wildcard, dp, "_".join(map(str,search_params))))
             logging.error("found: {}".format(fitdatafiles))
             raise MissingData("Unique fit file not found!")
 
@@ -97,16 +116,21 @@ class ensemble_data(object):
         return self.mass_data[(flavor, wild, op)]
 
 
-    def get_decay(self, flavor):
-        if flavor in self.decay_data.keys():
-            return self.decay_data[flavor]
+    def get_decay(self, flavor, wild=None, op="PP"):
+        if wild is None:
+            wild = self.decay_file_wildcard
 
 
-        decay_file = self.narrow_wildcard(self.decay_file_wildcard, flavor=flavor)
+        if (flavor, wild, op) in self.decay_data.keys():
+            return self.decay_data[(flavor, wild, op)]
+
+
+        decay_file = self.narrow_wildcard(wild, flavor=flavor, operator=op)
+
         with open(decay_file) as decayfile:
             df = pd.read_csv(decayfile,comment='#', names=["decay"])
-            self.decay_data[flavor] = df.decay
-        return self.decay_data[flavor]
+            self.decay_data[(flavor, wild, op)] = df.decay
+        return self.decay_data[(flavor, wild, op)]
 
 
     def pion_mass(self, scaled=False):
@@ -130,6 +154,13 @@ class ensemble_data(object):
             return self.scale*self.get_mass("heavy-ud")
         return self.get_mass("heavy-ud")
 
+    def D_mass_div(self, scaled=False):
+        if scaled:
+            return self.scale*self.get_mass("heavy-ud", wild="SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_uncorrelated_*/*.boot")
+        return self.get_mass("heavy-ud", wild="SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_uncorrelated_*/*.boot")
+
+
+
     def HH_mass(self, scaled=False):
         if scaled:
             return self.scale*self.get_mass("heavy-heavy", wild="SymDW_sHtTanh_b2.0_smr3_*/fit_uncorrelated_heavy-heavy/fit_uncorrelated_*_heavy-heavy_0_0_PP.boot")
@@ -140,12 +171,17 @@ class ensemble_data(object):
             return self.scale*self.get_mass("heavy-heavy", wild="SymDW_sHtTanh_b2.0_smr3_*/fit_uncorrelated_heavy-heavy/fit_uncorrelated_*_heavy-heavy_0_0_vectorave.boot", op="vectorave")
         return self.get_mass("heavy-heavy", wild="SymDW_sHtTanh_b2.0_smr3_*/fit_uncorrelated_heavy-heavy/fit_uncorrelated_*_heavy-heavy_0_0_vectorave.boot", op="vectorave")
 
-
-
     def Ds_mass(self, scaled=False):
         if scaled:
             return self.scale*self.get_mass("heavy-s")
         return self.get_mass("heavy-s")
+
+
+    def Ds_mass_div(self, scaled=False):
+        if scaled:
+            return self.scale*self.get_mass("heavy-s", wild="SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_uncorrelated_*/*.boot")
+        return self.get_mass("heavy-s", wild="SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_uncorrelated_*/*.boot")
+
 
     def xi(self, scaled=False):
         if self.xi_data is None:
@@ -167,15 +203,46 @@ class ensemble_data(object):
         return self.get_decay("ud-s")
 
 
+    def fD_div(self, scaled=False):
+        if scaled:
+            return self.scale*self.get_decay("heavy-ud", op="PP", wild="decay_constants_div/*_fixed_0_1-1_1/*decay_*_decayconstant_*.boot")
+        return self.get_decay("heavy-ud", op="PP", wild="decay_constants_div/*_fixed_0_1-1_1/*decay_*_decayconstant_*.boot")
+
+
     def fD(self, scaled=False):
         if scaled:
-            return self.scale*self.get_decay("heavy-ud")
-        return self.get_decay("heavy-ud")
+            return self.scale*self.get_decay("heavy-ud", op="PP")
+        return self.get_decay("heavy-ud", op="PP")
+
+    def fD_axial(self, scaled=False):
+        if scaled:
+            return self.scale*self.get_decay("heavy-ud", op="A4")
+        return self.get_decay("heavy-ud", op="A4")
+
+    def fD_axial_div(self, scaled=False):
+        if scaled:
+            return self.scale*self.get_decay("heavy-ud", op="A4", wild="decay_constants_div/*_fixed_0_1-1_1/*decay_*_decayconstant_*.boot")
+        return self.get_decay("heavy-ud", op="A4", wild="decay_constants_div/*_fixed_0_1-1_1/*decay_*_decayconstant_*.boot")
+
+
 
     def fDs(self, scaled=False):
         if scaled:
-            return self.scale*self.get_decay("heavy-s")
-        return self.get_decay("heavy-s")
+            return self.scale*self.get_decay("heavy-s", op="PP")
+        return self.get_decay("heavy-s", op="PP")
+
+    def fDs_axial(self, scaled=False):
+        if scaled:
+            return self.scale*self.get_decay("heavy-s", op="A4")
+        return self.get_decay("heavy-s", op="A4")
+
+
+    def fHH(self, scaled=False):
+
+        if scaled:
+            return self.scale*self.get_decay("heavy-heavy", wild="decay_constants/*_fixed_single/*_decayconstant_heavy-heavy.boot")
+        return self.get_decay("heavy-heavy", wild="decay_constants/*_fixed_single/*_decayconstant_heavy-heavy.boot")
+
 
     def fDsbyfD(self, scaled=False):
         if scaled:
