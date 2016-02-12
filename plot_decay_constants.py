@@ -16,13 +16,15 @@ from ensamble_info import phys_pion, phys_kaon, phys_mq, phys_Fpi, phys_FD, phys
 from ensamble_info import phys_eta, phys_etac, phys_FK, phys_mhq
 from ensamble_info import Zs, Zv
 
-from ensemble_data import ensemble_data
+from ensemble_data import ensemble_data, NoStrangeInterp
 
 from auto_key import auto_key
 
 from add_chiral_fits import add_chiral_fit
 
 from get_data import get_data
+
+from itertools import cycle
 
 def round5(x):
     return int(5 * np.around(x/5.0))
@@ -54,6 +56,7 @@ legend_handles = []
 added_handles = []
 summary_lines = []
 
+phys_marks = cycle('x+s')
 
 def colors_and_legend(data_properties, legend_mode="betaLs"):
 
@@ -117,10 +120,14 @@ def plot_decay_constant(options):
 
         p = data_params(f)
 
-        ed = ensemble_data(p)
+        ed = ensemble_data(p, interpstrange=options.interpstrange)
 
-        y, yerr, ylabel, yphysical = get_data(ed, options.ydata, options)
-        x, xerr, xlabel, xphysical = get_data(ed, options.xdata, options)
+        try:
+            y, yerr, ylabel, yphysical = get_data(ed, options.ydata, options)
+            x, xerr, xlabel, xphysical = get_data(ed, options.xdata, options)
+        except NoStrangeInterp as interperror:
+            logging.warn("for {} found error {}".format(f, interperror))
+            continue
 
         e = yerr
 
@@ -154,16 +161,32 @@ def plot_decay_constant(options):
 
     if options.physical:
         logging.info("plotting physical {} {}".format(xphysical, yphysical))
-        physplot = axe.errorbar(xphysical, yphysical, yerr=0, marker="+",
-                                ecolor="k", color="k", label=options.physical,
-                                ms=15, elinewidth=3, capsize=1,
-                                capthick=2, mec='k', mew=3, mfc='k',
-                                zorder=100)
-        symbol = mpl.lines.Line2D([], [], color="k", mec="k", marker="+", markersize=15, mew=3,
-                                  linestyle="None", label=options.physical, mfc="k")
-        legend_handles.append(symbol)
-        ymax = max(ymax, yphysical)
-        ymin = min(ymin, yphysical)
+        matchingkeys = set(xphysical.keys()) & set(yphysical.keys())
+
+        if len(matchingkeys) > 1:
+            physiter = [(k, xphysical[k], yphysical[k]) for k in matchingkeys ]
+        else:
+            physiter = [(k, xp, yphysical[k]) for k in yphysical.keys() for xl, xp in xphysical.iteritems()]
+        for yl, xp, yp in physiter:
+            pmark = phys_marks.next()
+            physplot = axe.errorbar(xp, yp, yerr=0, marker=pmark,
+                                    ecolor="k", color="k", label=yl,
+                                    ms=15, elinewidth=3, capsize=1,
+                                    capthick=2, mec='k', mew=3, mfc='k',
+                                    zorder=100)
+            symbol = mpl.lines.Line2D([], [], color="k", mec="k", marker=pmark, markersize=15, mew=3,
+                                      linestyle="None", label=yl, mfc="k")
+            legend_handles.append(symbol)
+            ymax = max(ymax, yp)
+            ymin = min(ymin, yp)
+
+    if options.scalelines:
+        if options.xdata.startswith("1/"):
+            for i in scale.keys():
+                physxplot = axe.axvline(1.0/scale[i], color=auto_key((i, None, None), check=False)[0], ls="--", lw=2, label=i)
+        else:
+            for i in scale.keys():
+                physxplot = axe.axvline(scale[i], color=auto_key((i, None, None), check=False)[0], ls="--", lw=2, label=i)
 
     if options.physx:
         physxplot = axe.axvline(xphysical, color='k', ls="--", lw=2, label="physical point")
@@ -278,6 +301,8 @@ if __name__ == "__main__":
                         help="max boxplots instead")
     parser.add_argument("-c", "--scatter", action="store_true",
                         help="make a scatter plot instead")
+    parser.add_argument("--scalelines", action="store_true",
+                        help="plot lines indicating scale cutoff")
     parser.add_argument("-y", "--yrange", type=float, required=False, nargs=2,
                         help="set the yrange of the plot", default=None)
     parser.add_argument("-x", "--xrange", type=float, required=False, nargs=2,
@@ -304,7 +329,7 @@ if __name__ == "__main__":
                         help="scale the values")
     parser.add_argument("-ss", "--scalesquared", action="store_true",
                         help="scale the values squared")
-    parser.add_argument("--physical", type=str, required=False,
+    parser.add_argument("--physical", action="store_true",
                         help="add physical point")
     parser.add_argument("--physx", action="store_true",
                         help="draw line at physical x")
@@ -320,6 +345,10 @@ if __name__ == "__main__":
                         help="what to use as the xaxis", default="mud")
     parser.add_argument("--aspect", type=float, default=1.0, required=False,
                         help="determine the plot aspect ratio")
+    parser.add_argument("--interpstrange", action="store_true",
+                        help="use interpoalted strange masses", default=None)
+
+
 
     args = parser.parse_args()
 
