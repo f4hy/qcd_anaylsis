@@ -1,6 +1,7 @@
 import logging
 import pandas as pd
 import re
+import numpy as np
 
 flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH", "KPratio": "KPratio", "2k-pi": "2m_K-m_\pi", "Omega": "\Omega", 't0': 't_0', 'w0': "w_0", "fds_fd_ratio": "fds/fd" , "fk_fpi_ratio": "fk/fpi"}
 scale = {"4.17": 2492, "4.35": 3660, "4.47": 4600}
@@ -12,17 +13,20 @@ phys_kaon = 494.2
 
 phys_eta = 547.862 # +/- 0.018
 
+unphys_etas = 685.8 # unphysical s\bar{s} meson
 
 phys_Fpi = 130.41
 phys_FK = 156.1 # MeV
 
-FLAG_FB =  190.5 # \pm 4.2 MeV
 phys_MB = 5279.0
 
-phys_MB_s = 5366.79
-FLAG_FBs = 228.0 # \pm 8 MeV
+phys_MBs = 5366.79
 
-phys_etac = 2980.3
+phys_Jpsi = 3096.916 # \pm 0.011 MeV PDG
+phys_Upsilon = 9460.30 # \pm 0.26 MeV PDG
+
+phys_etac = 2983.6 # \pm 0.6 MeV PDG
+phys_etab = 9390.9 # \pm 2.8 MeV
 
 phys_D = (1864.84 + 2*1869.61)/3.0 #
 phys_Ds = 1968.3
@@ -30,6 +34,13 @@ phys_Ds = 1968.3
 phys_FD = 209.2
 
 phys_FDs = 248.6
+
+phys_FB = 190.5 # \pm 4.2 FLAG
+
+phys_FBs = 227.7 #\pm 4.5 FLAG
+
+phys_FBsbyFB = 1.202 #\pm 0.022 FLAG
+
 
 # pdg m_u=2.3 m_d = 4.8 , so (m_d+m_d)/2 = 3.55
 phys_mq = 3.55
@@ -79,6 +90,15 @@ def get_heavyq_mass(beta, heavytype):
         return heavymap[heavytype]
     except:
         return None
+
+def get_heavy_m1_m2(m):
+    Q = ((1 + m**2)/(1 - m**2))**2
+    W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
+    T = 1 - W0
+    m1 = np.log(T + np.sqrt(T**2 - 1))
+    m2 =    np.sqrt(W0**2 - 2*W0)*(Q + 1 - 2*W0)/((Q + 1) + (Q - 1) * (2*W0**2 + W0))
+    return m1, m2
+
 
 class data_params(object):
 
@@ -133,6 +153,9 @@ class data_params(object):
             self.heavymass = None
 
         self.heavyq_mass = get_heavyq_mass(self.beta, self.heavymass)
+
+        if self.heavyq_mass is not None:
+            self.heavy_m1, self.heavy_m2 = get_heavy_m1_m2(self.heavyq_mass)
 
         self.ratio = "ratio" in filename
 
