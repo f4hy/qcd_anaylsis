@@ -82,10 +82,17 @@ class Model(object):
 
         self.mD = make_array("D_mass", scaled=True, secondfun="mean")
         self.mD_var =  make_array("D_mass", scaled=True, secondfun="var")
+        self.mD_std =  make_array("D_mass", scaled=True, secondfun="std")
 
 
-        self.mDs = make_array("D_mass", scaled=True, secondfun="mean")
-        self.mDs_var = make_array("D_mass", scaled=True, secondfun="var")
+        self.mDs = make_array("Ds_mass", scaled=True, secondfun="mean")
+        self.mDs_var = make_array("Ds_mass", scaled=True, secondfun="var")
+        self.mDs_std = make_array("Ds_mass", scaled=True, secondfun="std")
+
+        self.mHH = make_array("HH_mass", scaled=True, secondfun="mean")
+        self.mHH_var = make_array("HH_mass", scaled=True, secondfun="var")
+        self.mHH_std = make_array("HH_mass", scaled=True, secondfun="std")
+
 
         self.fpi = make_array("fpi", scaled=True, secondfun="mean")
         self.fpi_var = make_array("fpi", scaled=True, secondfun="var")
@@ -377,6 +384,29 @@ class Model(object):
             params.update(paramdict("gamma_s1", 0.0, 0.1))
 
             fun = self.FDsbyFD_linear_mpisqr_asqr_mss
+
+        elif self.type_string == "Mhs_minus_Mhh":
+            M_Bs_guess = 5366.79
+            params = paramdict("M_Bs", M_Bs_guess, M_Bs_guess/100.0, limits=(0, None))
+
+            params.update(paramdict("alpha", 0.0, 0.1))
+
+            params.update(paramdict("gamma_1", 0.0, 0.1))
+            params.update(paramdict("gamma_s1", 0.0, 0.1))
+
+            fun = self.Mhs_minus_Mhh
+
+        elif self.type_string == "quad_Mhs_minus_Mhh":
+            M_Bs_guess = 5366.79
+            params = paramdict("M_Bs", M_Bs_guess, M_Bs_guess/100.0, limits=(0, None))
+
+            params.update(paramdict("alpha", 0.0, 0.1))
+            params.update(paramdict("beta", 100.0, 0.1))
+
+            params.update(paramdict("gamma_1", 0.0, 0.1))
+            params.update(paramdict("gamma_s1", 0.0, 0.1))
+
+            fun = self.quad_Mhs_minus_Mhh
 
 
         else:
@@ -989,6 +1019,60 @@ class Model(object):
         return np.sum(sqr_diff/self.fpi_var)
 
 
+    def Mhs_minus_Mhh(self, M_Bs, alpha, gamma_1, gamma_s1):
+        mpierr = self.mpisqr_std
+        data = self.mpisqr / self.renorm_qmass
+        var = (mpierr/self.renorm_qmass)**2 + (self.res_err*data/(self.qmass))**2
+        xi = self.xi
+
+        mpisqr = self.mpisqr
+
+
+        Mss = (2.0*self.mKsqr) - self.mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = Mss - phys_Mss
+
+
+        M1 = (1+gamma_1*(self.a**2)+gamma_s1*delta_Mss)*( M_Bs + alpha*(1.0/self.mHH) )
+
+
+
+        Mhs_Mhh = self.mDs - (self.mHH)/2.0
+
+        var = self.mDs_std + self.mHH_std
+
+        sqr_diff1 = (Mhs_Mhh - M1)**2
+        return np.sum(sqr_diff1/var)
+
+    def quad_Mhs_minus_Mhh(self, M_Bs, alpha, beta, gamma_1, gamma_s1):
+        mpierr = self.mpisqr_std
+        data = self.mpisqr / self.renorm_qmass
+        var = (mpierr/self.renorm_qmass)**2 + (self.res_err*data/(self.qmass))**2
+        xi = self.xi
+
+        mpisqr = self.mpisqr
+
+
+        Mss = (2.0*self.mKsqr) - self.mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = Mss - phys_Mss
+
+
+        M1 = (1+gamma_1*(self.a**2)+gamma_s1*delta_Mss)*( M_Bs + alpha*(1.0/self.mHH) + beta*(1.0/self.mHH)**2 )
+
+
+
+        Mhs_Mhh = self.mDs - (self.mHH)/2.0
+
+        var = self.mDs_std + self.mHH_std
+
+        sqr_diff1 = (Mhs_Mhh - M1)**2
+        return np.sum(sqr_diff1/var)
+
+
+
 def interpolate(data, model_str):
 
     logging.info("Fitting data")
@@ -1065,7 +1149,7 @@ if __name__ == "__main__":
               "mpisqrbymq_xi_NLO", "mpisqrbymq_xi_NLO_inverse", "mpisqrbymq_x_NLO", "combined_x_NLO", "combined_XI_NLO",  "combined_XI_NNLO", "combined_x_NNLO",
               "combined_XI_inverse_NNLO", "combined_x_NLO_all", "combined_x_NNLO_all", "combined_x_NNLO_fixa0", "combined_XI_inverse_NNLO_all" , "combined_XI_inverse_NNLO_phys",
               "fD_chiral",  "fDsbyfD_chiral",
-              "MD_linear_mpisqr_asqr_mss", "MDs_linear_mpisqr_asqr_mss", "FD_linear_mpisqr_asqr_mss", "FDs_linear_mpisqr_asqr_mss", "FDsbyFD_linear_mpisqr_asqr_mss"]
+              "MD_linear_mpisqr_asqr_mss", "MDs_linear_mpisqr_asqr_mss", "FD_linear_mpisqr_asqr_mss", "FDs_linear_mpisqr_asqr_mss", "FDsbyFD_linear_mpisqr_asqr_mss", "Mhs_minus_Mhh", "quad_Mhs_minus_Mhh"]
 
     parser = argparse.ArgumentParser(description="script to interpolate the heavy mass")
     parser.add_argument("-v", "--verbose", action="store_true",
