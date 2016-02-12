@@ -120,18 +120,41 @@ def decay_constant(filename, options):
     renorm_2qm = (quarkmass1 + quarkmass2) / Zs[dp.beta]
     renorm_2qm = (quarkmass1 + quarkmass2)
 
+    ampfactor = volumefactor
+    if heavyness != "ll":
+        m = dp.heavyq_mass
+        Q = ((1 + m**2)/(1 - m**2))**2
+        W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
+        T = 1 - W0
+        heavyfactor = 2.0/((1 - m**2)*(1 + np.sqrt(Q/(1 + 4*W0))))
+
+        logging.info("dividing by heavyfactor of {}".format(heavyfactor))
+        ampfactor = volumefactor * heavyfactor
+        logging.info("dividing amps by combined factor of {}".format(ampfactor))
+
+    # print df.mass
+    # print np.sinh(df.mass)
+    with open("sinhdiff.txt", 'a') as outfile:
+        outfile.write(filename)
+        outfile.write("\n")
+        outfile.write("m{} s{}, diff{}, {}% \n".format(max(df.mass), max(np.sinh(df.mass)), max(np.sinh(df.mass) - df.mass), max(np.sinh(df.mass) - df.mass)/max(df.mass) ))
+
     if options.function == "axial":
-        decay_constant = np.sqrt( renorm_2qm*2*(df.amp/volumefactor) / (df.mass**2))
+        decay_constant = np.sqrt( renorm_2qm*2*(df.amp/ampfactor) / (df.mass**2))
     if options.function == "axialsimul01-11":
-        decay_constant = np.sqrt( 2*((df.amp1/volumefactor)**2 / (df.amp2/volumefactor)) /(df.mass) )
+        decay_constant = np.sqrt( 2*((df.amp1/ampfactor)**2 / (df.amp2/ampfactor)) /(df.mass) )
     if options.function == "axialsimul00-11":
-        decay_constant = np.sqrt( renorm_2qm*2*(df.amp1/volumefactor) / (df.mass**2))
+        decay_constant = np.sqrt( renorm_2qm*2*(df.amp1/ampfactor) / (df.mass**2))
     if options.function == "simul01-11":
-        decay_constant = renorm_2qm * np.sqrt(2*(((df.amp1)**2 / (df.amp2))/volumefactor) / (df.mass**3))
+        decay_constant = renorm_2qm * np.sqrt(2*(((df.amp1)**2 / (df.amp2))/ampfactor) / (df.mass**3))
+    if options.function == "simul01-11_sinh":
+        decay_constant = renorm_2qm * np.sqrt(2*(((df.amp1)**2 / (df.amp2))/ampfactor) / ((np.sinh(df.mass)**2)*df.mass))
     if options.function == "simul00-11" or options.function == "simul00-01":
-        decay_constant = renorm_2qm * np.sqrt(2*(df.amp1/volumefactor) / (df.mass**3))
+        decay_constant = renorm_2qm * np.sqrt(2*(df.amp1/ampfactor) / (df.mass**3))
     if options.function == "standard":
-        decay_constant = renorm_2qm * np.sqrt(2*(df.amp/volumefactor) / (df.mass**3))
+        decay_constant = renorm_2qm * np.sqrt(2*(df.amp/ampfactor) / (df.mass**3))
+    if options.function == "standard_sinh":
+        decay_constant = renorm_2qm * np.sqrt(2*(df.amp/ampfactor) / ((np.sinh(df.mass)**2)*df.mass))
 
 
     if options.out_stub:
@@ -154,7 +177,7 @@ def decay_constant(filename, options):
         print("{}, {}, {}\n".format(masses["ud"]+residual_mass(dp), decay_constant.mean(), decay_constant.std()))
 
 if __name__ == "__main__":
-    functs = ["axial", "standard", "simul00-01", "simul00-11", "simul01-11", "axialsimul", "axialsimul01-11", "axialsimul00-11"]
+    functs = ["axial", "standard", "standard_sinh", "simul00-01", "simul00-11", "simul01-11", "simul01-11_sinh", "axialsimul", "axialsimul01-11", "axialsimul00-11"]
     parser = argparse.ArgumentParser(description="average data files")
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="increase output verbosity")
