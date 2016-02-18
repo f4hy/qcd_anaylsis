@@ -4,7 +4,9 @@ import pandas as pd
 import re
 import numpy as np
 from ensamble_info import flavor_map, scale, data_params, determine_flavor, read_fit_mass
+from residualmasses import residual_mass
 import glob
+
 
 class MissingData(RuntimeError):
     pass
@@ -18,7 +20,6 @@ class ensemble_data(object):
 
     def __init__(self, ensamble_info,
                  fit_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/simul_?????_fit_uncorrelated_*/*.boot",
-                 decay_file_wildcard="decay_constants/*_fixed_0_1-1_1/*decay_*_decayconstant_*.boot",
                  interpstrange=False):
 
         self.dp = ensamble_info
@@ -26,7 +27,6 @@ class ensemble_data(object):
         self.scale = scale[self.dp.beta]
 
         self.fit_file_wildcard = fit_file_wildcard
-        self.decay_file_wildcard = decay_file_wildcard
 
         self.interpstrange = interpstrange
 
@@ -110,16 +110,6 @@ class ensemble_data(object):
             df = pd.read_csv(fitfile, comment='#', names=["config", "mass", "amp1", "amp2"])
             return df.amp1, df.amp2
 
-    def get_decay(self, flavor, wild=None, op="PP"):
-        if wild is None:
-            wild = self.decay_file_wildcard
-
-        decay_file = self.narrow_wildcard(wild, flavor=flavor, operator=op)
-
-        with open(decay_file) as decayfile:
-            df = pd.read_csv(decayfile, comment='#', names=["decay"])
-            return df.decay
-
     def pion_mass(self, scaled=False):
         if scaled:
             return self.scale*self.get_mass("ud-ud")
@@ -158,7 +148,6 @@ class ensemble_data(object):
         divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_uncorrelated_*/*.boot"
         return self.get_amps("heavy-s", wild=divwild, op="A4")
 
-
     def HH_mass(self, scaled=False):
         hhwild = "SymDW_*/fit_uncorrelated_heavy-heavy/fit_uncorrelated_*_heavy-heavy_0_0_PP.boot"
         if scaled:
@@ -189,77 +178,181 @@ class ensemble_data(object):
         return self.xi
 
     def fpi(self, scaled=False):
-        if scaled:
-            return self.scale*self.get_decay("ud-ud")
-        return self.get_decay("ud-ud")
+        amp1data, amp2data = self.get_amps("ud-ud")
+        massdata = self.get_mass("ud-ud")
+        ampfactor = self.dp.volume
+        q1 = self.dp.ud_mass + residual_mass(self.dp)
+        q2 = self.dp.ud_mass + residual_mass(self.dp)
+        ampdata = (amp1data**2 / amp2data) / ampfactor
+        data = (q1 + q2)*np.sqrt(2*(ampdata) / massdata**3)
+        if scale:
+            data = scale[self.dp.beta] * data
+        return data
+
+    def fpiA(self, scaled=False):
+        amp1data, amp2data = self.get_amps("ud-ud", op="A4")
+        massdata = self.get_mass("ud-ud", op="A4")
+        ampfactor = self.dp.volume
+
+        ampdata = (amp1data**2 / amp2data) / ampfactor
+        data = np.sqrt(2*(ampdata) / massdata)
+        if scale:
+            data = scale[self.dp.beta] * data
+        return data
 
     def fK(self, scaled=False):
-        if scaled:
-            return self.scale*self.get_decay("ud-s")
-        return self.get_decay("ud-s")
+        amp1data, amp2data = self.get_amps("ud-s")
+        massdata = self.get_mass("ud-s")
+        ampfactor = self.dp.volume
+        q1 = self.dp.ud_mass + residual_mass(self.dp)
+        q2 = self.dp.s_mass + residual_mass(self.dp)
+        ampdata = (amp1data**2 / amp2data) / ampfactor
+        data = (q1 + q2)*np.sqrt(2*(ampdata) / massdata**3)
+        if scale:
+            data = scale[self.dp.beta] * data
+        return data
 
-    def fD_div(self, scaled=False):
-        divwild = "decay_constants_div/*_fixed_0_1-1_1/*decay_*_decayconstant_*.boot"
-        if scaled:
-            return self.scale*self.get_decay("heavy-ud", op="PP", wild=divwild)
-        return self.get_decay("heavy-ud", op="PP", wild=divwild)
+    def fKA(self, scaled=False):
+        amp1data, amp2data = self.get_amps("ud-s", op="A4")
+        massdata = self.get_mass("ud-s", op="A4")
+        ampfactor = self.dp.volume
+        ampdata = (amp1data**2 / amp2data) / ampfactor
+        data = np.sqrt(2*(ampdata) / massdata)
+        if scale:
+            data = scale[self.dp.beta] * data
+        return data
 
-    def fDs_div(self, scaled=False):
-        divwild = "decay_constants_div/*_fixed_0_1-1_1/*decay_*_decayconstant_*.boot"
-        if scaled:
-            return self.scale*self.get_decay("heavy-s", op="PP", wild=divwild)
-        return self.get_decay("heavy-s", op="PP", wild=divwild)
+    def fD(self, scaled=False, renorm=False, div=False):
+        if div:
+            divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_uncorrelated_*/*.boot"
+            amp1data, amp2data = self.get_amps("heavy-ud", wild=divwild)
+            massdata = self.get_mass("heavy-ud", wild=divwild)
+        else:
+            amp1data, amp2data = self.get_amps("heavy-ud")
+            massdata = self.get_mass("heavy-ud")
 
-    def fD(self, scaled=False):
-        if scaled:
-            return self.scale*self.get_decay("heavy-ud", op="PP")
-        return self.get_decay("heavy-ud", op="PP")
+        ampfactor = self.dp.volume
+        q1 = self.dp.heavyq_mass + residual_mass(self.dp)
+        q2 = self.dp.ud_mass + residual_mass(self.dp)
 
-    def fD_axial(self, scaled=False):
-        if scaled:
-            return self.scale*self.get_decay("heavy-ud", op="A4")
-        return self.get_decay("heavy-ud", op="A4")
+        if renorm:
+            m = self.dp.heavyq_mass + residual_mass(self.dp)
+            Q = ((1 + m**2)/(1 - m**2))**2
+            W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
+            T = 1 - W0
+            heavyfactor = 2.0/((1 - m**2)*(1 + np.sqrt(Q/(1 + 4*W0))))
+            ampfactor *= heavyfactor
 
-    def fD_axial_div(self, scaled=False):
-        divwild = "decay_constants_div/*_fixed_0_1-1_1/*decay_*_decayconstant_*.boot"
-        if scaled:
-            return self.scale*self.get_decay("heavy-ud", op="A4", wild=divwild)
-        return self.get_decay("heavy-ud", op="A4", wild=divwild)
+        ampdata = (amp1data**2 / amp2data) / ampfactor
+        data = (q1 + q2)*np.sqrt(2*(ampdata) / massdata**3)
+        if scale:
+            data = scale[self.dp.beta] * data
+        return data
 
-    def fDs_axial(self, scaled=False):
-        if scaled:
-            return self.scale*self.get_decay("heavy-s", op="A4")
-        return self.get_decay("heavy-s", op="A4")
+    def fDA(self, scaled=False, renorm=False, div=False):
+        if div:
+            divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_uncorrelated_*/*.boot"
+            amp1data, amp2data = self.get_amps("heavy-ud", op="A4", wild=divwild)
+            massdata = self.get_mass("heavy-ud", op="A4", wild=divwild)
+        else:
+            amp1data, amp2data = self.get_amps("heavy-ud", op="A4")
+            massdata = self.get_mass("heavy-ud", op="A4")
 
-    def fDs_axial_div(self, scaled=False):
-        divwild = "decay_constants_div/*_fixed_0_1-1_1/*decay_*_decayconstant_*.boot"
-        if scaled:
-            return self.scale*self.get_decay("heavy-s", op="A4", wild=divwild)
-        return self.get_decay("heavy-s", op="A4", wild=divwild)
+        ampfactor = self.dp.volume
 
-    def fDs(self, scaled=False):
-        if scaled:
-            return self.scale*self.get_decay("heavy-s", op="PP")
-        return self.get_decay("heavy-s", op="PP")
+        if renorm:
+            m = self.dp.heavyq_mass + residual_mass(self.dp)
+            Q = ((1 + m**2)/(1 - m**2))**2
+            W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
+            T = 1 - W0
+            heavyfactor = 2.0/((1 - m**2)*(1 + np.sqrt(Q/(1 + 4*W0))))
+            ampfactor *= heavyfactor
 
-    def fDs_axial(self, scaled=False):
-        if scaled:
-            return self.scale*self.get_decay("heavy-s", op="A4")
-        return self.get_decay("heavy-s", op="A4")
+        ampdata = (amp1data**2 / amp2data) / ampfactor
+        data = np.sqrt(2*(ampdata) / massdata)
+        if scale:
+            data = scale[self.dp.beta] * data
+        return data
+
+    def fDs(self, scaled=False, renorm=False, div=False):
+        if div:
+            divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_uncorrelated_*/*.boot"
+            amp1data, amp2data = self.get_amps("heavy-s", wild=divwild)
+            massdata = self.get_mass("heavy-s", wild=divwild)
+        else:
+            amp1data, amp2data = self.get_amps("heavy-s")
+            massdata = self.get_mass("heavy-s")
+
+        ampfactor = self.dp.volume
+        q1 = self.dp.heavyq_mass + residual_mass(self.dp)
+        q2 = self.dp.s_mass + residual_mass(self.dp)
+
+        if renorm:
+            m = self.dp.heavyq_mass + residual_mass(self.dp)
+            Q = ((1 + m**2)/(1 - m**2))**2
+            W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
+            T = 1 - W0
+            heavyfactor = 2.0/((1 - m**2)*(1 + np.sqrt(Q/(1 + 4*W0))))
+            ampfactor *= heavyfactor
+
+        ampdata = (amp1data**2 / amp2data) / ampfactor
+        data = (q1 + q2)*np.sqrt(2*(ampdata) / massdata**3)
+        if scale:
+            data = scale[self.dp.beta] * data
+        return data
+
+    def fDsA(self, scaled=False, renorm=False, div=False):
+        if div:
+            divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_uncorrelated_*/*.boot"
+            amp1data, amp2data = self.get_amps("heavy-s", op="A4", wild=divwild)
+            massdata = self.get_mass("heavy-s", op="A4", wild=divwild)
+        else:
+            amp1data, amp2data = self.get_amps("heavy-s", op="A4")
+            massdata = self.get_mass("heavy-s", op="A4")
+
+        ampfactor = self.dp.volume
+
+        if renorm:
+            m = self.dp.heavyq_mass + residual_mass(self.dp)
+            Q = ((1 + m**2)/(1 - m**2))**2
+            W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
+            T = 1 - W0
+            heavyfactor = 2.0/((1 - m**2)*(1 + np.sqrt(Q/(1 + 4*W0))))
+            ampfactor *= heavyfactor
+
+        ampdata = (amp1data**2 / amp2data) / ampfactor
+        data = np.sqrt(2*(ampdata) / massdata)
+        if scale:
+            data = scale[self.dp.beta] * data
+        return data
 
     def fHH(self, scaled=False):
-        hhwild = "decay_constants/*_fixed_single/*_decayconstant_heavy-heavy.boot"
-        if scaled:
-            return self.scale*self.get_decay("heavy-heavy", wild=hhwild)
-        return self.get_decay("heavy-heavy", wild=hhwild)
+        hhwild = "SymDW_*/fit_uncorrelated_heavy-heavy/fit_uncorrelated_*_heavy-heavy_0_0_PP.boot"
+        if div:
+            divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_uncorrelated_*/*.boot"
+            amp1data, amp2data = self.get_amps("heavy-heavy", wild=divwild)
+            massdata = self.get_mass("heavy-heavy", wild=divwild)
+        else:
+            amp1data, amp2data = self.get_amps("heavy-heavy")
+            massdata = self.get_mass("heavy-heavy")
 
-    def fDsbyfD(self, scaled=False):
-        if scaled:
-            return (self.scale*self.get_decay("heavy-s"))/(self.scale*self.get_decay("heavy-ud"))
-        return self.get_decay("heavy-s")/self.get_decay("heavy-ud")
+        ampfactor = self.dp.volume
+        q1 = self.dp.heavyq_mass + residual_mass(self.dp)
+        q2 = self.dp.heavyq_mass + residual_mass(self.dp)
 
+        if renorm:
+            m = self.dp.heavyq_mass + residual_mass(self.dp)
+            Q = ((1 + m**2)/(1 - m**2))**2
+            W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
+            T = 1 - W0
+            heavyfactor = 2.0/((1 - m**2)*(1 + np.sqrt(Q/(1 + 4*W0))))
+            ampfactor *= heavyfactor
 
-
+        ampdata = (amp1data**2 / amp2data) / ampfactor
+        data = (q1 + q2)*np.sqrt(2*(ampdata) / massdata**3)
+        if scale:
+            data = scale[self.dp.beta] * data
+        return data
 
 
 

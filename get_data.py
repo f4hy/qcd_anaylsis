@@ -20,155 +20,6 @@ def get_data(ed, data_type, options):
             yield num
             num += 1
 
-    def fpi():
-        amp1data, amp2data = ed.get_amps("ud-ud")
-        massdata = ed.get_mass("ud-ud")
-        ampfactor = ed.dp.volume
-        q1 = ed.dp.ud_mass + residual_mass(ed.dp)
-        q2 = ed.dp.ud_mass + residual_mass(ed.dp)
-        ampdata = (amp1data**2 / amp2data) / ampfactor
-        data = (q1 + q2)*np.sqrt(2*(ampdata) / massdata**3)
-        if options.scale:
-            data = scale[ed.dp.beta] * data
-        return data
-
-    def fpiA():
-        amp1data, amp2data = ed.get_amps("ud-ud", op="A4")
-        massdata = ed.get_mass("ud-ud", op="A4")
-        ampfactor = ed.dp.volume
-
-        ampdata = (amp1data**2 / amp2data) / ampfactor
-        data = np.sqrt(2*(ampdata) / massdata)
-        if options.scale:
-            data = scale[ed.dp.beta] * data
-        return data
-
-
-    def fK():
-        amp1data, amp2data = ed.get_amps("ud-s")
-        massdata = ed.get_mass("ud-s")
-        ampfactor = ed.dp.volume
-        q1 = ed.dp.ud_mass + residual_mass(ed.dp)
-        q2 = ed.dp.s_mass + residual_mass(ed.dp)
-        ampdata = (amp1data**2 / amp2data) / ampfactor
-        data = (q1 + q2)*np.sqrt(2*(ampdata) / massdata**3)
-        if options.scale:
-            data = scale[ed.dp.beta] * data
-        return data
-
-    def fKA():
-        amp1data, amp2data = ed.get_amps("ud-s", op="A4")
-        massdata = ed.get_mass("ud-s", op="A4")
-        ampfactor = ed.dp.volume
-        ampdata = (amp1data**2 / amp2data) / ampfactor
-        data = np.sqrt(2*(ampdata) / massdata)
-        if options.scale:
-            data = scale[ed.dp.beta] * data
-        return data
-
-
-    def fD(renorm=False, div=False):
-        if div:
-            amp1data, amp2data = ed.D_amps_div()
-            massdata = ed.D_mass_div()
-        else:
-            amp1data, amp2data = ed.get_amps("heavy-ud")
-            massdata = ed.get_mass("heavy-ud")
-
-        ampfactor = ed.dp.volume
-        q1 = ed.dp.heavyq_mass + residual_mass(ed.dp)
-        q2 = ed.dp.ud_mass + residual_mass(ed.dp)
-
-        if renorm:
-            m = ed.dp.heavyq_mass + residual_mass(ed.dp)
-            Q = ((1 + m**2)/(1 - m**2))**2
-            W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
-            T = 1 - W0
-            heavyfactor = 2.0/((1 - m**2)*(1 + np.sqrt(Q/(1 + 4*W0))))
-            ampfactor *= heavyfactor
-
-        ampdata = (amp1data**2 / amp2data) / ampfactor
-        data = (q1 + q2)*np.sqrt(2*(ampdata) / massdata**3)
-        if options.scale:
-            data = scale[ed.dp.beta] * data
-        return data
-
-    def fDA(renorm=False, div=False):
-        if div:
-            amp1data, amp2data = ed.DA_amps_div()
-            massdata = ed.D_mass_div()
-        else:
-            amp1data, amp2data = ed.get_amps("heavy-ud", op="A4")
-            massdata = ed.get_mass("heavy-ud", op="A4")
-
-        ampfactor = ed.dp.volume
-
-        if renorm:
-            m = ed.dp.heavyq_mass + residual_mass(ed.dp)
-            Q = ((1 + m**2)/(1 - m**2))**2
-            W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
-            T = 1 - W0
-            heavyfactor = 2.0/((1 - m**2)*(1 + np.sqrt(Q/(1 + 4*W0))))
-            ampfactor *= heavyfactor
-
-        ampdata = (amp1data**2 / amp2data) / ampfactor
-        data = np.sqrt(2*(ampdata) / massdata)
-        if options.scale:
-            data = scale[ed.dp.beta] * data
-        return data
-
-
-
-    def fDs(renorm=False, div=False):
-        if div:
-            amp1data, amp2data = ed.Ds_amps_div()
-            massdata = ed.Ds_mass_div()
-        else:
-            amp1data, amp2data = ed.get_amps("heavy-s")
-            massdata = ed.get_mass("heavy-s")
-
-        ampfactor = ed.dp.volume
-        q1 = ed.dp.heavyq_mass + residual_mass(ed.dp)
-        q2 = ed.dp.s_mass + residual_mass(ed.dp)
-
-        if renorm:
-            m = ed.dp.heavyq_mass + residual_mass(ed.dp)
-            Q = ((1 + m**2)/(1 - m**2))**2
-            W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
-            T = 1 - W0
-            heavyfactor = 2.0/((1 - m**2)*(1 + np.sqrt(Q/(1 + 4*W0))))
-            ampfactor *= heavyfactor
-
-        ampdata = (amp1data**2 / amp2data) / ampfactor
-        data = (q1 + q2)*np.sqrt(2*(ampdata) / massdata**3)
-        if options.scale:
-            data = scale[ed.dp.beta] * data
-        return data
-
-    def fDsA(renorm=False, div=False):
-        if div:
-            amp1data, amp2data = ed.DsA_amps_div()
-            massdata = ed.Ds_mass_div()
-        else:
-            amp1data, amp2data = ed.get_amps("heavy-s", op="A4")
-            massdata = ed.get_mass("heavy-s", op="A4")
-
-        ampfactor = ed.dp.volume
-
-        if renorm:
-            m = ed.dp.heavyq_mass + residual_mass(ed.dp)
-            Q = ((1 + m**2)/(1 - m**2))**2
-            W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
-            T = 1 - W0
-            heavyfactor = 2.0/((1 - m**2)*(1 + np.sqrt(Q/(1 + 4*W0))))
-            ampfactor *= heavyfactor
-
-        ampdata = (amp1data**2 / amp2data) / ampfactor
-        data = np.sqrt(2*(ampdata) / massdata)
-        if options.scale:
-            data = scale[ed.dp.beta] * data
-        return data
-
 
 
 
@@ -190,7 +41,7 @@ def get_data(ed, data_type, options):
         return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
 
     if data_type == "fD_divsqrtmD":
-        fdata = ed.fD_div(scaled=options.scale)
+        fdata = ed.fD(scaled=options.scale, div=True)
         mdata = ed.D_mass_div(scaled=options.scale)
 
         data = fdata*np.sqrt(mdata)
@@ -203,7 +54,7 @@ def get_data(ed, data_type, options):
 
 
     if data_type == "fDs_divsqrtmDs":
-        fdata = ed.fDs_div(scaled=options.scale)
+        fdata = ed.fDs(scaled=options.scale, div=True)
         mdata = ed.Ds_mass_div(scaled=options.scale)
 
         data = fdata*np.sqrt(mdata)
@@ -216,7 +67,7 @@ def get_data(ed, data_type, options):
 
 
     if data_type == "fDAsqrtmD_raw":
-        fdata = fDA()
+        fdata = ed.fDA()
         mdata = ed.D_mass(scaled=options.scale)
 
         data = fdata*np.sqrt(mdata)
@@ -227,7 +78,7 @@ def get_data(ed, data_type, options):
         return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
 
     if data_type == "fDsAsqrtmDs_raw":
-        fdata = fDsA()
+        fdata = ed.fDsA()
         mdata = ed.Ds_mass(scaled=options.scale)
 
         data = fdata*np.sqrt(mdata)
@@ -239,7 +90,7 @@ def get_data(ed, data_type, options):
 
 
     if data_type == "fDAsqrtmD_renorm":
-        fdata = fDA(renorm=True)
+        fdata = ed.fDA(renorm=True)
         mdata = ed.D_mass(scaled=options.scale)
 
         data = fdata*np.sqrt(mdata)
@@ -250,7 +101,7 @@ def get_data(ed, data_type, options):
         return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
 
     if data_type == "fDsAsqrtmDs_renorm":
-        fdata = fDsA(renorm=True)
+        fdata = ed.fDsA(renorm=True)
         mdata = ed.Ds_mass(scaled=options.scale)
 
         data = fdata*np.sqrt(mdata)
@@ -262,7 +113,7 @@ def get_data(ed, data_type, options):
 
 
     if data_type == "fDA_divsqrtmD_renorm":
-        fdata = fDA(renorm=True, div=True)
+        fdata = ed.fDA(renorm=True, div=True)
         mdata = ed.D_mass(scaled=options.scale)
 
         data = fdata*np.sqrt(mdata)
@@ -273,7 +124,7 @@ def get_data(ed, data_type, options):
         return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
 
     if data_type == "fDsA_divsqrtmDs_renorm":
-        fdata = fDsA(renorm=True, div=True)
+        fdata = ed.fDsA(renorm=True, div=True)
         mdata = ed.Ds_mass(scaled=options.scale)
 
         data = fdata*np.sqrt(mdata)
@@ -285,7 +136,7 @@ def get_data(ed, data_type, options):
 
 
     if data_type == "fDAsqrtmD":
-        fdata = ed.fD_axial(scaled=options.scale)
+        fdata = ed.fDA(scaled=options.scale)
         mdata = ed.D_mass(scaled=options.scale)
 
         data = fdata*np.sqrt(mdata)
@@ -297,7 +148,7 @@ def get_data(ed, data_type, options):
 
 
     if data_type == "fDA_divsqrtmD":
-        fdata = ed.fD_axial_div(scaled=options.scale)
+        fdata = ed.fDA(scaled=options.scale, div=True)
         mdata = ed.D_mass_div(scaled=options.scale)
 
         m1 = ed.dp.heavy_m1
@@ -311,7 +162,7 @@ def get_data(ed, data_type, options):
         return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
 
     if data_type == "fDsA_divsqrtmDs":
-        fdata = ed.fDs_axial_div(scaled=options.scale)
+        fdata = ed.fDsA(scaled=options.scale, div=True)
         mdata = ed.Ds_mass_div(scaled=options.scale)
 
         m1 = ed.dp.heavy_m1
@@ -347,7 +198,7 @@ def get_data(ed, data_type, options):
         return data.mean(), data.std(), label, {"Charm": phys_FD, "Bottom": phys_FB}
 
     if data_type == "fD_new":
-        data = fD()
+        data = ed.fD()
 
         label = "$f_D^{PP}$"
         if options.scale:
@@ -355,7 +206,7 @@ def get_data(ed, data_type, options):
         return data.mean(), data.std(), label, {"Charm": phys_FD, "Bottom": phys_FB}
 
     if data_type == "fD_new_div":
-        data = fD(div=True)
+        data = ed.fD(div=True)
 
         label = "$\hat{f}_D^{PP}$"
         if options.scale:
@@ -365,7 +216,7 @@ def get_data(ed, data_type, options):
 
 
     if data_type == "fD_new_renorm":
-        data = fD(renorm=True)
+        data = ed.fD(renorm=True)
 
         label = "$f_D^{PP}$"
         if options.scale:
@@ -373,7 +224,7 @@ def get_data(ed, data_type, options):
         return data.mean(), data.std(), label, {"Charm": phys_FD, "Bottom": phys_FB}
 
     if data_type == "fD_new_renorm_div":
-        data = fD(renorm=True, div=True)
+        data = ed.fD(renorm=True, div=True)
 
         label = "$\hat{f}_D^{PP}$"
         if options.scale:
@@ -383,7 +234,7 @@ def get_data(ed, data_type, options):
 
 
     if data_type == "fD_div":
-        data = ed.fD_div(scaled=options.scale)
+        data = ed.fD(scaled=options.scale, div=True)
 
         label = "$\hat{f}_D^{PP}$"
         if options.scale:
@@ -392,14 +243,14 @@ def get_data(ed, data_type, options):
 
 
     if data_type == "fD_axial":
-        data = ed.fD_axial(scaled=options.scale)
+        data = ed.fDA(scaled=options.scale)
         label = "$f_D^A$"
         if options.scale:
             label += " [MeV]"
         return data.mean(), data.std(), label, {"Charm": phys_FD, "Bottom": phys_FB}
 
     if data_type == "fD_axial_new":
-        data = fDA()
+        data = ed.fDA()
         label = "$f_D^A$"
         if options.scale:
             label += " [MeV]"
@@ -407,7 +258,7 @@ def get_data(ed, data_type, options):
 
 
     if data_type == "fD_axial_div":
-        data = ed.fD_axial_div(scaled=options.scale)
+        data = ed.fDA(scaled=options.scale, div=True)
 
         label = "$\hat{f}_D^A$"
         if options.scale:
@@ -416,7 +267,7 @@ def get_data(ed, data_type, options):
 
 
     if data_type == "fD_axialratio":
-        dataA = Zv[ed.dp.beta]*ed.fD_axial(scaled=options.scale)
+        dataA = Zv[ed.dp.beta]*ed.fDA(scaled=options.scale)
         dataP = ed.fD(scaled=options.scale)
 
         data = (dataP/dataA)
@@ -435,7 +286,7 @@ def get_data(ed, data_type, options):
         return data.mean(), data.std(), label, {"Charm": phys_FDs, "Bottom": phys_FBs}
 
     if data_type == "fDs_axial":
-        data = ed.fDs_axial(scaled=options.scale)
+        data = ed.fDsA(scaled=options.scale)
 
         label = "$f_{D_s}^A$"
         if options.scale:
@@ -443,7 +294,7 @@ def get_data(ed, data_type, options):
         return data.mean(), data.std(), label, {"Charm": phys_FDs, "Bottom": phys_FBs}
 
     if data_type == "fDs_axialratio":
-        dataA = Zv[ed.dp.beta]*ed.fDs_axial(scaled=options.scale)
+        dataA = Zv[ed.dp.beta]*ed.fDsA(scaled=options.scale)
         dataP = ed.fDs(scaled=options.scale)
         data = (dataP/dataA)
 
@@ -489,7 +340,7 @@ def get_data(ed, data_type, options):
         return data.mean(), data.std(), label, {"PDG": phys_FK}
 
     if data_type == "fK_new":
-        data = fK()
+        data = ed.fK()
 
         label = "$f_K$"
         if options.scale:
@@ -509,7 +360,7 @@ def get_data(ed, data_type, options):
 
 
     if data_type == "fpi_new":
-        data = fpi()
+        data = ed.fpi()
 
         label = "$f_\pi$"
         if options.scale:
