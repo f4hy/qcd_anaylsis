@@ -132,6 +132,10 @@ def add_chiral_fit(axe, xran, chiral_fit_file=None, options=None):
     if fittype.startswith("quad_Mhs_minus_Mhh"):
         return add_quad_Mhs_minus_Mhh(axe, xran, values, errors)
 
+    if fittype.startswith("fdsqrtm"):
+        return fdsqrtm(axe, xran, values, errors)
+
+
     print fittype
     print "not supported"
     exit(-1)
@@ -180,6 +184,18 @@ def format_parameters(paramname):
         return "\Sigma^{1/3}[\\bar{MS}]"
     if paramname == "f0":
         return "f_0"
+    if paramname == "C1":
+        return "C_1"
+    if paramname == "C2":
+        return "C_2"
+    if paramname == "Fsqrtm_inf":
+        return "F\sqrt{m}^\infty "
+    if paramname == "eta":
+        return " \\eta"
+    if paramname == "gamma":
+        return "\\gamma"
+    if paramname == "mu":
+        return "\\mu"
     return paramname
 
 # def add_XI_LO_fit(axe, xran, values, errors):
@@ -1017,5 +1033,48 @@ def add_quad_Mhs_minus_Mhh(axe, xran, values, errors):
 
     axe.errorbar(1.0/9460.30, y=M_Bs+alpha*(1.0/9460.30)+beta*(1.0/9460.30)**2, yerr=errors["M_Bs"]+errors["alpha"]*(1.0/9460.30)+errors["beta"]*(1.0/9460.30)**2, label="test", **plotsettings)
     # axe.errorbar(phys_pion**2, y=FDsbyFDphys, yerr=errors["FDsbyFDphys"], **plotsettings)
+
+    return plots
+
+
+def fdsqrtm(axe, xran, values, errors):
+
+    Fsqrtm_inf = values["Fsqrtm_inf"]
+
+    C1 = values["C1"]
+    C2 = values["C2"]
+
+    gamma = values["gamma"]
+    eta = values["eta"]
+    mu = values["mu"]
+
+    mD_inv =  np.linspace(xran[0], xran[1], num=500)
+    m = 1/mD_inv
+
+    a_beta417 = 197.3269788 / scale["4.17"]
+    a_beta435 = 197.3269788 / scale["4.35"]
+    a_beta447 = 197.3269788 / scale["4.47"]
+
+    print a_beta417, a_beta435, a_beta447
+
+    y = Fsqrtm_inf*(1 + C1 * mD_inv + C2 * mD_inv**2 )
+    y1 = Fsqrtm_inf*(1 + C1 * mD_inv + C2 * mD_inv**2 + gamma *(m*a_beta417)**2 + eta*m*a_beta417**2 + mu * a_beta417**2)
+    y2 = Fsqrtm_inf*(1 + C1 * mD_inv + C2 * mD_inv**2 + gamma *(m*a_beta435)**2 + eta*m*a_beta435**2 + mu * a_beta435**2)
+    y3 = Fsqrtm_inf*(1 + C1 * mD_inv + C2 * mD_inv**2 + gamma *(m*a_beta447)**2 + eta*m*a_beta447**2 + mu * a_beta447**2)
+
+    plots = []
+    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
+                           for k,v in sorted(values.iteritems()) )
+    #paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    print paramstring
+    plabel = "Qaudratic fit"
+
+    plabel = paramstring.replace("$ \eta", "\n $ \eta")
+    if "cutoff" in values.keys():
+        plabel += " $M_\pi < {}$".format(values["cutoff"])
+    plots.extend(axe.plot(mD_inv, y, label=plabel,  ls="--", lw=2))
+    plots.extend(axe.plot(mD_inv, y1, label="fit $\\beta=4.17$",  ls="--", lw=2))
+    plots.extend(axe.plot(mD_inv, y2, label="fit $\\beta=4.35$",  ls="--", lw=2))
+    plots.extend(axe.plot(mD_inv, y3, label="fit $\\beta=4.47$",  ls="--", lw=2))
 
     return plots
