@@ -4,6 +4,7 @@ import pandas as pd
 import re
 import numpy as np
 from ensamble_info import flavor_map, scale, data_params, determine_flavor, read_fit_mass
+import glob
 
 class MissingData(RuntimeError):
     pass
@@ -15,9 +16,8 @@ class NoStrangeInterp(MissingData):
 
 class ensemble_data(object):
 
-
-
-    def __init__(self, ensamble_info, fit_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_fit_uncorrelated_*/*.boot",
+    def __init__(self, ensamble_info,
+                 fit_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/simul_?????_fit_uncorrelated_*/*.boot",
                  decay_file_wildcard="decay_constants/*_fixed_0_1-1_1/*decay_*_decayconstant_*.boot",
                  interpstrange=False):
 
@@ -28,17 +28,9 @@ class ensemble_data(object):
         self.fit_file_wildcard = fit_file_wildcard
         self.decay_file_wildcard = decay_file_wildcard
 
-        self.mass_data = {}
-        self.decay_data = {}
-        self.fit_mass_data = None
-        self.fit_amp_data = None
-        self.xi_data = None
-
         self.interpstrange = interpstrange
 
-
     def narrow_wildcard(self, fit_file_wildcard, flavor=None, operator="PP", axial=False):
-        import glob
         dp = self.dp
 
         if flavor is None:
@@ -66,12 +58,10 @@ class ensemble_data(object):
                 logging.warn("No strange interpolated data for {}".format(dp))
                 raise NoStrangeInterp("No strange interpolated data for {}".format(dp))
 
-
         fitdatafiles = glob.glob(prefix+fit_file_wildcard.strip("'\""))
 
         logging.debug(fitdatafiles)
         search_params = [operator, flavor_str, dp.ud_mass, dp.s_mass, dp.latsize, dp.beta, smearing]
-
 
         if dp.heavyness != "ll":
             if flavor is None:
@@ -87,14 +77,13 @@ class ensemble_data(object):
             logging.debug(fitdatafiles)
             logging.debug(i)
 
-
             if i is not None:
-                fitdatafiles = [f for f in fitdatafiles if str(i) in f ]
+                fitdatafiles = [f for f in fitdatafiles if str(i) in f]
             logging.debug(fitdatafiles)
             logging.debug("")
         if len(fitdatafiles) != 1:
             logging.critical("Unique fit file not found!")
-            logging.error("looking for : {} {}".format(prefix+fit_file_wildcard, dp, "_".join(map(str,search_params))))
+            logging.error("looking for : {} {}".format(prefix+fit_file_wildcard, dp, "_".join(map(str, search_params))))
             logging.error("found: {}".format(fitdatafiles))
             raise MissingData("Unique fit file not found!")
 
@@ -105,33 +94,31 @@ class ensemble_data(object):
         if wild is None:
             wild = self.fit_file_wildcard
 
-        if (flavor, wild, op) in self.mass_data.keys():
-            return self.mass_data[(flavor, wild, op)]
-
         mass_file = self.narrow_wildcard(wild, flavor=flavor, operator=op)
 
         with open(mass_file) as fitfile:
-            df = pd.read_csv(fitfile,comment='#', names=["config", "mass", "amp1", "amp2"])
-            self.mass_data[(flavor, wild, op)] = df.mass
-        return self.mass_data[(flavor, wild, op)]
+            df = pd.read_csv(fitfile, comment='#', names=["config", "mass", "amp1", "amp2"])
+            return df.mass
 
+    def get_amps(self, flavor, wild=None, op="PP"):
+        if wild is None:
+            wild = self.fit_file_wildcard
+
+        amp_file = self.narrow_wildcard(wild, flavor=flavor, operator=op)
+
+        with open(amp_file) as fitfile:
+            df = pd.read_csv(fitfile, comment='#', names=["config", "mass", "amp1", "amp2"])
+            return df.amp1, df.amp2
 
     def get_decay(self, flavor, wild=None, op="PP"):
         if wild is None:
             wild = self.decay_file_wildcard
 
-
-        if (flavor, wild, op) in self.decay_data.keys():
-            return self.decay_data[(flavor, wild, op)]
-
-
         decay_file = self.narrow_wildcard(wild, flavor=flavor, operator=op)
 
         with open(decay_file) as decayfile:
-            df = pd.read_csv(decayfile,comment='#', names=["decay"])
-            self.decay_data[(flavor, wild, op)] = df.decay
-        return self.decay_data[(flavor, wild, op)]
-
+            df = pd.read_csv(decayfile, comment='#', names=["decay"])
+            return df.decay
 
     def pion_mass(self, scaled=False):
         if scaled:
@@ -148,49 +135,58 @@ class ensemble_data(object):
             return self.scale*self.get_mass("s-s")
         return self.get_mass("s-s")
 
-
     def D_mass(self, scaled=False):
         if scaled:
             return self.scale*self.get_mass("heavy-ud")
         return self.get_mass("heavy-ud")
 
     def D_mass_div(self, scaled=False):
+        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_uncorrelated_*/*.boot"
         if scaled:
-            return self.scale*self.get_mass("heavy-ud", wild="SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_uncorrelated_*/*.boot")
-        return self.get_mass("heavy-ud", wild="SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_uncorrelated_*/*.boot")
+            return self.scale*self.get_mass("heavy-ud", wild=divwild)
+        return self.get_mass("heavy-ud", wild=divwild)
 
+    def D_amps_div(self, scaled=False):
+        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_uncorrelated_*/*.boot"
+        return self.get_amps("heavy-ud", wild=divwild)
+
+    def DA_amps_div(self, scaled=False):
+        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_uncorrelated_*/*.boot"
+        return self.get_amps("heavy-ud", wild=divwild, op="A4")
+
+    def DsA_amps_div(self, scaled=False):
+        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_uncorrelated_*/*.boot"
+        return self.get_amps("heavy-s", wild=divwild, op="A4")
 
 
     def HH_mass(self, scaled=False):
+        hhwild = "SymDW_*/fit_uncorrelated_heavy-heavy/fit_uncorrelated_*_heavy-heavy_0_0_PP.boot"
         if scaled:
-            return self.scale*self.get_mass("heavy-heavy", wild="SymDW_sHtTanh_b2.0_smr3_*/fit_uncorrelated_heavy-heavy/fit_uncorrelated_*_heavy-heavy_0_0_PP.boot")
-        return self.get_mass("heavy-heavy", wild="SymDW_sHtTanh_b2.0_smr3_*/fit_uncorrelated_heavy-heavy/fit_uncorrelated_*_heavy-heavy_0_0_PP.boot")
+            return self.scale*self.get_mass("heavy-heavy", wild=hhwild)
+        return self.get_mass("heavy-heavy", wild=hhwild)
 
     def HHv_mass(self, scaled=False):
+        hhwild = "SymDW_*/fit_uncorrelated_heavy-heavy/fit_uncorrelated_*_heavy-heavy_0_0_vectorave.boot"
         if scaled:
-            return self.scale*self.get_mass("heavy-heavy", wild="SymDW_sHtTanh_b2.0_smr3_*/fit_uncorrelated_heavy-heavy/fit_uncorrelated_*_heavy-heavy_0_0_vectorave.boot", op="vectorave")
-        return self.get_mass("heavy-heavy", wild="SymDW_sHtTanh_b2.0_smr3_*/fit_uncorrelated_heavy-heavy/fit_uncorrelated_*_heavy-heavy_0_0_vectorave.boot", op="vectorave")
+            return self.scale*self.get_mass("heavy-heavy", wild=hhwild, op="vectorave")
+        return self.get_mass("heavy-heavy", wild=hhwild, op="vectorave")
 
     def Ds_mass(self, scaled=False):
         if scaled:
             return self.scale*self.get_mass("heavy-s")
         return self.get_mass("heavy-s")
 
-
     def Ds_mass_div(self, scaled=False):
+        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_uncorrelated_*/*.boot"
         if scaled:
-            return self.scale*self.get_mass("heavy-s", wild="SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_uncorrelated_*/*.boot")
-        return self.get_mass("heavy-s", wild="SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_uncorrelated_*/*.boot")
-
+            return self.scale*self.get_mass("heavy-s", wild=divwild)
+        return self.get_mass("heavy-s", wild=divwild)
 
     def xi(self, scaled=False):
-        if self.xi_data is None:
-            mpi = self.pion_mass(scaled=scaled)
-            fpi = self.fpi(scaled=scaled)
-            xi = ((mpi**2) / (8.0 * (np.pi**2)*(fpi**2)))
-            self.xi_data = xi
-
-        return self.xi_data
+        mpi = self.pion_mass(scaled=scaled)
+        fpi = self.fpi(scaled=scaled)
+        xi = ((mpi**2) / (8.0 * (np.pi**2)*(fpi**2)))
+        return self.xi
 
     def fpi(self, scaled=False):
         if scaled:
@@ -202,12 +198,17 @@ class ensemble_data(object):
             return self.scale*self.get_decay("ud-s")
         return self.get_decay("ud-s")
 
-
     def fD_div(self, scaled=False):
+        divwild = "decay_constants_div/*_fixed_0_1-1_1/*decay_*_decayconstant_*.boot"
         if scaled:
-            return self.scale*self.get_decay("heavy-ud", op="PP", wild="decay_constants_div/*_fixed_0_1-1_1/*decay_*_decayconstant_*.boot")
-        return self.get_decay("heavy-ud", op="PP", wild="decay_constants_div/*_fixed_0_1-1_1/*decay_*_decayconstant_*.boot")
+            return self.scale*self.get_decay("heavy-ud", op="PP", wild=divwild)
+        return self.get_decay("heavy-ud", op="PP", wild=divwild)
 
+    def fDs_div(self, scaled=False):
+        divwild = "decay_constants_div/*_fixed_0_1-1_1/*decay_*_decayconstant_*.boot"
+        if scaled:
+            return self.scale*self.get_decay("heavy-s", op="PP", wild=divwild)
+        return self.get_decay("heavy-s", op="PP", wild=divwild)
 
     def fD(self, scaled=False):
         if scaled:
@@ -220,11 +221,21 @@ class ensemble_data(object):
         return self.get_decay("heavy-ud", op="A4")
 
     def fD_axial_div(self, scaled=False):
+        divwild = "decay_constants_div/*_fixed_0_1-1_1/*decay_*_decayconstant_*.boot"
         if scaled:
-            return self.scale*self.get_decay("heavy-ud", op="A4", wild="decay_constants_div/*_fixed_0_1-1_1/*decay_*_decayconstant_*.boot")
-        return self.get_decay("heavy-ud", op="A4", wild="decay_constants_div/*_fixed_0_1-1_1/*decay_*_decayconstant_*.boot")
+            return self.scale*self.get_decay("heavy-ud", op="A4", wild=divwild)
+        return self.get_decay("heavy-ud", op="A4", wild=divwild)
 
+    def fDs_axial(self, scaled=False):
+        if scaled:
+            return self.scale*self.get_decay("heavy-s", op="A4")
+        return self.get_decay("heavy-s", op="A4")
 
+    def fDs_axial_div(self, scaled=False):
+        divwild = "decay_constants_div/*_fixed_0_1-1_1/*decay_*_decayconstant_*.boot"
+        if scaled:
+            return self.scale*self.get_decay("heavy-s", op="A4", wild=divwild)
+        return self.get_decay("heavy-s", op="A4", wild=divwild)
 
     def fDs(self, scaled=False):
         if scaled:
@@ -236,13 +247,11 @@ class ensemble_data(object):
             return self.scale*self.get_decay("heavy-s", op="A4")
         return self.get_decay("heavy-s", op="A4")
 
-
     def fHH(self, scaled=False):
-
+        hhwild = "decay_constants/*_fixed_single/*_decayconstant_heavy-heavy.boot"
         if scaled:
-            return self.scale*self.get_decay("heavy-heavy", wild="decay_constants/*_fixed_single/*_decayconstant_heavy-heavy.boot")
-        return self.get_decay("heavy-heavy", wild="decay_constants/*_fixed_single/*_decayconstant_heavy-heavy.boot")
-
+            return self.scale*self.get_decay("heavy-heavy", wild=hhwild)
+        return self.get_decay("heavy-heavy", wild=hhwild)
 
     def fDsbyfD(self, scaled=False):
         if scaled:
@@ -250,31 +259,11 @@ class ensemble_data(object):
         return self.get_decay("heavy-s")/self.get_decay("heavy-ud")
 
 
-    def fit_mass(self):
 
-        if self.fit_mass_data is None:
-            with open(self.fit_file) as fitfile:
-                df = pd.read_csv(fitfile,comment='#', names=["config", "mass", "amp1", "amp2"])
-                self.fit_mass_data = df.mass
-        return self.fit_mass_data
 
-    def fit_amp(self):
-        if self.fit_amp_data is None:
-            with open(self.fit_file) as fitfile:
-                df = pd.read_csv(fitfile,comment='#', names=["config", "mass", "amp1", "amp2"])
-                self.fit_amp_data = df.amp
-        return self.fit_amp_data
-
-    def decay_const(self):
-        if self.decay_data is None:
-            with open(self.decay_file) as decayfile:
-                df = pd.read_csv(decayfile,comment='#', names=["decay"])
-                self.decay_data = df.decay
-        return self.decay_data
 
 
 def test():
-
 
     fit_file_wild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_fit_uncorrelated_*/*.boot"
     decay_file_wild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_fit_uncorrelated_*/*.boot"
@@ -284,9 +273,6 @@ def test():
     dp = data_params(filename)
 
     ed = ensemble_data(dp)
-
-    print ed.fit_mass()
-    print ed.decay_const()
 
     print ed.get_mass("ud-ud")
     print ed.get_mass("ud-s")
