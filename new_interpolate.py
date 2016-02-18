@@ -15,10 +15,12 @@ from ensamble_info import Zs, Zv
 from ensemble_data import ensemble_data, MissingData
 
 import inspect
+import collections
 
+import getdata
 
-def read_files(files, fitdata, cutoff=None):
-    data = {}
+def read_files(files, fitdata, cutoff=None, hqm_cutoff=None):
+    data = collections.OrderedDict()
 
     for f in files:
         logging.info("reading file {}".format(f))
@@ -33,6 +35,12 @@ def read_files(files, fitdata, cutoff=None):
         if cutoff:
             if np.mean(ed.pion_mass(scaled=True).mean()) > (cutoff):
                 continue
+        if hqm_cutoff:
+            if dp.heavyq_mass > hqm_cutoff:
+                logging.info("dp {} has hqm {} > {}".format(dp,dp.heavyq_mass, hqm_cutoff))
+                raw_input()
+                continue
+
 
         data[dp] = ed
 
@@ -75,6 +83,9 @@ class Model(object):
                                       dp in dps])
         self.res_err = np.array([data[dp].scale*residual_mass_errors(dp) for dp in dps])
 
+        self.heavyq_mass = np.array([data[dp].scale*(dp.heavyq_mass) for dp in dps])
+
+
         self.mpisqr = make_array("pion_mass", scaled=True, secondfun="mean", sqr=True)
         self.mpisqr_std = make_array("pion_mass", scaled=True, secondfun="std", sqr=True)
 
@@ -97,7 +108,8 @@ class Model(object):
         self.fpi = make_array("fpi", scaled=True, secondfun="mean")
         self.fpi_var = make_array("fpi", scaled=True, secondfun="var")
 
-        self.xi = make_array("xi", scaled=False, secondfun="mean")
+        # self.xi = make_array("xi", scaled=False, secondfun="mean")
+
 
         self.fD = make_array("fD", scaled=True, secondfun="mean")
         self.fD_var =  make_array("fD", scaled=True, secondfun="var")
@@ -106,6 +118,7 @@ class Model(object):
         self.fDs_var =  make_array("fDs", scaled=True, secondfun="var")
 
         self.fDsbyfD_var = make_array("fDsbyfD", scaled=True, secondfun="var")
+
 
 
     def build_function(self):
@@ -407,6 +420,20 @@ class Model(object):
             params.update(paramdict("gamma_s1", 0.0, 0.1))
 
             fun = self.quad_Mhs_minus_Mhh
+
+
+        elif self.type_string == "fdsqrtm":
+            Fsqrtm_inf_guess = 20000.0
+            params = paramdict("Fsqrtm_inf", Fsqrtm_inf_guess, Fsqrtm_inf_guess/10.0, limits=(0, None))
+            params.update(paramdict("C1", -900.0, 0.1))
+            params.update(paramdict("C2", -9000.0, 0.1))
+
+            params.update(paramdict("gamma", -0.000005, 0.0000001))
+            params.update(paramdict("eta", 0.0, 0.1, fix=True))
+            params.update(paramdict("mu", 0.0, 0.1, fix=True))
+
+            fun = self.fdsqrtm
+
 
 
         else:
@@ -1071,6 +1098,32 @@ class Model(object):
         sqr_diff1 = (Mhs_Mhh - M1)**2
         return np.sum(sqr_diff1/var)
 
+    def fdsqrtm(self, Fsqrtm_inf, C1, C2, gamma, eta, mu):
+
+        fdsqrm_data = self.fDA_raw * np.sqrt(self.mDA_raw)
+        data = fdsqrm_data.mean(1)
+        var = fdsqrm_data.var(1)
+        print data
+        print var
+        print self.fD * np.sqrt(self.mD)
+        print self.fD_var * (np.sqrt(self.mD))**2+self.mD_var*(self.fD * 1.0/np.sqrt(self.mD))**2
+
+        m = self.mD
+
+        M1 = Fsqrtm_inf*( 1.0 + C1 / m + C2 / (m**2) + gamma *(m*self.a)**2)
+
+        print self.a
+        print C1, C2, gamma
+        print "Data", data
+        print "M1",M1
+        print "M1-data",M1-data
+
+        sqr_diff1 = (data - M1)**2
+        print sqr_diff1
+        print sqr_diff1/var
+        print np.sum(sqr_diff1/var)
+        return np.sum(sqr_diff1/var)
+
 
 
 def interpolate(data, model_str):
@@ -1106,6 +1159,7 @@ def interpolate(data, model_str):
     logging.info('fitted values {}'.format(m.values))
     logging.info('fitted errors {}'.format(m.errors))
 
+
     if not m.get_fmin().is_valid:
         logging.error("NOT VALID")
         exit(-1)
@@ -1134,7 +1188,7 @@ def interpolate_chiral_spacing(options):
     """ script to interpolate the heavy mass """
     logging.debug("Called with {}".format(options))
 
-    alldata = read_files(options.files, options.fitdata, cutoff=options.cutoff)
+    alldata = read_files(options.files, options.fitdata, cutoff=options.cutoff, hqm_cutoff=options.hqm_cutoff)
 
     fit_paramsters = interpolate(alldata, options.model)
 
@@ -1149,7 +1203,7 @@ if __name__ == "__main__":
               "mpisqrbymq_xi_NLO", "mpisqrbymq_xi_NLO_inverse", "mpisqrbymq_x_NLO", "combined_x_NLO", "combined_XI_NLO",  "combined_XI_NNLO", "combined_x_NNLO",
               "combined_XI_inverse_NNLO", "combined_x_NLO_all", "combined_x_NNLO_all", "combined_x_NNLO_fixa0", "combined_XI_inverse_NNLO_all" , "combined_XI_inverse_NNLO_phys",
               "fD_chiral",  "fDsbyfD_chiral",
-              "MD_linear_mpisqr_asqr_mss", "MDs_linear_mpisqr_asqr_mss", "FD_linear_mpisqr_asqr_mss", "FDs_linear_mpisqr_asqr_mss", "FDsbyFD_linear_mpisqr_asqr_mss", "Mhs_minus_Mhh", "quad_Mhs_minus_Mhh"]
+              "MD_linear_mpisqr_asqr_mss", "MDs_linear_mpisqr_asqr_mss", "FD_linear_mpisqr_asqr_mss", "FDs_linear_mpisqr_asqr_mss", "FDsbyFD_linear_mpisqr_asqr_mss", "Mhs_minus_Mhh", "quad_Mhs_minus_Mhh", "fdsqrtm"]
 
     parser = argparse.ArgumentParser(description="script to interpolate the heavy mass")
     parser.add_argument("-v", "--verbose", action="store_true",
@@ -1165,6 +1219,8 @@ if __name__ == "__main__":
     parser.add_argument("--fitdata", required=False, type=str,
                         help="folder for fitdata when needed")
     parser.add_argument("--cutoff", required=False, type=float,
+                        help="cutoff value")
+    parser.add_argument("--hqm_cutoff", required=False, type=float,
                         help="cutoff value")
     parser.add_argument("-m", "--model", required=False, type=str, choices=models, default="s_a_pi",
                         help="which model to use")
