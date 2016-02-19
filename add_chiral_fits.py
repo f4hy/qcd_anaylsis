@@ -1041,8 +1041,21 @@ def fdsqrtm(axe, xran, values, errors):
 
     Fsqrtm_inf = values["Fsqrtm_inf"]
 
+    values["C1"] *= 1000.0
+    values["C2"] *= (1000.0)**2
+    values["gamma"] *= 1.0/(10000.0)
+    values["eta"] *= 1.0/(100.0)
+    values["mu"] *= 0.001
+
+    errors["C1"] *= 1000.0
+    errors["C2"] *= (1000.0)**2
+    errors["gamma"] *= 1.0/(10000.0)
+    errors["eta"] *= 1.0/(100.0)
+    errors["mu"] *= 0.001
+
     C1 = values["C1"]
     C2 = values["C2"]
+
 
     gamma = values["gamma"]
     eta = values["eta"]

@@ -130,11 +130,24 @@ class ensemble_data(object):
             return self.scale*self.get_mass("heavy-ud")
         return self.get_mass("heavy-ud")
 
+    def D_mass_axial(self, scaled=False):
+        if scaled:
+            return self.scale*self.get_mass("heavy-ud", op="A4")
+        return self.get_mass("heavy-ud", op="A4")
+
+
     def D_mass_div(self, scaled=False):
         divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_uncorrelated_*/*.boot"
         if scaled:
             return self.scale*self.get_mass("heavy-ud", wild=divwild)
         return self.get_mass("heavy-ud", wild=divwild)
+
+    def D_mass_axial_div(self, scaled=False):
+        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_uncorrelated_*/*.boot"
+        if scaled:
+            return self.scale*self.get_mass("heavy-ud", wild=divwild, op="A4")
+        return self.get_mass("heavy-ud", wild=divwild, op="A4")
+
 
     def D_amps_div(self, scaled=False):
         divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_uncorrelated_*/*.boot"

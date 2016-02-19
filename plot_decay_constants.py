@@ -226,6 +226,7 @@ def plot_decay_constant(options):
             plt.ylim(auto_fit_range(ymin, ymax, buff=0.5))
 
     if options.chiral_fit_file:
+        del legend_handles[:]
         for i in options.chiral_fit_file:
             chiral_line = add_chiral_fit(axe, xran, i, options)
             legend_handles.extend(chiral_line)
