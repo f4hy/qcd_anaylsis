@@ -1085,9 +1085,15 @@ def fdsqrtm(axe, xran, values, errors):
     plabel = paramstring.replace("$ \eta", "\n $ \eta")
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
-    plots.extend(axe.plot(mD_inv, y, label=plabel,  ls="--", lw=2))
-    plots.extend(axe.plot(mD_inv, y1, label="fit $\\beta=4.17$",  ls="--", lw=2))
-    plots.extend(axe.plot(mD_inv, y2, label="fit $\\beta=4.35$",  ls="--", lw=2))
-    plots.extend(axe.plot(mD_inv, y3, label="fit $\\beta=4.47$",  ls="--", lw=2))
+    plots.extend(axe.plot(mD_inv, y, label=plabel,  ls="--", lw=2, color="k"))
+    plots.extend(axe.plot(mD_inv, y1, label="fit $\\beta=4.17$",  ls="--", lw=2, color='b'))
+    plots.extend(axe.plot(mD_inv, y2, label="fit $\\beta=4.35$",  ls="--", lw=2, color='r'))
+    plots.extend(axe.plot(mD_inv, y3, label="fit $\\beta=4.47$",  ls="--", lw=2, color='m'))
+
+    # mB_inv = 1.0/5279.0
+    # axe.errorbar(mB_inv, y=Fsqrtm_inf*(1 + C1 * mB_inv + C2 * mB_inv**2 ),
+    #              yerr=errors["Fsqrtm_inf"]*(1 + errors["C1"] * mB_inv + errors["C2"] * mB_inv**2 ),
+    #              label="test", color='k', ecolor='k', mec='k', alpha=0.2, **plotsettings)
+
 
     return plots
