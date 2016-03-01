@@ -84,7 +84,7 @@ class Model(object):
         self.m1 = np.array([dp.heavy_m1*data[dp].scale for dp in dps])
         self.m2 = np.array([dp.heavy_m2*data[dp].scale for dp in dps])
 
-        self.mpiaqr = make_array("pion_mass", scaled=True)**2
+        self.mpisqr = make_array("pion_mass", scaled=True)**2
 
         self.mKsqr = make_array("kaon_mass", scaled=True)**2
 
@@ -121,11 +121,14 @@ class Model(object):
         # l1 = -0.4 \pm 0.6
         # l2 = 4.3 \pm 0.1
 
-        def paramdict(parameter, guess, err, limits=None, fix=False):
+        def paramdict(parameter, guess, err, limits=None, fix=False, fixzero=False):
 
             paramdict = {parameter: guess}
             paramdict["error_"+parameter] = err
             paramdict["fix_"+parameter] = fix
+            if fixzero:
+                paramdict[parameter] = 0.0
+                paramdict["fix_"+parameter] = True
             if limits:
                 paramdict["limit_"+parameter] = limits
             return paramdict
@@ -412,17 +415,15 @@ class Model(object):
             Fsqrtm_inf_guess = 20000.0
             C1_guess = -1.0
             C2_guess = -1.0
-            gamma_guess = -0.1
-            eta_guess = 0.0
-            #eta_guess = 0.0
-            #mu_guess = -100.0
+            gamma_guess = -0.001
+            eta_guess = 1.0
             mu_guess = -1.0
             params = paramdict("Fsqrtm_inf", Fsqrtm_inf_guess, Fsqrtm_inf_guess/10.0, limits=(0, None))
             params.update(paramdict("C1", C1_guess, C1_guess/2))
             params.update(paramdict("C2", C2_guess, C2_guess/2))
 
             params.update(paramdict("gamma", gamma_guess, gamma_guess/2))
-            params.update(paramdict("eta", eta_guess, eta_guess/2, fix=True))
+            params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
             params.update(paramdict("mu", mu_guess, mu_guess/2))
 
 
@@ -432,21 +433,38 @@ class Model(object):
             Fsqrtm_inf_guess = 20000.0
             C1_guess = -1.0
             C2_guess = -1.0
-            gamma_guess = -0.000003
-            #eta_guess = 1.0
-            eta_guess = 0.0
-            #mu_guess = -100.0
+            gamma_guess = 0.001
+            eta_guess = -1.0
             mu_guess = -1.0
             params = paramdict("Fsqrtm_inf", Fsqrtm_inf_guess, Fsqrtm_inf_guess/10.0, limits=(0, None))
             params.update(paramdict("C1", C1_guess, C1_guess/2))
             params.update(paramdict("C2", C2_guess, C2_guess/2))
 
             params.update(paramdict("gamma", gamma_guess, gamma_guess/2))
-            params.update(paramdict("eta", eta_guess, eta_guess/2, fix=True))
+            params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
             params.update(paramdict("mu", mu_guess, mu_guess/2))
 
             fun = self.fdsqrtm_HQET
 
+        elif self.type_string == "fdsqrtm_dmss_HQET":
+            Fsqrtm_inf_guess = 20000.0
+            C1_guess = -1.0
+            C2_guess = -1.0
+            gamma_guess = 0.001
+            eta_guess = -1.0
+            mu_guess = -1.0
+            delta_S = -0.1
+            params = paramdict("Fsqrtm_inf", Fsqrtm_inf_guess, Fsqrtm_inf_guess/10.0, limits=(0, None))
+            params.update(paramdict("C1", C1_guess, C1_guess/2))
+            params.update(paramdict("C2", C2_guess, C2_guess/2))
+
+            params.update(paramdict("gamma", gamma_guess, gamma_guess/2))
+            params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
+            params.update(paramdict("mu", mu_guess, mu_guess/2))
+
+            params.update(paramdict("delta_S", delta_S, delta_S/2))
+
+            fun = self.fdsqrtm_dmss_HQET
 
         else:
             logging.error("Function not supported yet")
@@ -1140,6 +1158,23 @@ class Model(object):
         sqr_diff1 = (data - M1)**2
         return np.sum(sqr_diff1/var)
 
+    def fdsqrtm_dmss_HQET(self, Fsqrtm_inf, C1, C2, gamma, eta, mu, delta_S):
+
+        fdsqrm_data = self.fDA_div * np.sqrt(self.mD_div)
+        data = fdsqrm_data.mean(1)
+        var = fdsqrm_data.var(1)
+
+        m = self.mD.mean(1) + self.m2 - self.m1
+
+        Mss = (2.0*self.mKsqr.mean(1)) - self.mpisqr.mean(1)
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = Mss - phys_Mss
+
+        M1 = Fsqrtm_inf*(1+delta_S*delta_Mss)*( 1.0 + C1*1000.0 / m + C2*1000000 / (m**2) + (gamma/10000.0) *(m*self.a)**2 + (eta/100.0)*m*self.a*2 + (mu*0.001)*self.a**2)
+
+        sqr_diff1 = (data - M1)**2
+        return np.sum(sqr_diff1/var)
 
 
 
@@ -1220,7 +1255,7 @@ if __name__ == "__main__":
               "mpisqrbymq_xi_NLO", "mpisqrbymq_xi_NLO_inverse", "mpisqrbymq_x_NLO", "combined_x_NLO", "combined_XI_NLO",  "combined_XI_NNLO", "combined_x_NNLO",
               "combined_XI_inverse_NNLO", "combined_x_NLO_all", "combined_x_NNLO_all", "combined_x_NNLO_fixa0", "combined_XI_inverse_NNLO_all" , "combined_XI_inverse_NNLO_phys",
               "fD_chiral",  "fDsbyfD_chiral",
-              "MD_linear_mpisqr_asqr_mss", "MDs_linear_mpisqr_asqr_mss", "FD_linear_mpisqr_asqr_mss", "FDs_linear_mpisqr_asqr_mss", "FDsbyFD_linear_mpisqr_asqr_mss", "Mhs_minus_Mhh", "quad_Mhs_minus_Mhh", "fdsqrtm", "fdsqrtm_HQET"]
+              "MD_linear_mpisqr_asqr_mss", "MDs_linear_mpisqr_asqr_mss", "FD_linear_mpisqr_asqr_mss", "FDs_linear_mpisqr_asqr_mss", "FDsbyFD_linear_mpisqr_asqr_mss", "Mhs_minus_Mhh", "quad_Mhs_minus_Mhh", "fdsqrtm", "fdsqrtm_HQET", "fdsqrtm_dmss_HQET"]
 
     parser = argparse.ArgumentParser(description="script to interpolate the heavy mass")
     parser.add_argument("-v", "--verbose", action="store_true",
