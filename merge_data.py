@@ -58,6 +58,8 @@ class filewriter:
         self.correlatortype = data_info["correlatortype"]
         self.shift = shift
         self.data = {}
+        self.shifted_data = {}
+        self.averaged_data = {}
 
     def add_data(self,line,fromfile):
 
@@ -78,39 +80,59 @@ class filewriter:
 
         self.data[(fromfile,shift)].append((time, data) )
 
-    def write(self):
-        ofile_name = "{}_{}_{}-{}_{}".format(args.output_stub, self.flavor, self.snk, self.src, self.correlatortype)
-        logging.info("opening file {}".format(ofile_name))
-        ofile = open(ofile_name, "w")
-        logging.info("writing data")
+    def shift_data(self):
+        logging.info("Shifting data")
 
         def index(i, period, shift):
             new = i+shift
             if new >= period:
                 return new - period
             return new
-            # if i >= self.shift:
-            #     print i, i+self.shift-period
-            #     return i-self.shift
-            # else:
-            #     print i, i+self.shift
-            #     return i+period-self.shift
 
 
         for key, data in self.data.iteritems():
-            _, shift = key
+            fromfile, shift = key
             ddata = dict(data)
             period = max(ddata.keys())+1
-            for i in range(max(ddata.keys())+1):
-                ofile.write("{}, {}".format(i,ddata[index(i, period, shift)]))
-                ofile.write("\n")
+            self.shifted_data[fromfile] = [ (i,ddata[index(i, period, shift)]) for i in range(max(ddata.keys())+1) ]
+
+    def average_sources(self):
+        logging.info("Averaging sources")
+        sourcezeros = [i for i in self.shifted_data.keys() if i[-4:] == "src0"]
+        config_groups = list(set(tuple(i for i in self.shifted_data.keys() if i[:-4] == z[:-4]) for z in sourcezeros))
+        #assert allEqual([len(i) for i in config_groups])
+        numberofsources = len(config_groups[0])
+        logging.info("found {} configs with {} times each".format(len(config_groups), numberofsources))
+        times = len(self.shifted_data[self.shifted_data.keys()[0]])
+        for cg in config_groups:
+            cgdata = {i: 0.0 for i in range(0,times)}
+            for c in cg:
+                for i in self.shifted_data[c]:
+                    t, d = i
+                    cgdata[t] += float(d)
+            for k, v in cgdata.iteritems():
+                cgdata[k] = v / len(cg)
+            self.averaged_data[cg[0]] = cgdata
+
+
+
+    def write(self):
+        self.shift_data()
+        self.average_sources()
+        ofile_name = "{}_{}_{}-{}_{}".format(args.output_stub, self.flavor, self.snk, self.src, self.correlatortype)
+        logging.info("opening file {}".format(ofile_name))
+        ofile = open(ofile_name, "w")
+        logging.info("writing data")
+
+        for key,data in self.averaged_data.iteritems():
+            for i in range(max(data.keys())+1):
+                ofile.write("{0}, {1:.16e}\n".format(i, data[i]))
 
 def split_data(args):
 
     ofile = None
 
     linecounts = [sum(1 for line in open(fname)) for fname in args.files]
-    print linecounts
 
     target = max(linecounts)
     prunedfiles = [f for c,f in zip(linecounts, args.files) if c == target]
