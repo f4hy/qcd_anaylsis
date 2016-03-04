@@ -87,7 +87,7 @@ class ensemble_data(object):
             logging.error("found: {}".format(fitdatafiles))
             raise MissingData("Unique fit file not found!")
 
-        logging.info("narrowed to file {}".format(fitdatafiles[0]))
+        logging.debug("narrowed to file {}".format(fitdatafiles[0]))
         return fitdatafiles[0]
 
     def get_mass(self, flavor, wild=None, op="PP"):
@@ -135,6 +135,10 @@ class ensemble_data(object):
             return self.scale*self.get_mass("heavy-ud", op="A4")
         return self.get_mass("heavy-ud", op="A4")
 
+    def Ds_mass_axial(self, scaled=False):
+        if scaled:
+            return self.scale*self.get_mass("heavy-s", op="A4")
+        return self.get_mass("heavy-s", op="A4")
 
     def D_mass_div(self, scaled=False):
         divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_uncorrelated_*/*.boot"

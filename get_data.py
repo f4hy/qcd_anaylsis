@@ -197,6 +197,15 @@ def get_data(ed, data_type, options):
             label += " [MeV]"
         return data.mean(), data.std(), label, {"Charm": phys_FD, "Bottom": phys_FB}
 
+    if data_type == "fDA":
+        data = ed.fDA(scaled=options.scale)
+
+        label = "$f_D$"
+        if options.scale:
+            label += " [MeV]"
+        return data.mean(), data.std(), label, {"Charm": phys_FD, "Bottom": phys_FB}
+
+
     if data_type == "fD_new":
         data = ed.fD()
 
@@ -321,6 +330,16 @@ def get_data(ed, data_type, options):
             label += " "
         return data.mean(), data.std(), label, {"Charm":phys_FDs/phys_FD,
                                                 "Bottom":phys_FBs/phys_FB}
+
+    if data_type == "fDsAbyfDA":
+        data = (ed.fDsA(scaled=options.scale)/ed.fDA(scaled=options.scale))
+
+        label = "$f_{D_s}/f_D$"
+        if options.scale:
+            label += " "
+        return data.mean(), data.std(), label, {"Charm":phys_FDs/phys_FD,
+                                                "Bottom":phys_FBs/phys_FB}
+
 
     if data_type == "fKbyfpi":
         data = (ed.fK(scaled=options.scale)/ed.fpi(scaled=options.scale))
@@ -656,13 +675,14 @@ def get_data(ed, data_type, options):
         return data, err, label, {"PDG": phys_mq}
 
     if data_type == "mheavyq":
-        data = ed.dp.heavyq_mass / Zs[ed.dp.beta]
+        data = ed.dp.heavyq_mass # / Zs[ed.dp.beta]
+        print ed.dp.latspacing
         err = 0.0
         label = "$m_{q_h}$"
         if options.scale:
             data = scale[ed.dp.beta]*data
             label += " [MeV]"
-        return data, err, {"PDG": phys_mhq}
+        return data, err, label, {"PDG": phys_mhq}
 
 
     if data_type == "xi":
