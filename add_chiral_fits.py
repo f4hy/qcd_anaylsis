@@ -135,6 +135,8 @@ def add_chiral_fit(axe, xran, chiral_fit_file=None, options=None):
     if fittype.startswith("fdsqrtm"):
         return fdsqrtm(axe, xran, values, errors)
 
+    if fittype.startswith("fdssqrtms"):
+        return fdssqrtms(axe, xran, values, errors)
 
     print fittype
     print "not supported"
@@ -1085,9 +1087,78 @@ def fdsqrtm(axe, xran, values, errors):
     plabel = paramstring.replace("$ \eta", "\n $ \eta")
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
-    plots.extend(axe.plot(mD_inv, y, label=plabel,  ls="--", lw=2))
-    plots.extend(axe.plot(mD_inv, y1, label="fit $\\beta=4.17$",  ls="--", lw=2))
-    plots.extend(axe.plot(mD_inv, y2, label="fit $\\beta=4.35$",  ls="--", lw=2))
-    plots.extend(axe.plot(mD_inv, y3, label="fit $\\beta=4.47$",  ls="--", lw=2))
+    plabel = "Continuum and Chiral Limit"
+    plots.extend(axe.plot(mD_inv, y, label=plabel,  ls="--", lw=2, color="k"))
+    plots.extend(axe.plot(mD_inv, y1, label="fit $\\beta=4.17$",  ls="--", lw=2, color='b'))
+    plots.extend(axe.plot(mD_inv, y2, label="fit $\\beta=4.35$",  ls="--", lw=2, color='r'))
+    plots.extend(axe.plot(mD_inv, y3, label="fit $\\beta=4.47$",  ls="--", lw=2, color='m'))
+
+    # mB_inv = 1.0/5279.0
+    # axe.errorbar(mB_inv, y=Fsqrtm_inf*(1 + C1 * mB_inv + C2 * mB_inv**2 ),
+    #              yerr=errors["Fsqrtm_inf"]*(1 + errors["C1"] * mB_inv + errors["C2"] * mB_inv**2 ),
+    #              label="test", color='k', ecolor='k', mec='k', alpha=0.2, **plotsettings)
+
+
+    return plots
+
+def fdssqrtms(axe, xran, values, errors):
+
+    Fssqrtms_inf = values["Fssqrtms_inf"]
+
+    values["C1"] *= 1000.0
+    values["C2"] *= (1000.0)**2
+    values["gamma"] *= 1.0/(10000.0)
+    values["eta"] *= 1.0/(100.0)
+    values["mu"] *= 0.001
+
+    errors["C1"] *= 1000.0
+    errors["C2"] *= (1000.0)**2
+    errors["gamma"] *= 1.0/(10000.0)
+    errors["eta"] *= 1.0/(100.0)
+    errors["mu"] *= 0.001
+
+    C1 = values["C1"]
+    C2 = values["C2"]
+
+
+    gamma = values["gamma"]
+    eta = values["eta"]
+    mu = values["mu"]
+
+    mDs_inv =  np.linspace(xran[0], xran[1], num=500)
+    m = 1/mDs_inv
+
+    a_beta417 = 197.3269788 / scale["4.17"]
+    a_beta435 = 197.3269788 / scale["4.35"]
+    a_beta447 = 197.3269788 / scale["4.47"]
+
+    print a_beta417, a_beta435, a_beta447
+
+    y = Fssqrtms_inf*(1 + C1 * mDs_inv + C2 * mDs_inv**2 )
+    y1 = Fssqrtms_inf*(1 + C1 * mDs_inv + C2 * mDs_inv**2 + gamma *(m*a_beta417)**2 + eta*m*a_beta417**2 + mu * a_beta417**2)
+    y2 = Fssqrtms_inf*(1 + C1 * mDs_inv + C2 * mDs_inv**2 + gamma *(m*a_beta435)**2 + eta*m*a_beta435**2 + mu * a_beta435**2)
+    y3 = Fssqrtms_inf*(1 + C1 * mDs_inv + C2 * mDs_inv**2 + gamma *(m*a_beta447)**2 + eta*m*a_beta447**2 + mu * a_beta447**2)
+
+    plots = []
+    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
+                           for k,v in sorted(values.iteritems()) )
+    #paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    print paramstring
+    plabel = "Qaudratic fit"
+
+    plabel = paramstring.replace("$ \eta", "\n $ \eta")
+    if "cutoff" in values.keys():
+        plabel += " $M_\pi < {}$".format(values["cutoff"])
+    plabel = "Continuum and Chiral Limit"
+    plots.extend(axe.plot(mDs_inv, y, label=plabel,  ls="--", lw=2, color="k"))
+    plots.extend(axe.plot(mDs_inv, y1, label="fit $\\beta=4.17$",  ls="--", lw=2, color='b'))
+    plots.extend(axe.plot(mDs_inv, y2, label="fit $\\beta=4.35$",  ls="--", lw=2, color='r'))
+    plots.extend(axe.plot(mDs_inv, y3, label="fit $\\beta=4.47$",  ls="--", lw=2, color='m'))
+
+    # mB_inv = 1.0/5279.0
+    # axe.errorbar(mB_inv, y=Fsqrtm_inf*(1 + C1 * mB_inv + C2 * mB_inv**2 ),
+    #              yerr=errors["Fsqrtm_inf"]*(1 + errors["C1"] * mB_inv + errors["C2"] * mB_inv**2 ),
+    #              label="test", color='k', ecolor='k', mec='k', alpha=0.2, **plotsettings)
+
 
     return plots
