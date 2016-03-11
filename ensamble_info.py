@@ -65,6 +65,26 @@ Zs = {"4.17": 1.024, "4.35": 0.922, "4.47": 0.880}
 
 hbar_c = 197.3269788
 
+ensemble_names = {}
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.0035_ms0.0400"] = "KC0"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.007_ms0.030"] = "KC1"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.007_ms0.040"] = "KC2"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.012_ms0.030"] = "KC3"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.012_ms0.040"] = "KC4"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.019_ms0.030"] = "KC5"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.019_ms0.040"] = "KC6"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_48x96x12_b4.17_M1.00_mud0.0035_ms0.040"] = "KC7"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_48x96x08_b4.35_M1.00_mud0.0042_ms0.0180"] = "KM0"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_48x96x08_b4.35_M1.00_mud0.0042_ms0.0250"] = "KM1"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_48x96x08_b4.35_M1.00_mud0.0080_ms0.0180"] = "KM2"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_48x96x08_b4.35_M1.00_mud0.0080_ms0.0250"] = "KM3"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_48x96x08_b4.35_M1.00_mud0.0120_ms0.0180"] = "KM4"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_48x96x08_b4.35_M1.00_mud0.0120_ms0.0250"] = "KM5"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_64x128x08_b4.47_M1.00_mud0.0030_ms0.0150"] = "Kf0"
+
+
+
+
 def determine_flavor(f):
     flavors = flavor_map.keys()
     for flavor in flavors:
@@ -107,10 +127,16 @@ class data_params(object):
 
         self.filename = filename
 
+        for i in ensemble_names.keys():
+            if i in filename:
+                self.ename = ensemble_names[i]
+
+
         self.ud_mass = float(re.search("mud([0-9]\.[0-9]*)_", filename).group(1))
         strange_mass = re.search("ms([a-z0-9.]+)", filename).group(1)
         strange_mass = strange_mass.replace(".jack", "")
         strange_mass = strange_mass.replace(".binned", "")
+
 
         try:
             self.s_mass = float(strange_mass)
@@ -167,9 +193,9 @@ class data_params(object):
 
     def __repr__(self):
         if self.heavyness == "ll":
-            return "{}_{}_{}_{}_{}_{}".format(self.beta, self.latsize, self.ud_mass, self.s_mass, self.flavor, self.heavyness)
+            return "{}_{}_{}_{}_{}_{}_{}".format(self.ename, self.beta, self.latsize, self.ud_mass, self.s_mass, self.flavor, self.heavyness)
         else:
-            return "{}_{}_{}_{}_{}_{}_{}".format(self.beta, self.latsize, self.ud_mass, self.s_mass, self.flavor, self.heavyness, self.heavymass)
+            return "{}_{}_{}_{}_{}_{}_{}_{}".format(self.ename, self.beta, self.latsize, self.ud_mass, self.s_mass, self.flavor, self.heavyness, self.heavymass)
 
 
 def read_fit_mass(data_properties, flavor, fitdata):
