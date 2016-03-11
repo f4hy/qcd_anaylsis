@@ -1,10 +1,12 @@
 #!/usr/bin/env python2
-import matplotlib.pyplot as plt
 import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 import logging
 import argparse
 import os
+
 
 import numpy as np
 
@@ -143,7 +145,8 @@ def plot_decay_constant(options):
             color = "#9999FF"
             continue
 
-
+        if options.mhcut and p.heavyq_mass > options.mhcut:
+            alpha = 0.05
 
         plotsettings = dict(linestyle="none", c=color, marker=mark,
                             label=label, ms=12, elinewidth=4,
@@ -348,6 +351,8 @@ if __name__ == "__main__":
                         help="determine the plot aspect ratio")
     parser.add_argument("--interpstrange", action="store_true",
                         help="use interpoalted strange masses", default=None)
+    parser.add_argument("--mhcut", type=float, default=None, required=False,
+                        help="cut of mh to fade")
 
 
 
