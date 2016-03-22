@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 import matplotlib as mpl
-mpl.use('Agg')
+# mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 import logging
@@ -63,6 +63,20 @@ phys_marks = cycle('x+s')
 def colors_and_legend(data_properties, legend_mode="betaLs"):
 
     p = data_properties
+
+    if legend_mode == "custom":
+        colors = {"4.17": 'b', "4.35": 'r', "4.47": 'm'}
+        marks = {"4.17": 'o', "4.35": 's', "4.47": 'd'}
+        labels = {"4.17": r'$a^{-1} = 2.45$GeV', "4.35": r'$a^{-1} = 3.61$GeV', "4.47": r'$a^{-1} = 4.50$GeV'}
+        color = colors[p.beta]
+        mark = marks[p.beta]
+        legend_label = labels[p.beta]
+        mfc = None
+        nolegends = [0.03, 0.018]
+        if float(p.s_mass) in nolegends:
+            mfc = "white"
+            legend_label = None
+
     if legend_mode == "betaLs":
         color, mark, mfc = auto_key((p.beta, p.s_mass, p.latsize))
         legend_label = r'$\beta = {}, L={}, m_s={}$'.format(p.beta, p.latsize[:2], p.s_mass)
@@ -99,8 +113,9 @@ def colors_and_legend(data_properties, legend_mode="betaLs"):
     #legend_handles.append(mpatches.Patch(color=beta_colors[p.beta], label=mylabel))
     handel = (color, mark, mfc)
     if handel not in added_handles:
-        added_handles.append(handel)
-        legend_handles.append(symbol)
+        if legend_label is not None:
+            added_handles.append(handel)
+            legend_handles.append(symbol)
 
     return handel
 
@@ -146,10 +161,10 @@ def plot_decay_constant(options):
             continue
 
         if options.mhcut and p.heavyq_mass > options.mhcut:
-            alpha = 0.05
+            alpha = 0.1
 
         plotsettings = dict(linestyle="none", c=color, marker=mark,
-                            label=label, ms=12, elinewidth=4,
+                            label=label, ms=15, elinewidth=4,
                             capsize=8, capthick=2, mec=color, mew=2,
                             aa=True, mfc=mfc, fmt='o', ecolor=color,
                             alpha=alpha)
@@ -243,6 +258,11 @@ def plot_decay_constant(options):
             ticks = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/(1000**2)))
             axe.xaxis.set_major_formatter(ticks)
             axe.set_xlabel(xlabel.replace("MeV","GeV"), **fontsettings)
+        if "1/MeV" in xlabel:
+            import matplotlib.ticker as ticker
+            ticks = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(1000*x))
+            axe.xaxis.set_major_formatter(ticks)
+            axe.set_xlabel(xlabel.replace("1/MeV","1/GeV"), **fontsettings)
 
 
     if options.ylabel:
@@ -289,7 +309,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="average data files")
 
     axis_choices = ["mud", "mud_s", "mpi", "mpisqr", "2mksqr-mpisqr", "mpisqr/mq", "xi", "mq"]
-    legend_choices = ["betaLs", "betaL", "heavy", "smearing", "flavor", "strange", "betaheavy"]
+    legend_choices = ["betaLs", "betaL", "heavy", "smearing", "flavor", "strange", "betaheavy", "custom"]
 
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="increase output verbosity")
