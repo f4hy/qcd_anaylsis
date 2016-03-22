@@ -10,7 +10,7 @@ from ensamble_info import phys_eta, phys_etac, phys_etab, phys_FK, phys_mhq, phy
 from ensamble_info import Zs, Zv
 from ensamble_info import unphys_etas
 import matplotlib.pyplot as plt
-from residualmasses import residual_mass
+from residualmasses import residual_mass, residual_mass_errors
 
 def get_data(ed, data_type, options):
 
@@ -35,7 +35,7 @@ def get_data(ed, data_type, options):
 
         data = fdata*np.sqrt(mdata)
 
-        label = "$f_D\, \sqrt{m_D}$"
+        label = "$f_{hl}\, \sqrt{m_{hl}}$"
         if options.scale:
             label += " [MeV^(3/2)]"
         return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
@@ -47,7 +47,7 @@ def get_data(ed, data_type, options):
         data = fdata*np.sqrt(mdata)
 
 
-        label = "$\hat{f}_D\, \sqrt{\hat{m}_D}$"
+        label = "$\hat{f}_{hl}\, \sqrt{\hat{m}_{hl}}$"
         if options.scale:
             label += " [MeV^(3/2)]"
         return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
@@ -60,7 +60,7 @@ def get_data(ed, data_type, options):
         data = fdata*np.sqrt(mdata)
 
 
-        label = "$\hat{f}_{D_s}\, \sqrt{\hat{m}_{D_s}}$"
+        label = "$\hat{f}_{hs}\, \sqrt{\hat{m}_{hs}}$"
         if options.scale:
             label += " [MeV^(3/2)]"
         return data.mean(), data.std(), label, {"Charm": phys_FDs*np.sqrt(phys_Ds), "Bottom": phys_FBs*np.sqrt(phys_MBs)}
@@ -72,7 +72,7 @@ def get_data(ed, data_type, options):
 
         data = fdata*np.sqrt(mdata)
 
-        label = "$\widetilde{f}_D^A\, \sqrt{m_D}$"
+        label = "$\widetilde{f}_{hl}\, \sqrt{m_{hl}}$"
         if options.scale:
             label += " [MeV^(3/2)]"
         return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
@@ -83,7 +83,7 @@ def get_data(ed, data_type, options):
 
         data = fdata*np.sqrt(mdata)
 
-        label = "$\widetilde{f}_{D_s}^A\, \sqrt{m_{D_s}}$"
+        label = "$\widetilde{f}_{hs}\, \sqrt{m_{hs}}$"
         if options.scale:
             label += " [MeV^(3/2)]"
         return data.mean(), data.std(), label, {"Charm": phys_FDs*np.sqrt(phys_Ds), "Bottom": phys_FBs*np.sqrt(phys_MBs)}
@@ -95,7 +95,7 @@ def get_data(ed, data_type, options):
 
         data = fdata*np.sqrt(mdata)
 
-        label = "$f_D^A\, \sqrt{m_D}$"
+        label = "$f_{hl}\, \sqrt{m_{hl}}$"
         if options.scale:
             label += " [MeV^(3/2)]"
         return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
@@ -106,7 +106,7 @@ def get_data(ed, data_type, options):
 
         data = fdata*np.sqrt(mdata)
 
-        label = "$f_{D_s}^A\, \sqrt{m_{D_s}}$"
+        label = "$f_{hs}\, \sqrt{m_{hs}}$"
         if options.scale:
             label += " [MeV^(3/2)]"
         return data.mean(), data.std(), label, {"Charm": phys_FDs*np.sqrt(phys_Ds), "Bottom": phys_FBs*np.sqrt(phys_MBs)}
@@ -118,7 +118,7 @@ def get_data(ed, data_type, options):
 
         data = fdata*np.sqrt(mdata)
 
-        label = "$\hat{f}_D^A\, \sqrt{m_D}$"
+        label = "$\hat{f}_{hl}\, \sqrt{m_{hl}}$"
         if options.scale:
             label += " [MeV^(3/2)]"
         return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
@@ -129,7 +129,7 @@ def get_data(ed, data_type, options):
 
         data = fdata*np.sqrt(mdata)
 
-        label = "$\hat{f}_{D_s}^A\, \sqrt{m_{D_s}}$"
+        label = "$\hat{f}_{hs}\, \sqrt{m_{hs}}$"
         if options.scale:
             label += " [MeV^(3/2)]"
         return data.mean(), data.std(), label, {"Charm": phys_FDs*np.sqrt(phys_Ds), "Bottom": phys_FBs*np.sqrt(phys_MBs)}
@@ -141,7 +141,7 @@ def get_data(ed, data_type, options):
 
         data = fdata*np.sqrt(mdata)
 
-        label = "$f_D^A\, \sqrt{m_D}$"
+        label = "$f_{hl}\, \sqrt{m_{hl}}$"
         if options.scale:
             label += " [MeV^(3/2)]"
         return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
@@ -156,7 +156,7 @@ def get_data(ed, data_type, options):
 
         data = fdata*np.sqrt(mdata)
 
-        label = "$\hat{f}_D^A\, \sqrt{\hat{m}_D}$"
+        label = "$\hat{f}_{hl}\, \sqrt{\hat{m}_{hl}}$"
         if options.scale:
             label += " [MeV^(3/2)]"
         return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
@@ -170,7 +170,7 @@ def get_data(ed, data_type, options):
 
         data = fdata*np.sqrt(mdata)
 
-        label = "$\hat{f}_{D_s}^A\, \sqrt{\hat{m}_{D_s}}$"
+        label = "$\hat{f}_{hs}\, \sqrt{\hat{m}_{hs}}$"
         if options.scale:
             label += " [MeV^(3/2)]"
         return data.mean(), data.std(), label, {"Charm": phys_FDs*np.sqrt(phys_Ds), "Bottom": phys_FBs*np.sqrt(phys_MBs)}
@@ -183,7 +183,7 @@ def get_data(ed, data_type, options):
 
         data = fdata*np.sqrt(mdata)
 
-        label = "$f_{Ds}\, \sqrt{m_{Ds}}$"
+        label = "$f_{hs}\, \sqrt{m_{hs}}$"
         if options.scale:
             label += " [MeV^(3/2)]"
         return data.mean(), data.std(), label, {"Charm": phys_FDs*np.sqrt(phys_Ds), "Bottom": phys_FBs*np.sqrt(phys_MBs)}
@@ -192,7 +192,7 @@ def get_data(ed, data_type, options):
     if data_type == "fD":
         data = ed.fD(scaled=options.scale)
 
-        label = "$f_D^{PP}$"
+        label = "$f_{hl}^{PP}$"
         if options.scale:
             label += " [MeV]"
         return data.mean(), data.std(), label, {"Charm": phys_FD, "Bottom": phys_FB}
@@ -200,7 +200,7 @@ def get_data(ed, data_type, options):
     if data_type == "fDA":
         data = ed.fDA(scaled=options.scale)
 
-        label = "$f_D$"
+        label = "$f_{hl}$"
         if options.scale:
             label += " [MeV]"
         return data.mean(), data.std(), label, {"Charm": phys_FD, "Bottom": phys_FB}
@@ -209,7 +209,7 @@ def get_data(ed, data_type, options):
     if data_type == "fD_new":
         data = ed.fD()
 
-        label = "$f_D^{PP}$"
+        label = "$f_{hl}^{PP}$"
         if options.scale:
             label += " [MeV]"
         return data.mean(), data.std(), label, {"Charm": phys_FD, "Bottom": phys_FB}
@@ -227,7 +227,7 @@ def get_data(ed, data_type, options):
     if data_type == "fD_new_renorm":
         data = ed.fD(renorm=True)
 
-        label = "$f_D^{PP}$"
+        label = "$f_{hl}^{PP}$"
         if options.scale:
             label += " [MeV]"
         return data.mean(), data.std(), label, {"Charm": phys_FD, "Bottom": phys_FB}
@@ -253,7 +253,7 @@ def get_data(ed, data_type, options):
 
     if data_type == "fD_axial":
         data = ed.fDA(scaled=options.scale)
-        label = "$f_D^A$"
+        label = "$f_{hl}$"
         if options.scale:
             label += " [MeV]"
         return data.mean(), data.std(), label, {"Charm": phys_FD, "Bottom": phys_FB}
@@ -276,12 +276,12 @@ def get_data(ed, data_type, options):
 
 
     if data_type == "fD_axialratio":
-        dataA = Zv[ed.dp.beta]*ed.fDA(scaled=options.scale)
+        dataA = ed.fDA(scaled=options.scale)
         dataP = ed.fD(scaled=options.scale)
 
         data = (dataP/dataA)
 
-        label = "$f_{D}^{PP}/f_{D}^A$"
+        label = "$f_{hl}^{PP}/f_{hl}^A$"
         if options.scale:
             label += " "
         return data.mean(), data.std(), label, {}
@@ -303,7 +303,7 @@ def get_data(ed, data_type, options):
         return data.mean(), data.std(), label, {"Charm": phys_FDs, "Bottom": phys_FBs}
 
     if data_type == "fDs_axialratio":
-        dataA = Zv[ed.dp.beta]*ed.fDsA(scaled=options.scale)
+        dataA = ed.fDsA(scaled=options.scale)
         dataP = ed.fDs(scaled=options.scale)
         data = (dataP/dataA)
 
@@ -521,7 +521,7 @@ def get_data(ed, data_type, options):
 
         data = 1.0/mdata
 
-        label = "$1/m_D$"
+        label = "$1/m_{hl}$"
         if options.scale:
             label += " [1/MeV]"
 
@@ -532,7 +532,7 @@ def get_data(ed, data_type, options):
 
         data = 1.0/mdata
 
-        label = "$1/m_{D_s}$"
+        label = "$1/m_{hs}$"
         if options.scale:
             label += " [1/MeV]"
         return data.mean(), data.std(), label, {"Charm": 1.0/phys_Ds, "Bottom": 1.0/phys_MBs}
@@ -542,7 +542,7 @@ def get_data(ed, data_type, options):
         m1 = ed.dp.heavy_m1
         m2 = ed.dp.heavy_m2
         data = 1.0/(mdata +(m2 - m1)*scale[ed.dp.beta])
-        label = "$1/(m_D + m_2 - m_1)$"
+        label = "$1/(m_{hl} + m_2 - m_1)$"
         if options.scale:
             label += " [1/MeV]"
         return data.mean(), data.std(), label, {"Charm": 1.0/phys_D, "Bottom": 1.0/phys_MB}
@@ -552,7 +552,7 @@ def get_data(ed, data_type, options):
         m1 = ed.dp.heavy_m1
         m2 = ed.dp.heavy_m2
         data = 1.0/(mdata +(m2 - m1)*scale[ed.dp.beta])
-        label = "$1/(\hat{m}_D + m_2 - m_1)$"
+        label = "$1/(\hat{m}_{hl} + m_2 - m_1)$"
         if options.scale:
             label += " [1/MeV]"
         return data.mean(), data.std(), label, {"Charm": 1.0/phys_D, "Bottom": 1.0/phys_MB}
@@ -562,7 +562,7 @@ def get_data(ed, data_type, options):
         m1 = ed.dp.heavy_m1
         m2 = ed.dp.heavy_m2
         data = 1.0/(mdata +(m2 - m1)*scale[ed.dp.beta])
-        label = "$1/(\hat{m}_{D_s} + m_2 - m_1)$"
+        label = "$1/(\hat{m}_{hs} + m_2 - m_1)$"
         if options.scale:
             label += " [1/MeV]"
         return data.mean(), data.std(), label, {"Charm": 1.0/phys_Ds, "Bottom": 1.0/phys_MB}
@@ -574,14 +574,14 @@ def get_data(ed, data_type, options):
         m1 = ed.dp.heavy_m1
         m2 = ed.dp.heavy_m2
         data = 1.0/(mdata +(m2 - m1)*scale[ed.dp.beta])
-        label = "$1/(m_{D_s}+m2 - m1)$"
+        label = "$1/(m_{hs}+m_2 - m_1)$"
         if options.scale:
             label += " [1/MeV]"
         return data.mean(), data.std(), label, {"Charm": 1.0/phys_Ds, "Bottom": 1.0/phys_MBs}
 
     if data_type == "mD":
         data = ed.D_mass(scaled=options.scale)
-        label = "$m_D$"
+        label = "$m_{hl}$"
         if options.scale:
             label += " [MeV]"
         return data.mean(), data.std(), label, {"Charm": phys_D, "Bottom": phys_MB}
@@ -592,7 +592,7 @@ def get_data(ed, data_type, options):
         m1 = ed.dp.heavy_m1
         m2 = ed.dp.heavy_m2
         data = data + (m2 - m1)*scale[ed.dp.beta]
-        label = "$m_D + m_2 - m_1$"
+        label = "$m_{hl} + m_2 - m_1$"
         if options.scale:
             label += " [MeV]"
         return data.mean(), data.std(), label, {"Charm": phys_D, "Bottom": phys_MB}
@@ -603,7 +603,7 @@ def get_data(ed, data_type, options):
         m1 = ed.dp.heavy_m1
         m2 = ed.dp.heavy_m2
         data = data + (m2 - m1)*scale[ed.dp.beta]
-        label = "$\hat{m}_D + m_2 - m_1$"
+        label = "$\hat{m}_{hl} + m_2 - m_1$"
         if options.scale:
             label += " [MeV]"
         return data.mean(), data.std(), label, {"Charm": phys_D, "Bottom": phys_MB}
@@ -612,7 +612,7 @@ def get_data(ed, data_type, options):
     if data_type == "mDs":
         data = ed.Ds_mass(scaled=options.scale)
 
-        label = "$m_{D_s}$"
+        label = "$m_{hs}$"
         if options.scale:
             label += " [MeV]"
         return data.mean(), data.std(), label, {"Charm": phys_Ds, "Bottom": phys_MBs}
@@ -626,7 +626,7 @@ def get_data(ed, data_type, options):
 
         data = data + (m2 - m1)*scale[ed.dp.beta]
 
-        label = "$m_{D_s}+m_2-m_1$"
+        label = "$m_{hs}+m_2-m_1$"
         if options.scale:
             label += " [MeV]"
         return data.mean(), data.std(), label, {"Charm": phys_Ds, "Bottom": phys_MBs}
