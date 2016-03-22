@@ -6,6 +6,7 @@ import numpy as np
 from ensamble_info import flavor_map, scale, data_params, determine_flavor, read_fit_mass
 from residualmasses import residual_mass
 import glob
+from ensamble_info import Zs, Zv
 
 
 class MissingData(RuntimeError):
@@ -192,7 +193,7 @@ class ensemble_data(object):
         mpi = self.pion_mass(scaled=scaled)
         fpi = self.fpi(scaled=scaled)
         xi = ((mpi**2) / (8.0 * (np.pi**2)*(fpi**2)))
-        return self.xi
+        return xi
 
     def fpi(self, scaled=False):
         amp1data, amp2data = self.get_amps("ud-ud")
@@ -234,7 +235,7 @@ class ensemble_data(object):
         massdata = self.get_mass("ud-s", op="A4")
         ampfactor = self.dp.volume
         ampdata = (amp1data**2 / amp2data) / ampfactor
-        data = np.sqrt(2*(ampdata) / massdata)
+        data = Zv[self.dp.beta]*np.sqrt(2*(ampdata) / massdata)
         if scale:
             data = scale[self.dp.beta] * data
         return data
@@ -286,7 +287,7 @@ class ensemble_data(object):
             ampfactor *= heavyfactor
 
         ampdata = (amp1data**2 / amp2data) / ampfactor
-        data = np.sqrt(2*(ampdata) / massdata)
+        data = Zv[self.dp.beta]*np.sqrt(2*(ampdata) / massdata)
         if scale:
             data = scale[self.dp.beta] * data
         return data
@@ -338,7 +339,7 @@ class ensemble_data(object):
             ampfactor *= heavyfactor
 
         ampdata = (amp1data**2 / amp2data) / ampfactor
-        data = np.sqrt(2*(ampdata) / massdata)
+        data = Zv[self.dp.beta]*np.sqrt(2*(ampdata) / massdata)
         if scale:
             data = scale[self.dp.beta] * data
         return data
