@@ -8,6 +8,8 @@ scale = {"4.17": 2492, "4.35": 3660, "4.47": 4600}
 scale = {"4.17": 2473, "4.35": 3618, "4.47": 4600}
 scale = {"4.17": 2453.1, "4.35": 3609.7, "4.47": 4496.1}
 
+phys_pionplus = 139.570
+
 phys_pion = 134.8
 phys_kaon = 494.2
 
@@ -84,7 +86,6 @@ ensemble_names["SymDW_sHtTanh_b2.0_smr3_64x128x08_b4.47_M1.00_mud0.0030_ms0.0150
 
 
 
-
 def determine_flavor(f):
     flavors = flavor_map.keys()
     for flavor in flavors:
@@ -95,7 +96,6 @@ def determine_flavor(f):
 def get_heavyq_mass(beta, heavytype):
     if heavytype is None:
         return None
-    print beta
     if beta == "4.17":
         #0.44037 0.55046 0.68808 0.86001
         heavymap = {"m0": 0.44037, "m1": 0.55046, "m2": 0.68808, "m3": 0.86001, "m4": float("NAN"), "m5": float("NAN")}
@@ -105,7 +105,6 @@ def get_heavyq_mass(beta, heavytype):
     if beta == "4.47":
         #0.210476 0.263095 0.328869 0.4110859 0.5138574 0.6423218
         heavymap = {"m0": 0.210476, "m1": 0.263095, "m2": 0.328869, "m3": 0.4110859, "m4": 0.5138574, "m5": 0.6423218}
-    print heavymap, heavytype
     try:
         return heavymap[heavytype]
     except:
