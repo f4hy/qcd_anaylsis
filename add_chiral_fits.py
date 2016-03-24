@@ -25,7 +25,7 @@ from ensamble_info import Zs, Zv
 from auto_key import auto_key
 
 plotsettings = dict(linestyle="none", ms=12, elinewidth=4,
-                    capsize=8, capthick=2, mew=2, c="b")
+                    capsize=8, capthick=2, mew=2, c="k")
 
 
 
@@ -118,6 +118,9 @@ def add_chiral_fit(axe, xran, chiral_fit_file=None, options=None):
         return add_MDs_linear_mpisqr(axe, xran, values, errors)
 
     if fittype.startswith("FD_linear"):
+        return add_FD_linear_mpisqr(axe, xran, values, errors)
+
+    if fittype.startswith("FDA_linear"):
         return add_FD_linear_mpisqr(axe, xran, values, errors)
 
     if fittype.startswith("FDs_linear"):
@@ -911,12 +914,12 @@ def add_FD_linear_mpisqr(axe, xran, values, errors):
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
-    plabel = "Linear fit"
+    plabel = "Linear fit in continuum limit"
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
-    plots.extend(axe.plot(mpisqr, y, label=plabel,  ls="--", lw=2))
-    # plots.extend(axe.plot(mpisqr, y1, label="Linear fit $\\beta=4.17$", ls=":", lw=2))
-    # axe.errorbar(phys_pion**2, y=FDphys, yerr=errors["FDphys"], **plotsettings)
+    plots.extend(axe.plot(mpisqr, y, label=plabel,  ls="--", lw=2, c='k'))
+    plots.extend(axe.plot(mpisqr, y1, label="Linear fit $\\beta=4.17$", ls=":", lw=2))
+    axe.errorbar(phys_pion**2, y=FDphys, yerr=errors["FDphys"], **plotsettings)
 
     return plots
 
@@ -938,12 +941,12 @@ def add_FDs_linear_mpisqr(axe, xran, values, errors):
     paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
                            for k,v in sorted(values.iteritems()) )
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
-    plabel = "Linear fit"
+    plabel = "Linear fit in continuum limit"
     if "cutoff" in values.keys():
         plabel += " $M_\pi < {}$".format(values["cutoff"])
-    plots.extend(axe.plot(mpisqr, y, label=plabel,  ls="--", lw=2))
+    plots.extend(axe.plot(mpisqr, y, label=plabel,  ls="--", lw=2, c='k'))
     plots.extend(axe.plot(mpisqr, y1, label="Linear fit $\\beta=4.17$", ls=":", lw=2))
-    # axe.errorbar(phys_pion**2, y=FDsphys, yerr=errors["FDsphys"], **plotsettings)
+    axe.errorbar(phys_pion**2, y=FDsphys, yerr=errors["FDsphys"], **plotsettings)
 
     return plots
 
