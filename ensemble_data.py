@@ -9,6 +9,10 @@ import glob
 from ensamble_info import Zs, Zv
 
 
+#FITTYPE="singlecorrelated"
+FITTYPE="uncorrelated"
+#FITTYPE="fullcorrelated"
+
 class MissingData(RuntimeError):
     pass
 
@@ -20,7 +24,7 @@ class NoStrangeInterp(MissingData):
 class ensemble_data(object):
 
     def __init__(self, ensamble_info,
-                 fit_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/simul_?????_fit_uncorrelated_*/*.boot",
+                 fit_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/simul_?????_fit_{0}_*/*.boot".format(FITTYPE),
                  interpstrange=False):
 
         self.dp = ensamble_info
@@ -142,38 +146,38 @@ class ensemble_data(object):
         return self.get_mass("heavy-s", op="A4")
 
     def D_mass_div(self, scaled=False):
-        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_uncorrelated_*/*.boot"
+        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_{0}_*/*.boot".format(FITTYPE)
         if scaled:
             return self.scale*self.get_mass("heavy-ud", wild=divwild)
         return self.get_mass("heavy-ud", wild=divwild)
 
     def D_mass_axial_div(self, scaled=False):
-        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_uncorrelated_*/*.boot"
+        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_{0}_*/*.boot".format(FITTYPE)
         if scaled:
             return self.scale*self.get_mass("heavy-ud", wild=divwild, op="A4")
         return self.get_mass("heavy-ud", wild=divwild, op="A4")
 
 
     def D_amps_div(self, scaled=False):
-        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_uncorrelated_*/*.boot"
+        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_{0}_*/*.boot".format(FITTYPE)
         return self.get_amps("heavy-ud", wild=divwild)
 
     def DA_amps_div(self, scaled=False):
-        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_uncorrelated_*/*.boot"
+        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_{0}_*/*.boot".format(FITTYPE)
         return self.get_amps("heavy-ud", wild=divwild, op="A4")
 
     def DsA_amps_div(self, scaled=False):
-        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_uncorrelated_*/*.boot"
+        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_{0}_*/*.boot".format(FITTYPE)
         return self.get_amps("heavy-s", wild=divwild, op="A4")
 
     def HH_mass(self, scaled=False):
-        hhwild = "SymDW_*/fit_uncorrelated_heavy-heavy/fit_uncorrelated_*_heavy-heavy_0_0_PP.boot"
+        hhwild = "SymDW_*/fit_{0}_heavy-heavy/fit_{0}_*_heavy-heavy_0_0_PP.boot".format(FITTYPE)
         if scaled:
             return self.scale*self.get_mass("heavy-heavy", wild=hhwild)
         return self.get_mass("heavy-heavy", wild=hhwild)
 
     def HHv_mass(self, scaled=False):
-        hhwild = "SymDW_*/fit_uncorrelated_heavy-heavy/fit_uncorrelated_*_heavy-heavy_0_0_vectorave.boot"
+        hhwild = "SymDW_*/fit_{0}_heavy-heavy/fit_{0}_*_heavy-heavy_0_0_vectorave.boot".format(FITTYPE)
         if scaled:
             return self.scale*self.get_mass("heavy-heavy", wild=hhwild, op="vectorave")
         return self.get_mass("heavy-heavy", wild=hhwild, op="vectorave")
@@ -184,7 +188,7 @@ class ensemble_data(object):
         return self.get_mass("heavy-s")
 
     def Ds_mass_div(self, scaled=False):
-        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_uncorrelated_*/*.boot"
+        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_{0}_*/*.boot".format(FITTYPE)
         if scaled:
             return self.scale*self.get_mass("heavy-s", wild=divwild)
         return self.get_mass("heavy-s", wild=divwild)
@@ -242,7 +246,7 @@ class ensemble_data(object):
 
     def fD(self, scaled=False, renorm=False, div=False):
         if div:
-            divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_uncorrelated_*/*.boot"
+            divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_{0}_*/*.boot".format(FITTYPE)
             amp1data, amp2data = self.get_amps("heavy-ud", wild=divwild)
             massdata = self.get_mass("heavy-ud", wild=divwild)
         else:
@@ -269,7 +273,7 @@ class ensemble_data(object):
 
     def fDA(self, scaled=False, renorm=False, div=False):
         if div:
-            divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_uncorrelated_*/*.boot"
+            divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_{0}_*/*.boot".format(FITTYPE)
             amp1data, amp2data = self.get_amps("heavy-ud", op="A4", wild=divwild)
             massdata = self.get_mass("heavy-ud", op="A4", wild=divwild)
         else:
@@ -294,7 +298,7 @@ class ensemble_data(object):
 
     def fDs(self, scaled=False, renorm=False, div=False):
         if div:
-            divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_uncorrelated_*/*.boot"
+            divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_{0}_*/*.boot".format(FITTYPE)
             amp1data, amp2data = self.get_amps("heavy-s", wild=divwild)
             massdata = self.get_mass("heavy-s", wild=divwild)
         else:
@@ -321,7 +325,7 @@ class ensemble_data(object):
 
     def fDsA(self, scaled=False, renorm=False, div=False):
         if div:
-            divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_uncorrelated_*/*.boot"
+            divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_{0}_*/*.boot".format(FITTYPE)
             amp1data, amp2data = self.get_amps("heavy-s", op="A4", wild=divwild)
             massdata = self.get_mass("heavy-s", op="A4", wild=divwild)
         else:
@@ -345,9 +349,9 @@ class ensemble_data(object):
         return data
 
     def fHH(self, scaled=False):
-        hhwild = "SymDW_*/fit_uncorrelated_heavy-heavy/fit_uncorrelated_*_heavy-heavy_0_0_PP.boot"
+        hhwild = "SymDW_*/fit_{0}_heavy-heavy/fit_{0}_*_heavy-heavy_0_0_PP.boot".format(FITTYPE)
         if div:
-            divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_uncorrelated_*/*.boot"
+            divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_{0}_*/*.boot".format(FITTYPE)
             amp1data, amp2data = self.get_amps("heavy-heavy", wild=divwild)
             massdata = self.get_mass("heavy-heavy", wild=divwild)
         else:
@@ -376,10 +380,10 @@ class ensemble_data(object):
 
 def test():
 
-    fit_file_wild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_fit_uncorrelated_*/*.boot"
-    decay_file_wild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_fit_uncorrelated_*/*.boot"
+    fit_file_wild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_fit_{0}_*/*.boot".format(FITTYPE)
+    decay_file_wild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_fit_{0}_*/*.boot".format(FITTYPE)
 
-    filename = "SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.007_ms0.030/simul_fixed_fit_uncorrelated_ud-ud/simul_fit_uncorrelated_ll_ud-ud_0_1-1_1_PP.boot"
+    filename = "SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.007_ms0.030/simul_fixed_fit_{0}_ud-ud/simul_fit_{0}_ll_ud-ud_0_1-1_1_PP.boot".format(FITTYPE)
 
     dp = data_params(filename)
 
