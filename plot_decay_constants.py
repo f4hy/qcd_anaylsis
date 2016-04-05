@@ -158,7 +158,7 @@ def plot_decay_constant(options):
         if "32x64" in f and p.ud_mass < 0.004:
             alpha = 0.6
             color = "#9999FF"
-            continue
+            #continue
 
         if options.mhcut and p.heavyq_mass > options.mhcut:
             alpha = 0.1
@@ -275,8 +275,14 @@ def plot_decay_constant(options):
 
     axe.tick_params(axis='both', which='major', labelsize=30)
 
+    if options.title:
+        fig.suptitle(options.title.replace("_", " "), **fontsettings)
+
+
     def legsort(i):
         return i.get_label()
+
+
 
     if not options.box:
         leg = axe.legend(handles=sorted(legend_handles, key=legsort), loc=options.legendloc,
@@ -342,7 +348,7 @@ if __name__ == "__main__":
     parser.add_argument("--fitdata", required=False, type=str,
                         help="folder for fitdata when needed")
     parser.add_argument("-t", "--title", type=str, required=False,
-                        help="plot title", default="decay constants")
+                        help="plot title", default="")
     parser.add_argument("--ylabel", type=str, required=False,
                         help="ylabel", default=None)
     parser.add_argument("--xlabel", type=str, required=False,
