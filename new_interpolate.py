@@ -676,11 +676,8 @@ class Model(object):
         phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
         delta_Mss = Mss - phys_Mss
 
-        bscale = 0.1/np.mean(self.mpisqr.mean(1)-phys_pion**2)
-        g1scale = 0.1/np.mean(self.a**2)
-        gsscale = 0.1/np.mean(np.abs(delta_Mss))
 
-        M = (1.0+gamma_1*g1scale*(self.a**2))*(1.0+gamma_s1*gsscale*delta_Mss)* FDphys*(1.0+b*bscale*(self.mpisqr.mean(1)-phys_pion**2))
+        M = (1.0+gamma_1*(self.a**2))*(1.0+gamma_s1*delta_Mss)* FDphys*(1.0+b*(self.mpisqr.mean(1)-phys_pion**2))
 
         data = self.fDA.mean(1)
         var = self.fDA.var(1)
