@@ -429,12 +429,20 @@ def get_data(ed, data_type, options):
         return data.mean(), data.std(), label, {"Charm": phys_etac,
                                   "Bottom": phys_etab}
 
+    if data_type == "mHHv":
+        data = ed.HHv_mass(scaled=options.scale)
+        label = "$m_{HH}^v$"
+        if options.scale:
+            label += " [MeV]"
+        return data.mean(), data.std(), label, {"Charm": phys_Jpsi}
+
+
     if data_type == "mHH_spinave":
         vdata = ed.HHv_mass(scaled=options.scale)
         pdata = ed.HH_mass(scaled=options.scale)
 
         data = (pdata + 3.0*vdata)/4.0
-        label = '$\\bar{M}_{HH}$'
+        label = '$(3 M_{J/\psi} + M_{\eta_c})/4$'
         if options.scale:
             label += " [MeV]"
         return data.mean(), data.std(), label, {"Charm": (3*phys_Jpsi + phys_etac)/4.0 ,
