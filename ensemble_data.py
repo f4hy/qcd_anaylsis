@@ -207,7 +207,7 @@ class ensemble_data(object):
         q2 = self.dp.ud_mass + residual_mass(self.dp)
         ampdata = (amp1data**2 / amp2data) / ampfactor
         data = (q1 + q2)*np.sqrt(2*(ampdata) / massdata**3)
-        if scale:
+        if scaled:
             data = scale[self.dp.beta] * data
         return data
 
@@ -218,7 +218,7 @@ class ensemble_data(object):
 
         ampdata = (amp1data**2 / amp2data) / ampfactor
         data = np.sqrt(2*(ampdata) / massdata)
-        if scale:
+        if scaled:
             data = scale[self.dp.beta] * data
         return data
 
@@ -230,7 +230,7 @@ class ensemble_data(object):
         q2 = self.dp.s_mass + residual_mass(self.dp)
         ampdata = (amp1data**2 / amp2data) / ampfactor
         data = (q1 + q2)*np.sqrt(2*(ampdata) / massdata**3)
-        if scale:
+        if scaled:
             data = scale[self.dp.beta] * data
         return data
 
@@ -240,7 +240,7 @@ class ensemble_data(object):
         ampfactor = self.dp.volume
         ampdata = (amp1data**2 / amp2data) / ampfactor
         data = Zv[self.dp.beta]*np.sqrt(2*(ampdata) / massdata)
-        if scale:
+        if scaled:
             data = scale[self.dp.beta] * data
         return data
 
@@ -267,7 +267,8 @@ class ensemble_data(object):
 
         ampdata = (amp1data**2 / amp2data) / ampfactor
         data = (q1 + q2)*np.sqrt(2*(ampdata) / massdata**3)
-        if scale:
+
+        if scaled:
             data = scale[self.dp.beta] * data
         return data
 
@@ -292,7 +293,7 @@ class ensemble_data(object):
 
         ampdata = (amp1data**2 / amp2data) / ampfactor
         data = Zv[self.dp.beta]*np.sqrt(2*(ampdata) / massdata)
-        if scale:
+        if scaled:
             data = scale[self.dp.beta] * data
         return data
 
@@ -319,7 +320,7 @@ class ensemble_data(object):
 
         ampdata = (amp1data**2 / amp2data) / ampfactor
         data = (q1 + q2)*np.sqrt(2*(ampdata) / massdata**3)
-        if scale:
+        if scaled:
             data = scale[self.dp.beta] * data
         return data
 
@@ -344,7 +345,7 @@ class ensemble_data(object):
 
         ampdata = (amp1data**2 / amp2data) / ampfactor
         data = Zv[self.dp.beta]*np.sqrt(2*(ampdata) / massdata)
-        if scale:
+        if scaled:
             data = scale[self.dp.beta] * data
         return data
 
@@ -372,7 +373,7 @@ class ensemble_data(object):
 
         ampdata = (amp1data**2 / amp2data) / ampfactor
         data = (q1 + q2)*np.sqrt(2*(ampdata) / massdata**3)
-        if scale:
+        if scaled:
             data = scale[self.dp.beta] * data
         return data
 
