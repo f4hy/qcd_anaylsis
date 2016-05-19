@@ -317,16 +317,21 @@ if __name__ == "__main__":
     axis_choices = ["mud", "mud_s", "mpi", "mpisqr", "2mksqr-mpisqr", "mpisqr/mq", "xi", "mq"]
     legend_choices = ["betaLs", "betaL", "heavy", "smearing", "flavor", "strange", "betaheavy", "custom"]
 
+    extention_group = parser.add_mutually_exclusive_group()
+    extention_group.add_argument("--png", action="store_true", default=True,
+                                 help="save as eps not png")
+    extention_group.add_argument("--eps", action="store_true",
+                                 help="save as eps not png")
+    extention_group.add_argument("--pdf", action="store_true",
+                                 help="save as pdf not png")
+
+
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="increase output verbosity")
     parser.add_argument('files', metavar='f', type=str, nargs='+',
                         help='files to plot')
     parser.add_argument("-o", "--output_stub", type=str, required=False,
                         help="stub of name to write output to")
-    parser.add_argument("-e", "--eps", action="store_true",
-                        help="save as eps not png")
-    parser.add_argument("--pdf", action="store_true",
-                        help="save as pdf not png")
     parser.add_argument("-b", "--box", action="store_true",
                         help="max boxplots instead")
     parser.add_argument("-c", "--scatter", action="store_true",
