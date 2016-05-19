@@ -95,7 +95,7 @@ def determine_flavor(f):
 
 def get_heavyq_mass(beta, heavytype):
     if heavytype is None:
-        return None
+        return 0.0
     if beta == "4.17":
         #0.44037 0.55046 0.68808 0.86001
         heavymap = {"m0": 0.44037, "m1": 0.55046, "m2": 0.68808, "m3": 0.86001, "m4": float("NAN"), "m5": float("NAN")}
@@ -108,7 +108,7 @@ def get_heavyq_mass(beta, heavytype):
     try:
         return heavymap[heavytype]
     except:
-        return None
+        return 0.0
 
 def get_heavy_m1_m2(m):
     Q = ((1 + m**2)/(1 - m**2))**2
