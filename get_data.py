@@ -289,7 +289,7 @@ def get_data(ed, data_type, options):
     if data_type == "fDs":
         data = ed.fDs(scaled=options.scale)
 
-        label = "$f_{D_s}^{PP}$"
+        label = "$f_{hs}^{PP}$"
         if options.scale:
             label += " [MeV]"
         return data.mean(), data.std(), label, {"Charm": phys_FDs, "Bottom": phys_FBs}
