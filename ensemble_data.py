@@ -35,7 +35,7 @@ class ensemble_data(object):
 
         self.interpstrange = interpstrange
 
-    def narrow_wildcard(self, fit_file_wildcard, flavor=None, operator="PP", axial=False):
+    def narrow_wildcard(self, fit_file_wildcard, flavor=None, operator="PP", axial=False, nextheavy=False):
         dp = self.dp
 
         if flavor is None:
@@ -48,6 +48,13 @@ class ensemble_data(object):
             smearing = None
 
         heavyness = dp.heavyness
+        if nextheavy:
+
+            logging.info("base heavyness {}".format(heavyness))
+            heavyness = heavyness[0] + str(int(heavyness[1]) + 1)
+            logging.info("new heavyness {}".format(heavyness))
+
+
         if heavyness == "ll":
             heavyness = None
         if heavyness is not None:
@@ -55,6 +62,8 @@ class ensemble_data(object):
 
         if flavor == "heavy-heavy":
             smearing = "0"
+
+
 
         prefix = ""
         if self.interpstrange:
@@ -95,21 +104,21 @@ class ensemble_data(object):
         logging.debug("narrowed to file {}".format(fitdatafiles[0]))
         return fitdatafiles[0]
 
-    def get_mass(self, flavor, wild=None, op="PP"):
+    def get_mass(self, flavor, wild=None, op="PP", nextheavy=False):
         if wild is None:
             wild = self.fit_file_wildcard
 
-        mass_file = self.narrow_wildcard(wild, flavor=flavor, operator=op)
+        mass_file = self.narrow_wildcard(wild, flavor=flavor, operator=op, nextheavy=nextheavy)
 
         with open(mass_file) as fitfile:
             df = pd.read_csv(fitfile, comment='#', names=["config", "mass", "amp1", "amp2"])
             return df.mass
 
-    def get_amps(self, flavor, wild=None, op="PP"):
+    def get_amps(self, flavor, wild=None, op="PP", nextheavy=False):
         if wild is None:
             wild = self.fit_file_wildcard
 
-        amp_file = self.narrow_wildcard(wild, flavor=flavor, operator=op)
+        amp_file = self.narrow_wildcard(wild, flavor=flavor, operator=op, nextheavy=nextheavy)
 
         with open(amp_file) as fitfile:
             df = pd.read_csv(fitfile, comment='#', names=["config", "mass", "amp1", "amp2"])
@@ -135,6 +144,23 @@ class ensemble_data(object):
             return self.scale*self.get_mass("heavy-ud")
         return self.get_mass("heavy-ud")
 
+    def D_mass_ratio(self, scaled=False):
+        mass1  = self.get_mass("heavy-ud")
+        try:
+            mass2 = self.get_mass("heavy-ud", nextheavy=True)
+        except MissingData:
+            return [np.nan]
+        return mass2 / mass1
+
+    def Ds_mass_ratio(self, scaled=False):
+        mass1  = self.get_mass("heavy-s")
+        try:
+            mass2 = self.get_mass("heavy-s", nextheavy=True)
+        except MissingData:
+            return [np.nan]
+        return mass2 / mass1
+
+
     def D_mass_axial(self, scaled=False):
         if scaled:
             return self.scale*self.get_mass("heavy-ud", op="A4")
@@ -145,11 +171,21 @@ class ensemble_data(object):
             return self.scale*self.get_mass("heavy-s", op="A4")
         return self.get_mass("heavy-s", op="A4")
 
+    def D_mass_div_ratio(self, scaled=False):
+        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_{0}_*/*.boot".format(FITTYPE)
+        try:
+            mass1 = self.get_mass("heavy-ud", wild=divwild)
+            mass2 = self.get_mass("heavy-ud", wild=divwild, nextheavy=True)
+        except MissingData:
+            return [np.nan]
+        return mass2 / mass1
+
     def D_mass_div(self, scaled=False):
         divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_{0}_*/*.boot".format(FITTYPE)
         if scaled:
             return self.scale*self.get_mass("heavy-ud", wild=divwild)
         return self.get_mass("heavy-ud", wild=divwild)
+
 
     def D_mass_axial_div(self, scaled=False):
         divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_{0}_*/*.boot".format(FITTYPE)
@@ -271,6 +307,102 @@ class ensemble_data(object):
         if scaled:
             data = scale[self.dp.beta] * data
         return data
+
+    def fD_ratio(self, scaled=False, renorm=False, div=False):
+        try:
+            if div:
+                divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_{0}_*/*.boot".format(FITTYPE)
+                amp1data1, amp2data1 = self.get_amps("heavy-ud", wild=divwild)
+                amp1data2, amp2data2 = self.get_amps("heavy-ud", wild=divwild, nextheavy=True)
+                massdata1 = self.get_mass("heavy-ud", wild=divwild)
+                massdata2 = self.get_mass("heavy-ud", wild=divwild, nextheavy=True)
+            else:
+                amp1data1, amp2data1 = self.get_amps("heavy-ud")
+                amp1data2, amp2data2 = self.get_amps("heavy-ud", nextheavy=True)
+                massdata1 = self.get_mass("heavy-ud")
+                massdata2 = self.get_mass("heavy-ud", nextheavy=True)
+        except MissingData:
+            return [0]
+        ampfactor1 = self.dp.volume
+        ampfactor2 = self.dp.volume
+
+
+        qh1 = self.dp.heavyq_mass + residual_mass(self.dp)
+        qh2 = self.dp.heavyq_mass_next + residual_mass(self.dp)
+        ql = self.dp.ud_mass + residual_mass(self.dp)
+
+        if renorm:
+            m = self.dp.heavyq_mass + residual_mass(self.dp)
+            Q = ((1 + m**2)/(1 - m**2))**2
+            W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
+            T = 1 - W0
+            heavyfactor = 2.0/((1 - m**2)*(1 + np.sqrt(Q/(1 + 4*W0))))
+            ampfactor1 *= heavyfactor
+
+            m = self.dp.heavyq_mass_next + residual_mass(self.dp)
+            Q = ((1 + m**2)/(1 - m**2))**2
+            W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
+            T = 1 - W0
+            heavyfactor = 2.0/((1 - m**2)*(1 + np.sqrt(Q/(1 + 4*W0))))
+            ampfactor2 *= heavyfactor
+
+        ampdata1 = (amp1data1**2 / amp2data1) / ampfactor1
+        ampdata2 = (amp1data2**2 / amp2data2) / ampfactor2
+        data1 = (qh1 + ql)*np.sqrt(2*(ampdata1) / massdata1**3)
+        data2 = (qh2 + ql)*np.sqrt(2*(ampdata2) / massdata2**3)
+
+        data = data2 / data1
+
+        return data
+
+
+    def fDs_ratio(self, scaled=False, renorm=False, div=False):
+        try:
+            if div:
+                divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_{0}_*/*.boot".format(FITTYPE)
+                amp1data1, amp2data1 = self.get_amps("heavy-s", wild=divwild)
+                amp1data2, amp2data2 = self.get_amps("heavy-s", wild=divwild, nextheavy=True)
+                massdata1 = self.get_mass("heavy-s", wild=divwild)
+                massdata2 = self.get_mass("heavy-s", wild=divwild, nextheavy=True)
+            else:
+                amp1data1, amp2data1 = self.get_amps("heavy-s")
+                amp1data2, amp2data2 = self.get_amps("heavy-s", nextheavy=True)
+                massdata1 = self.get_mass("heavy-s")
+                massdata2 = self.get_mass("heavy-s", nextheavy=True)
+        except MissingData:
+            return [0]
+        ampfactor1 = self.dp.volume
+        ampfactor2 = self.dp.volume
+
+
+        qh1 = self.dp.heavyq_mass + residual_mass(self.dp)
+        qh2 = self.dp.heavyq_mass_next + residual_mass(self.dp)
+        ql = self.dp.s_mass + residual_mass(self.dp)
+
+        if renorm:
+            m = self.dp.heavyq_mass + residual_mass(self.dp)
+            Q = ((1 + m**2)/(1 - m**2))**2
+            W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
+            T = 1 - W0
+            heavyfactor = 2.0/((1 - m**2)*(1 + np.sqrt(Q/(1 + 4*W0))))
+            ampfactor1 *= heavyfactor
+
+            m = self.dp.heavyq_mass_next + residual_mass(self.dp)
+            Q = ((1 + m**2)/(1 - m**2))**2
+            W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
+            T = 1 - W0
+            heavyfactor = 2.0/((1 - m**2)*(1 + np.sqrt(Q/(1 + 4*W0))))
+            ampfactor2 *= heavyfactor
+
+        ampdata1 = (amp1data1**2 / amp2data1) / ampfactor1
+        ampdata2 = (amp1data2**2 / amp2data2) / ampfactor2
+        data1 = (qh1 + ql)*np.sqrt(2*(ampdata1) / massdata1**3)
+        data2 = (qh2 + ql)*np.sqrt(2*(ampdata2) / massdata2**3)
+
+        data = data2 / data1
+
+        return data
+
 
     def fDA(self, scaled=False, renorm=False, div=False):
         if div:

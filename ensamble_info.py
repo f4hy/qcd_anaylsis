@@ -174,10 +174,12 @@ class data_params(object):
         if self.heavyness != "ll" and self.heavyness is not None:
             #self.heavymass = re.search("_heavy(0.[0-9]*)_", filename).group(1)
             self.heavymass = re.search("_([ms][012345])_", filename).group(1)
+            self.heavymass_next = self.heavymass[0] + str(int(self.heavymass[1])+1)
         else:
             self.heavymass = None
 
         self.heavyq_mass = get_heavyq_mass(self.beta, self.heavymass)
+        self.heavyq_mass_next = get_heavyq_mass(self.beta, self.heavymass_next)
 
         if self.heavyq_mass is not None:
             self.heavy_m1, self.heavy_m2 = get_heavy_m1_m2(self.heavyq_mass)
