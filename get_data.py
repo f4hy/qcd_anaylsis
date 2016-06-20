@@ -47,8 +47,8 @@ def get_data(ed, data_type, options):
         data = fdata_ratio*np.sqrt(mdata_ratio)
 
         label = "$\\frac{f_{h^{+1}l}\, \sqrt{m_{h^{+1}l}}}{f_{hl}\, \sqrt{m_{hl}}}$"
-        if options.scale:
-            label += " [MeV^(3/2)]"
+        # if options.scale:
+        #     label += " [MeV^(3/2)]"
         return data.mean(), data.std(), label, {"HQL": 1.0}
 
     if data_type == "fDssqrtmDs_ratio":
@@ -56,10 +56,11 @@ def get_data(ed, data_type, options):
         mdata_ratio = ed.Ds_mass_ratio(scaled=options.scale)
 
         data = fdata_ratio*np.sqrt(mdata_ratio)
+        #data =  fdata_ratio*np.sqrt(mdata_ratio)
 
         label = "$\\frac{f_{h^{+1}s}\, \sqrt{m_{h^{+1}s}}}{f_{hs}\, \sqrt{m_{hs}}}$"
-        if options.scale:
-            label += " [MeV^(3/2)]"
+        # if options.scale:
+        #     label += " [MeV^(3/2)]"
         return data.mean(), data.std(), label, {"HQL": 1.0}
 
 
@@ -155,14 +156,38 @@ def get_data(ed, data_type, options):
         label = "$\\frac{\hat{f}_{h^{+1}l}\, \sqrt{m_{h^{+1}l}} }{ \hat{f}_{hl}\, \sqrt{m_{hl}} }$"
         return data.mean(), data.std(), label, {"HQL": 1.0}
 
+
+    if data_type == "fDs_div_renorm_ratio":
+        fdata_ratio = ed.fDs_ratio(scaled=options.scale, renorm=True, div=True)
+        mdata_ratio = ed.D_mass_ratio(scaled=options.scale)
+
+
+        data = np.sqrt(1.25)* fdata_ratio
+
+        label = "$ \sqrt{1.25} \\frac{\hat{f}_{h^{+1}s} }{ \hat{f}_{hs} }$"
+        return np.mean(data), np.std(data), label, {"HQL": 1.0}
+
+
     if data_type == "fDs_divsqrtmDs_renorm_ratio":
         fdata_ratio = ed.fDs_ratio(scaled=options.scale, renorm=True, div=True)
         mdata_ratio = ed.Ds_mass_ratio(scaled=options.scale)
 
         data = fdata_ratio*np.sqrt(mdata_ratio)
 
-        label = "$\\frac{\hat{f}_{h^{+1}l}\, \sqrt{m_{h^{+1}l}} }{ \hat{f}_{hl}\, \sqrt{m_{hl}} }$"
+        label = "$ \\frac{\hat{f}_{h^{+1}s}\, \sqrt{m_{h^{+1}s}} }{ \hat{f}_{hs}\, \sqrt{m_{hs}} }$"
         return data.mean(), data.std(), label, {"HQL": 1.0}
+
+    if data_type == "mDs_renorm_ratio":
+        mdata_ratio = ed.Ds_mass_ratio(scaled=options.scale)
+
+        if np.all(np.isnan(mdata_ratio)):
+            mdata_ratio = np.mean(mdata_ratio)
+        data = mdata_ratio / 1.25
+
+
+        label = "$  \\frac{1}{1.25}\\frac{m_{h^{+1}s} }{ m_{hs} }$"
+        return np.mean(data), np.std(data), label, {"HQL": 1.0}
+
 
 
     if data_type == "fDA_divsqrtmD_renorm":
@@ -177,7 +202,7 @@ def get_data(ed, data_type, options):
         return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
 
     if data_type == "fDsA_divsqrtmDs_renorm":
-        fdata = ed.fDsA(renorm=True, div=True)
+        fdata = ed.fDsA(scaled=options.scale, renorm=True, div=True)
         mdata = ed.Ds_mass(scaled=options.scale)
 
         data = fdata*np.sqrt(mdata)
@@ -736,13 +761,23 @@ def get_data(ed, data_type, options):
         return data, err, label, {"PDG": phys_mq}
 
     if data_type == "mheavyq":
-        data = ed.dp.heavyq_mass # / Zs[ed.dp.beta]
+        data = ed.dp.heavyq_mass / Zs[ed.dp.beta]
         print ed.dp.latspacing
         err = 0.0
         label = "$m_{q_h}$"
         if options.scale:
             data = scale[ed.dp.beta]*data
             label += " [MeV]"
+        return data, err, label, {"PDG": phys_mhq}
+
+    if data_type == "1/mheavyq":
+        data = 1.0/(ed.dp.heavyq_mass / Zs[ed.dp.beta])
+        print ed.dp.latspacing
+        err = 0.0
+        label = "$1/m_{q_h}$"
+        if options.scale:
+            data = data / scale[ed.dp.beta]
+            label += " [1/MeV]"
         return data, err, label, {"PDG": phys_mhq}
 
 
