@@ -50,9 +50,9 @@ class ensemble_data(object):
         heavyness = dp.heavyness
         if nextheavy:
 
-            logging.info("base heavyness {}".format(heavyness))
+            logging.debug("base heavyness {}".format(heavyness))
             heavyness = heavyness[0] + str(int(heavyness[1]) + 1)
-            logging.info("new heavyness {}".format(heavyness))
+            logging.debug("new heavyness {}".format(heavyness))
 
 
         if heavyness == "ll":
@@ -124,6 +124,8 @@ class ensemble_data(object):
             df = pd.read_csv(fitfile, comment='#', names=["config", "mass", "amp1", "amp2"])
             return df.amp1, df.amp2
 
+
+
     def pion_mass(self, scaled=False):
         if scaled:
             return self.scale*self.get_mass("ud-ud")
@@ -149,7 +151,7 @@ class ensemble_data(object):
         try:
             mass2 = self.get_mass("heavy-ud", nextheavy=True)
         except MissingData:
-            return [np.nan]
+            return [np.nan]*len(mass1)
         return mass2 / mass1
 
     def Ds_mass_ratio(self, scaled=False):
@@ -157,7 +159,7 @@ class ensemble_data(object):
         try:
             mass2 = self.get_mass("heavy-s", nextheavy=True)
         except MissingData:
-            return [np.nan]
+            return [np.nan]*len(mass1)
         return mass2 / mass1
 
 
@@ -177,8 +179,18 @@ class ensemble_data(object):
             mass1 = self.get_mass("heavy-ud", wild=divwild)
             mass2 = self.get_mass("heavy-ud", wild=divwild, nextheavy=True)
         except MissingData:
-            return [np.nan]
+            return [np.nan]*len(mass1)
         return mass2 / mass1
+
+    def Ds_mass_div_ratio(self, scaled=False):
+        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_{0}_*/*.boot".format(FITTYPE)
+        try:
+            mass1 = self.get_mass("heavy-s", wild=divwild)
+            mass2 = self.get_mass("heavy-s", wild=divwild, nextheavy=True)
+        except MissingData:
+            return [np.nan]*len(mass1)
+        return mass2 / mass1
+
 
     def D_mass_div(self, scaled=False):
         divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_{0}_*/*.boot".format(FITTYPE)
@@ -322,7 +334,7 @@ class ensemble_data(object):
                 massdata1 = self.get_mass("heavy-ud")
                 massdata2 = self.get_mass("heavy-ud", nextheavy=True)
         except MissingData:
-            return [0]
+            return [np.nan] * len(amp1data1)
         ampfactor1 = self.dp.volume
         ampfactor2 = self.dp.volume
 
@@ -370,7 +382,7 @@ class ensemble_data(object):
                 massdata1 = self.get_mass("heavy-s")
                 massdata2 = self.get_mass("heavy-s", nextheavy=True)
         except MissingData:
-            return [0]
+            return [np.nan] * len(amp1data1)
         ampfactor1 = self.dp.volume
         ampfactor2 = self.dp.volume
 
