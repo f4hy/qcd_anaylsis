@@ -49,12 +49,14 @@ def read_files(files, fitdata, cutoff=None, hqm_cutoff=None):
 
 class Model(object):
 
-    def __init__(self, data, type_string):
+    def __init__(self, data, type_string, options):
 
         self.data = data
 
 
         self.type_string = type_string
+
+        self.options = options
 
         dps = self.data.keys()
 
@@ -81,7 +83,7 @@ class Model(object):
                                       dp in dps])
         self.res_err = np.array([data[dp].scale*residual_mass_errors(dp) for dp in dps])
 
-        self.heavyq_mass = np.array([data[dp].scale*(dp.heavyq_mass) for dp in dps])
+        self.heavyq_mass = np.array([data[dp].scale*(dp.heavyq_mass) / Zs[dp.beta] for dp in dps])
 
         self.m1 = np.array([dp.heavy_m1*data[dp].scale for dp in dps])
         self.m2 = np.array([dp.heavy_m2*data[dp].scale for dp in dps])
@@ -114,6 +116,17 @@ class Model(object):
 
         self.fDs = make_array("fDs", scaled=True)
 
+        self.D_mass_ratio = make_array("D_mass_ratio", scaled=False)
+        self.D_mass_div_ratio = make_array("D_mass_div_ratio", scaled=False)
+        self.fD_ratio = make_array("fD_ratio", scaled=False)
+        self.fD_div_ratio = make_array("fD_ratio", scaled=False, renorm=True, div=True)
+
+        self.Ds_mass_ratio = make_array("Ds_mass_ratio", scaled=False)
+        self.Ds_mass_div_ratio = make_array("Ds_mass_div_ratio", scaled=False)
+        self.fDs_ratio = make_array("fDs_ratio", scaled=False)
+        self.fDs_div_ratio = make_array("fDs_ratio", scaled=False, renorm=True, div=True)
+
+
 
     def build_function(self):
 
@@ -138,7 +151,10 @@ class Model(object):
             paramdict = {parameter: guess}
             paramdict["error_"+parameter] = err
             paramdict["fix_"+parameter] = fix
-            if fixzero:
+            if parameter in self.options.zero:
+                logging.info("option passed to set {} to zero".format(parameter))
+                print self.options.zero
+            if fixzero or parameter in self.options.zero:
                 paramdict[parameter] = 0.0
                 paramdict["fix_"+parameter] = True
             if limits:
@@ -630,10 +646,96 @@ class Model(object):
 
             fun = self.fdssqrtms_chiral_dmss_HQET
 
+        elif self.type_string == "fdssqrtms_ratio":
+
+            z_guess = 1.0
+            z2_guess = 1.0
+            gamma_guess = 1.0
+
+            params = paramdict("z", z_guess, z_guess)
+            params.update(paramdict("z2", z2_guess, z2_guess))
+            params.update(paramdict("gamma_1", gamma_guess, gamma_guess))
+
+            fun = self.fdssqrtms_ratio
+
+        elif self.type_string == "fdssqrtms_mq_ratio":
+
+            z_guess = 1.0
+            z2_guess = 1.0
+            gammaA_guess = 1.0
+            gammaS_guess = 1.0
+            gammaP_guess = 1.0
+
+            params = paramdict("z", z_guess, z_guess)
+            params.update(paramdict("z2", z2_guess, z2_guess))
+            params.update(paramdict("gamma_A", gammaA_guess, gammaA_guess))
+            params.update(paramdict("gamma_S", gammaS_guess, gammaS_guess))
+            params.update(paramdict("gamma_P", gammaP_guess, gammaP_guess))
+
+            fun = self.fdssqrtms_mq_ratio
+
+        elif self.type_string == "fdssqrtms_mq_ma_ratio":
+
+            z_guess = 200.0
+            z2_guess = -100000.0
+            gammaA_guess = 11.0
+            gammaMA_guess = 0.01
+            gammaMMA_guess = 0.1
+            gammaS_guess = 2.0e-8
+            gammaP_guess = 2.0e-8
+
+            params = paramdict("z", z_guess, z_guess/2)
+            params.update(paramdict("z2", z2_guess, z2_guess/2))
+            params.update(paramdict("gamma_A", gammaA_guess, gammaA_guess))
+            params.update(paramdict("gamma_S", gammaS_guess, gammaS_guess))
+            params.update(paramdict("gamma_P", gammaP_guess, gammaP_guess))
+
+            params.update(paramdict("gamma_MA", gammaMA_guess, gammaMA_guess))
+            params.update(paramdict("gamma_MMA", gammaMMA_guess, gammaMMA_guess))
+
+
+            fun = self.fdssqrtms_mq_ma_ratio
+
+        elif self.type_string == "fdsqrtm_ratio":
+
+            z_guess = 1.0
+            z2_guess = 1.0
+            gamma1_guess = 1.0
+
+            params = paramdict("z", z_guess, z_guess)
+            params.update(paramdict("z2", z2_guess, z2_guess))
+            params.update(paramdict("gamma_1", gamma1_guess, gamma1_guess))
+
+            fun = self.fdsqrtm_ratio
+
+
+        elif self.type_string == "ms_mq_ma_ratio":
+
+            z_guess = 200.0
+            z2_guess = -100000.0
+            gammaA_guess = 11.0
+            gammaMA_guess = 0.01
+            gammaMMA_guess = 0.1
+            gammaS_guess = 2.0e-8
+            gammaP_guess = 2.0e-8
+
+            params = paramdict("z", z_guess, z_guess/2)
+            params.update(paramdict("z2", z2_guess, z2_guess/2))
+            params.update(paramdict("gamma_A", gammaA_guess, gammaA_guess))
+            params.update(paramdict("gamma_S", gammaS_guess, gammaS_guess))
+            params.update(paramdict("gamma_P", gammaP_guess, gammaP_guess))
+
+            params.update(paramdict("gamma_MA", gammaMA_guess, gammaMA_guess))
+            params.update(paramdict("gamma_MMA", gammaMMA_guess, gammaMMA_guess))
+
+
+            fun = self.ms_mq_ma_ratio
+
 
         else:
             logging.error("Function not supported yet")
             raise RuntimeError("Function {} not supported yet".format(self.type_string))
+
 
         return params, fun
 
@@ -1521,12 +1623,140 @@ class Model(object):
         sqr_diff1 = (data - M1)**2
         return np.sum(sqr_diff1/var)
 
+    def fdssqrtms_ratio(self, z, z2, gamma_1):
 
-def interpolate(data, model_str):
+        data = self.fDs_div_ratio * np.sqrt(self.Ds_mass_div_ratio)
+        datameans = data.mean(1)
+        pdatameans = datameans[~np.isnan(datameans)]
+        datavar = data.var(1)
+        pdatavar = datavar[~np.isnan(datameans)]
+
+
+
+        m = self.mDs.mean(1) + self.m2 - self.m1
+        m = m[~np.isnan(datameans)]
+
+        A = self.a[~np.isnan(datameans)]
+
+        M1 = (1+gamma_1*(A**2)) * (1 + z/m + z2/(m**2))
+
+
+        sqr_diff1 = (pdatameans - M1)**2
+        return np.sum(sqr_diff1/pdatavar)
+
+    def fdssqrtms_mq_ratio(self, z, z2, gamma_A, gamma_S, gamma_P):
+
+        data = self.fDs_div_ratio * np.sqrt(self.Ds_mass_div_ratio)
+        datameans = data.mean(1)
+        pdatameans = datameans[~np.isnan(datameans)]
+        datavar = data.var(1)
+        pdatavar = datavar[~np.isnan(datameans)]
+
+        mpisqr = self.mpisqr.mean(1)
+
+        Mss = (2.0*self.mKsqr.mean(1)) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+        mpisqr = mpisqr[~np.isnan(datameans)]
+        delta_Mss = delta_Mss[~np.isnan(datameans)]
+
+        m = self.heavyq_mass
+        m = m[~np.isnan(datameans)]
+
+        A = self.a[~np.isnan(datameans)]
+
+        M1 = (1+gamma_S*delta_Mss)*(1.0+gamma_P*(mpisqr-phys_pion**2))*(1+gamma_A*(A**2)) * (1 + z/m + z2/(m**2))
+
+
+        sqr_diff1 = (pdatameans - M1)**2
+        return np.sum(sqr_diff1/pdatavar)
+
+    def fdssqrtms_mq_ma_ratio(self, z, z2, gamma_A, gamma_S, gamma_P, gamma_MA, gamma_MMA):
+
+        data = self.fDs_div_ratio * np.sqrt(self.Ds_mass_div_ratio)
+        datameans = data.mean(1)
+        pdatameans = datameans[~np.isnan(datameans)]
+        datavar = data.var(1)
+        pdatavar = datavar[~np.isnan(datameans)]
+
+        mpisqr = self.mpisqr.mean(1)
+
+        Mss = (2.0*self.mKsqr.mean(1)) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+        mpisqr = mpisqr[~np.isnan(datameans)]
+        delta_Mss = delta_Mss[~np.isnan(datameans)]
+
+        m = self.heavyq_mass
+        m = m[~np.isnan(datameans)]
+
+        A = self.a[~np.isnan(datameans)]
+
+        M1 = (1+gamma_S*delta_Mss)*(1.0+gamma_P*(mpisqr-phys_pion**2))*(1+gamma_A*(A**2)+gamma_MA*(m*A**2)+gamma_MMA*((m*A)**2)) * (1 + z/m + z2/(m**2))
+
+
+        sqr_diff1 = (pdatameans - M1)**2
+        return np.sum(sqr_diff1/pdatavar)
+
+    def ms_mq_ma_ratio(self, z, z2, gamma_A, gamma_S, gamma_P, gamma_MA, gamma_MMA):
+
+        data = self.Ds_mass_div_ratio / 1.25
+        datameans = data.mean(1)
+        pdatameans = datameans[~np.isnan(datameans)]
+        datavar = data.var(1)
+        pdatavar = datavar[~np.isnan(datameans)]
+
+        mpisqr = self.mpisqr.mean(1)
+
+        Mss = (2.0*self.mKsqr.mean(1)) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+        mpisqr = mpisqr[~np.isnan(datameans)]
+        delta_Mss = delta_Mss[~np.isnan(datameans)]
+
+        m = self.heavyq_mass
+        m = m[~np.isnan(datameans)]
+
+        A = self.a[~np.isnan(datameans)]
+
+        M1 = (1+gamma_S*delta_Mss)*(1.0+gamma_P*(mpisqr-phys_pion**2))*(1+gamma_A*(A**2)+gamma_MA*(m*A**2)+gamma_MMA*((m*A)**2)) * (1 + z/m + z2/(m**2))
+
+
+        sqr_diff1 = (pdatameans - M1)**2
+        return np.sum(sqr_diff1/pdatavar)
+
+
+    def fdsqrtm_ratio(self, z, z2, gamma_1):
+
+        data =  self.fD_div_ratio * np.sqrt(self.D_mass_div_ratio)
+        datameans = data.mean(1)
+        pdatameans = datameans[~np.isnan(datameans)]
+        datavar = data.var(1)
+        pdatavar = datavar[~np.isnan(datameans)]
+
+        m = self.mD.mean(1) + self.m2 - self.m1
+        m = m[~np.isnan(datameans)]
+
+        A = self.a[~np.isnan(datameans)]
+
+        M1 = (1+gamma_1*(A**2)) * (1 + z/m + z2/(m**2))
+
+
+        sqr_diff1 = (pdatameans - M1)**2
+        return np.sum(sqr_diff1/pdatavar)
+
+
+def interpolate(data, model_str, options):
 
     logging.info("Fitting data")
 
-    params, model = Model(data, model_str).build_function()
+    params, model = Model(data, model_str, options).build_function()
 
     ARGS = inspect.getargspec(model).args[1:]
     print params
@@ -1586,7 +1816,7 @@ def interpolate_chiral_spacing(options):
 
     alldata = read_files(options.files, options.fitdata, cutoff=options.cutoff, hqm_cutoff=options.hqm_cutoff)
 
-    fit_paramsters = interpolate(alldata, options.model)
+    fit_paramsters = interpolate(alldata, options.model, options)
 
     write_data(fit_paramsters, options.output_stub, ".fit", options.model)
 
@@ -1599,7 +1829,7 @@ if __name__ == "__main__":
               "mpisqrbymq_xi_NLO", "mpisqrbymq_xi_NLO_inverse", "mpisqrbymq_x_NLO", "combined_x_NLO", "combined_XI_NLO",  "combined_XI_NNLO", "combined_x_NNLO",
               "combined_XI_inverse_NNLO", "combined_x_NLO_all", "combined_x_NNLO_all", "combined_x_NNLO_fixa0", "combined_XI_inverse_NNLO_all" , "combined_XI_inverse_NNLO_phys",
               "fD_chiral",  "fDsbyfD_chiral",
-              "MD_linear_mpisqr_asqr_mss", "MDs_linear_mpisqr_asqr_mss", "FD_linear_mpisqr_asqr_mss", "FDs_linear_mpisqr_asqr_mss", "FDsbyFD_linear_mpisqr_asqr_mss", "Mhs_minus_Mhh", "quad_Mhs_minus_Mhh", "fdsqrtm", "fdsqrtm_HQET", "fdsqrtm_dmss_HQET", "fdsqrtm_chiral_HQET", "fdsqrtm_chiral", "fdsqrtm_chiral_dmss", "fdsqrtm_chiral_dmss_HQET", "fdssqrtms_chiral_dmss_HQET", "fdssqrtms_chiral_dmss", "FDA_linear_mpisqr_asqr_mss", "combined_x_NNLO_LEC"]
+              "MD_linear_mpisqr_asqr_mss", "MDs_linear_mpisqr_asqr_mss", "FD_linear_mpisqr_asqr_mss", "FDs_linear_mpisqr_asqr_mss", "FDsbyFD_linear_mpisqr_asqr_mss", "Mhs_minus_Mhh", "quad_Mhs_minus_Mhh", "fdsqrtm", "fdsqrtm_HQET", "fdsqrtm_dmss_HQET", "fdsqrtm_chiral_HQET", "fdsqrtm_chiral", "fdsqrtm_chiral_dmss", "fdsqrtm_chiral_dmss_HQET", "fdssqrtms_chiral_dmss_HQET", "fdssqrtms_chiral_dmss", "FDA_linear_mpisqr_asqr_mss", "combined_x_NNLO_LEC", "fdssqrtms_ratio", "fdsqrtm_ratio", "fdssqrtms_mq_ratio"]
 
     parser = argparse.ArgumentParser(description="script to interpolate the heavy mass")
     parser.add_argument("-v", "--verbose", action="store_true",
@@ -1618,8 +1848,10 @@ if __name__ == "__main__":
                         help="cutoff value")
     parser.add_argument("--hqm_cutoff", required=False, type=float,
                         help="cutoff value")
-    parser.add_argument("-m", "--model", required=False, type=str, choices=models, default="s_a_pi",
+    parser.add_argument("-m", "--model", required=False, type=str, default="s_a_pi",
                         help="which model to use")
+    parser.add_argument("-z", "--zero", required=False, type=str, nargs='+', default=[],
+                        help="Zero a fit variable")
     args = parser.parse_args()
 
     if args.verbose:
