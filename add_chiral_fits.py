@@ -135,11 +135,29 @@ def add_chiral_fit(axe, xran, chiral_fit_file=None, options=None):
     if fittype.startswith("quad_Mhs_minus_Mhh"):
         return add_quad_Mhs_minus_Mhh(axe, xran, values, errors)
 
+    if fittype.startswith("fdsqrtm_ratio"):
+        return fdssqrtms_ratio(axe, xran, values, errors)
+
+    if fittype.startswith("ms_mq_ma_ratio"):
+        return fdssqrtms_mq_ma_ratio(axe, xran, values, errors)
+
+    if fittype.startswith("fdssqrtms_mq_ma_ratio"):
+        return fdssqrtms_mq_ma_ratio(axe, xran, values, errors)
+
+    if fittype.startswith("fdssqrtms_mq_ratio"):
+        return fdssqrtms_mq_ratio(axe, xran, values, errors)
+
+    if fittype.startswith("fdssqrtms_ratio"):
+        return fdssqrtms_ratio(axe, xran, values, errors)
+
+
     if fittype.startswith("fdsqrtm"):
         return fdsqrtm(axe, xran, values, errors)
 
     if fittype.startswith("fdssqrtms"):
         return fdssqrtms(axe, xran, values, errors)
+
+
 
     print fittype
     print "not supported"
@@ -1162,6 +1180,149 @@ def fdssqrtms(axe, xran, values, errors):
     # axe.errorbar(mB_inv, y=Fsqrtm_inf*(1 + C1 * mB_inv + C2 * mB_inv**2 ),
     #              yerr=errors["Fsqrtm_inf"]*(1 + errors["C1"] * mB_inv + errors["C2"] * mB_inv**2 ),
     #              label="test", color='k', ecolor='k', mec='k', alpha=0.2, **plotsettings)
+
+
+    return plots
+
+
+def fdssqrtms_ratio(axe, xran, values, errors):
+
+    z = values["z"]
+    z2 = values["z2"]
+    gamma_1 = values["gamma_1"]
+
+    mDs_inv = np.linspace(xran[0], xran[1], num=500)
+    m = 1/mDs_inv
+
+    a_beta417 = 197.3269788 / scale["4.17"]
+
+
+    y = 1 + z/m + z2/(m**2)
+    y1 =(1+gamma_1*(a_beta417**2)) * (1 + z/m + z2/(m**2))
+
+    plots = []
+    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v), float(errors[k])))
+                           for k,v in sorted(values.iteritems()) )
+    #paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    print paramstring
+    plabel = "fit"
+
+    plabel = paramstring.replace("$ \eta", "\n $ \eta")
+    if "cutoff" in values.keys():
+        plabel += " $M_\pi < {}$".format(values["cutoff"])
+    plabel = "Continuum and Chiral Limit"
+    plots.extend(axe.plot(mDs_inv, y, label=plabel,  ls="--", lw=2, color="k"))
+
+    plots.extend(axe.plot(mDs_inv, y1, label="fit $\\beta=4.17$",  ls="--", lw=2, color='b'))
+
+
+    return plots
+
+def fdssqrtms_mq_ratio(axe, xran, values, errors):
+
+    z = values["z"]
+    z2 = values["z2"]
+    gamma_A = values["gamma_A"]
+
+    mq_inv = np.linspace(xran[0], xran[1], num=500)
+    m = 1/mq_inv
+
+    a_beta417 = 197.3269788 / scale["4.17"]
+
+
+    y = 1 + z/m + z2/(m**2)
+    y1 =(1+gamma_A*(a_beta417**2)) * (1 + z/m + z2/(m**2))
+
+    plots = []
+    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v), float(errors[k])))
+                           for k,v in sorted(values.iteritems()) )
+    #paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    print paramstring
+    plabel = "fit"
+
+    plabel = paramstring.replace("$ \eta", "\n $ \eta")
+    if "cutoff" in values.keys():
+        plabel += " $M_\pi < {}$".format(values["cutoff"])
+    plabel = "Continuum and Chiral Limit"
+    plots.extend(axe.plot(mq_inv, y, label=plabel,  ls="--", lw=2, color="k"))
+
+    plots.extend(axe.plot(mq_inv, y1, label="fit $\\beta=4.17$",  ls="--", lw=2, color='b'))
+
+
+    return plots
+
+
+def fdssqrtms_mq_ma_ratio(axe, xran, values, errors):
+
+    z = values["z"]
+    z2 = values["z2"]
+    gamma_A = values["gamma_A"]
+    gamma_MA = values["gamma_MA"]
+    gamma_MMA = values["gamma_MMA"]
+
+    mq_inv = np.linspace(xran[0], xran[1], num=500)
+    m = 1/mq_inv
+
+    a_beta417 = 197.3269788 / scale["4.17"]
+    a_beta435 = 197.3269788 / scale["4.35"]
+    a_beta447 = 197.3269788 / scale["4.47"]
+
+
+    y = 1 + z/m + z2/(m**2)
+    y1 =(1+gamma_A*(a_beta417**2)+gamma_MA*m*(a_beta417**2)+gamma_MMA*(m*a_beta417)**2) * (1 + z/m + z2/(m**2))
+    y2 =(1+gamma_A*(a_beta435**2)+gamma_MA*m*(a_beta435**2)+gamma_MMA*(m*a_beta435)**2) * (1 + z/m + z2/(m**2))
+    y3 =(1+gamma_A*(a_beta447**2)+gamma_MA*m*(a_beta447**2)+gamma_MMA*(m*a_beta447)**2) * (1 + z/m + z2/(m**2))
+
+    plots = []
+    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v), float(errors[k])))
+                           for k,v in sorted(values.iteritems()) )
+    #paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    print paramstring
+    plabel = "fit"
+
+    plabel = paramstring.replace("$ \eta", "\n $ \eta")
+    if "cutoff" in values.keys():
+        plabel += " $M_\pi < {}$".format(values["cutoff"])
+    plabel = "Continuum and Chiral Limit"
+    plots.extend(axe.plot(mq_inv, y, label=plabel,  ls="--", lw=2, color="k"))
+
+    plots.extend(axe.plot(mq_inv, y1, label="fit $\\beta=4.17$",  ls="--", lw=2, color='b'))
+    plots.extend(axe.plot(mq_inv, y2, label="fit $\\beta=4.35$",  ls="--", lw=2, color='r'))
+    plots.extend(axe.plot(mq_inv, y3, label="fit $\\beta=4.47$",  ls="--", lw=2, color='m'))
+
+
+    return plots
+
+
+def fdsqrtm_ratio(axe, xran, values, errors):
+
+    z = values["z"]
+    z2 = values["z2"]
+    gamma_A = values["gamma_A"]
+
+    mDs_inv = np.linspace(xran[0], xran[1], num=500)
+    m = 1/mDs_inv
+
+    a_beta417 = 197.3269788 / scale["4.17"]
+
+
+    y = 1 + z/m + z2/(m**2)
+    y1 =(1+gamma_A*(a_beta417**2)) * (1 + z/m + z2/(m**2))
+
+    plots = []
+    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v), float(errors[k])))
+                           for k,v in sorted(values.iteritems()) )
+    #paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    print paramstring
+    plabel = "fit"
+
+    plabel = paramstring.replace("$ \eta", "\n $ \eta")
+    if "cutoff" in values.keys():
+        plabel += " $M_\pi < {}$".format(values["cutoff"])
+        plabel = "Continuum and Chiral Limit"
+        plots.extend(axe.plot(mDs_inv, y, label=plabel,  ls="--", lw=2, color="k"))
+
+    plots.extend(axe.plot(mDs_inv, y1, label="fit $\\beta=4.17$",  ls="--", lw=2, color='b'))
 
 
     return plots
