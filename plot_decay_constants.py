@@ -211,6 +211,7 @@ def plot_decay_constant(options):
         legend_handles.append(physxplot)
 
     if options.addpoint:
+        logging.info("adding point {}".format(options.addpoint))
         print options.addpoint
         px = float(options.addpoint[1])
         py = float(options.addpoint[2])
@@ -223,6 +224,13 @@ def plot_decay_constant(options):
                                   linestyle="None", label=options.addpoint[0], mfc="k")
         legend_handles.append(symbol)
 
+    if options.addpoints:
+        logging.info("adding points from {}".format(options.addpoints))
+        with open(options.addpoints) as pointfile:
+            for l in pointfile:
+                x,y = l.split(",")
+                axe.errorbar(float(x), float(y), yerr=0, color='k', markersize=15, ecolor='k', marker='s')
+                print x, y
 
     if options.xrange:
         logging.info("setting x range to {}".format(options.xrange))
@@ -344,6 +352,8 @@ if __name__ == "__main__":
                         help="set the xrange of the plot", default=None)
     parser.add_argument("--addpoint", required=False, nargs=3, metavar=("LABEL", "X", "Y"),
                         help="Add a point", default=None)
+    parser.add_argument("--addpoints", required=False , type=str,
+                        help="Add points from file", default=None)
     parser.add_argument("--xaxis", required=False, choices=axis_choices,
                         help="what to set on the xaxis", default="mud")
     parser.add_argument("--legendloc", type=int, required=False, default=0,
