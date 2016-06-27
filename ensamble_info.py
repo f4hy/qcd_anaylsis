@@ -170,6 +170,7 @@ class data_params(object):
             self.heavyness = re.search("_([a-z][a-z0-9])_", filename).group(1)
         except AttributeError:
             self.heavyness = None
+            self.heavymass_next = None
 
         if self.heavyness != "ll" and self.heavyness is not None:
             #self.heavymass = re.search("_heavy(0.[0-9]*)_", filename).group(1)
