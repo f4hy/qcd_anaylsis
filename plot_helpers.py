@@ -3,6 +3,11 @@ from scipy import stats
 import numpy as np
 import math
 
+from ensamble_info import phys_pion, phys_kaon, phys_mq, phys_Fpi, phys_FD, phys_FDs, phys_D, phys_Ds
+from ensamble_info import phys_eta, phys_etac, phys_FK, phys_mhq
+from ensamble_info import Zs, Zv
+
+
 def error(x):
     #return x.std()
     med = np.median(x)
@@ -29,6 +34,24 @@ def print_paren_error(value,error):
 
     formated_string = "{m}({e})".format(m=formated_value, e=formated_error)
     return formated_string
+
+def add_mc_lines(axe, options, auto_key):
+    mcline = None
+    if options.ydata == "mD":
+        mcline = phys_D
+    if options.ydata == "mDs":
+        mcline = phys_Ds
+    if mcline is not None:
+        mq = 1068
+        for i in range(6):
+            axe.plot([0, mq*(1.25)**i], [mcline*(1.15)**i,mcline*(1.15)**i], color=auto_key((i, None, None), check=False)[0], ls="--", lw=2)
+            axe.annotate("$1.15^{}".format(i) + "M_{D_s}$", xy=(100, 50+mcline*(1.15)**i), fontsize=30)
+
+            #axe.axvspan(mq*(1.25)**i, mq*(1.25)**i, ymin=0, ymax=mcline*(1.15)**i, color=auto_key((i, None, None), check=False)[0], ls="--", lw=2)
+            axe.plot([mq*(1.25)**i, mq*(1.25)**i], [0, mcline*(1.15)**i], color=auto_key((i, None, None), check=False)[0], ls="--", lw=2)
+            axe.annotate("$1.25^{}".format(i) + "M_{q_h}$", xy=(-150+mq*(1.25)**i, 1500), fontsize=30, rotation=90)
+
+
 
 def test():
 

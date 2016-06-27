@@ -28,6 +28,8 @@ from get_data import get_data
 
 from itertools import cycle
 
+from plot_helpers import add_mc_lines
+
 def round5(x):
     return int(5 * np.around(x/5.0))
 
@@ -205,6 +207,9 @@ def plot_decay_constant(options):
         else:
             for i in scale.keys():
                 physxplot = axe.axvline(scale[i], color=auto_key((i, None, None), check=False)[0], ls="--", lw=2, label=i)
+
+
+    add_mc_lines(axe, options, auto_key)
 
     if options.physx:
         physxplot = axe.axvline(xphysical, color='k', ls="--", lw=2, label="physical point")
