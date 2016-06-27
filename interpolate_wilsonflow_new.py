@@ -268,7 +268,6 @@ def interpolate_wilsonflow(options):
     ainv1 = hbar_c * t0_chs[1] / phys_t0
     ainv_err1 = hbar_c * phys_errs[1] / phys_t0
     logging.info("ainv1 = {} +/- {}".format(ainv1, ainv_err1))
-    exit(-1)
 
     write_data(betas, t0_chs, (ainv0, ainv1), (ainv_err0, ainv_err1), options.output_stub, "_a_inv")
 
