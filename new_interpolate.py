@@ -17,6 +17,8 @@ from global_fit_model import Model
 
 from misc import all_equal
 
+import os
+
 
 def read_files(files, fitdata, cutoff=None, hqm_cutoff=None):
     data = collections.OrderedDict()
@@ -122,7 +124,7 @@ def write_data(fit_parameters, output_stub, suffix, model):
         logging.info("Not writing output")
         return
     outfilename = output_stub + suffix
-    logging.info("writing a_inv to {}".format(outfilename))
+    logging.info("writing fit to {}".format(outfilename))
     with open(outfilename, "w") as ofile:
         chisqrbydof = fit_parameters.fval / fit_parameters.errordef
         ofile.write("#{} chisqr {}, dof {}, chisqr/dof {}\n".format(model, fit_parameters.fval,
@@ -139,7 +141,7 @@ def write_bootstrap_data(fit_parameters, boot_fval, output_stub, suffix, model):
         logging.info("Not writing output")
         return
     outfilename = output_stub + suffix
-    logging.info("writing a_inv to {}".format(outfilename))
+    logging.info("writing bootstrapfit to {}".format(outfilename))
     with open(outfilename, "w") as ofile:
         fval = boot_fval
         dof = np.mean([b.errordef for b in fit_parameters.values()])
@@ -151,6 +153,14 @@ def write_bootstrap_data(fit_parameters, boot_fval, output_stub, suffix, model):
             value = np.mean(values)
             error = np.std(values)
             ofile.write("{}, {} +/- {}\n".format(name, value, error))
+    bootstraps_filename = output_stub + ".boot"
+    logging.info("writing bootstraps of fit to {}".format(bootstraps_filename))
+    with open(bootstraps_filename, "w") as ofile:
+        names = fit_parameters[0].values.keys()
+        ofile.write("#" + ",".join(names) + "\n")
+        for b,d in fit_parameters.iteritems():
+            line = ",".join(["{}".format(d.values[n]) for n in names])
+            ofile.write("{}\n".format(line))
 
 
 def interpolate_chiral_spacing(options):
