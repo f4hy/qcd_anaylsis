@@ -126,6 +126,8 @@ class data_params(object):
 
         self.filename = filename
 
+        self.bootstraps = sum(1 for line in open(self.filename) if not line.startswith("#"))
+
         for i in ensemble_names.keys():
             if i in filename:
                 self.ename = ensemble_names[i]

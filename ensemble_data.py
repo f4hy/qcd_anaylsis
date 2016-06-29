@@ -29,6 +29,8 @@ class ensemble_data(object):
 
         self.dp = ensamble_info
 
+        self.bootstraps = self.dp.bootstraps
+
         self.scale = scale[self.dp.beta]
 
         self.fit_file_wildcard = fit_file_wildcard
@@ -112,6 +114,7 @@ class ensemble_data(object):
 
         with open(mass_file) as fitfile:
             df = pd.read_csv(fitfile, comment='#', names=["config", "mass", "amp1", "amp2"])
+            assert(self.bootstraps == len(df))
             return df.mass
 
     def get_amps(self, flavor, wild=None, op="PP", nextheavy=False):
@@ -122,6 +125,7 @@ class ensemble_data(object):
 
         with open(amp_file) as fitfile:
             df = pd.read_csv(fitfile, comment='#', names=["config", "mass", "amp1", "amp2"])
+            assert(self.bootstraps == len(df))
             return df.amp1, df.amp2
 
 
