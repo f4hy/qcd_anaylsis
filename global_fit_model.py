@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-import logging                  # Including many defaults, can be removed if unneeded
+import logging
 import numpy as np
 
 from residualmasses import residual_mass, residual_mass_errors
@@ -22,6 +22,8 @@ class Model(object):
         self.options = options
 
         dps = self.data.keys()
+
+        self.bootstrap = None
 
         def safe_array(d):
             try:
@@ -86,6 +88,15 @@ class Model(object):
         self.Ds_mass_div_ratio = make_array("Ds_mass_div_ratio", scaled=False)
         self.fDs_ratio = make_array("fDs_ratio", scaled=False)
         self.fDs_div_ratio = make_array("fDs_ratio", scaled=False, renorm=True, div=True)
+
+    def bstrapdata(self, d):
+        if self.bootstrap is None or self.bootstrap == "mean":
+            return d.mean(1)
+        else:
+            return d[:, self.bootstrap]
+
+    def set_bootstrap(self, b):
+        self.bootstrap = b
 
     def build_function(self):
 
@@ -1643,14 +1654,15 @@ class Model(object):
     def ms_mq_ma_ratio(self, z, z2, gamma_A, gamma_S, gamma_P, gamma_MA, gamma_MMA):
 
         data = self.Ds_mass_div_ratio / 1.25
-        datameans = data.mean(1)
+
+        datameans = self.bstrapdata(data)
         pdatameans = datameans[~np.isnan(datameans)]
         datavar = data.var(1)
         pdatavar = datavar[~np.isnan(datameans)]
 
-        mpisqr = self.mpisqr.mean(1)
+        mpisqr = self.bstrapdata(self.mpisqr)
 
-        Mss = (2.0*self.mKsqr.mean(1)) - mpisqr
+        Mss = (2.0*self.bstrapdata((self.mKsqr))) - mpisqr
         phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
 
         delta_Mss = (Mss - phys_Mss)
@@ -1665,10 +1677,8 @@ class Model(object):
 
         M1 = (1+gamma_S*delta_Mss)*(1.0+gamma_P*(mpisqr-phys_pion**2))*(1+gamma_A*(A**2)+gamma_MA*(m*A**2)+gamma_MMA*((m*A)**2)) * (1 + z/m + z2/(m**2))
 
-
         sqr_diff1 = (pdatameans - M1)**2
         return np.sum(sqr_diff1/pdatavar)
-
 
     def fdsqrtm_ratio(self, z, z2, gamma_1):
 

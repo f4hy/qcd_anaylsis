@@ -15,6 +15,8 @@ import collections
 
 from global_fit_model import Model
 
+from misc import all_equal
+
 
 def read_files(files, fitdata, cutoff=None, hqm_cutoff=None):
     data = collections.OrderedDict()
@@ -46,16 +48,18 @@ def interpolate(data, model_str, options):
 
     logging.info("Fitting data")
 
-    params, model = Model(data, model_str, options).build_function()
+    model_obj = Model(data, model_str, options)
 
-    ARGS = inspect.getargspec(model).args[1:]
+    params, model_fun = model_obj.build_function()
+    ARGS = inspect.getargspec(model_fun).args[1:]
     logging.info("Params {}".format(params))
+
     fixed_parms = [p for p in params if "fix" in p and params[p]]
     Nfree_params = len(ARGS) - len(fixed_parms)
     if model_str.startswith("combined"):
-        dof = float(len(data)*2-Nfree_params)
+        dof = float(len(data) * 2 - Nfree_params)
     else:
-        dof = float(len(data)-Nfree_params)
+        dof = float(len(data) - Nfree_params)
     # if "all" in model_str:
     #     dof = dof + 4
 
@@ -64,22 +68,53 @@ def interpolate(data, model_str, options):
     if dof < 1.0:
         raise RuntimeError("dof < 1")
 
-    m = Minuit(model, errordef=dof, print_level=0, pedantic=True, **params)
-    m.set_strategy(2)
-    results = m.migrad()
+    bootstraps = [d.bootstraps for d in data.values()]
+    assert(all_equal(bootstraps))
+    N = bootstraps[0]
 
-    logging.debug(results)
+    logging.info("fitting mean")
+    model_obj.boostrap = "mean"
+    mean_m = Minuit(model_fun, errordef=dof, print_level=0, pedantic=True, **params)
+    mean_m.set_strategy(2)
+    mean_results = mean_m.migrad()
+    logging.debug(mean_results)
 
-    logging.info("chi^2={}, dof={}, chi^2/dof={}".format(m.fval, dof, m.fval/dof))
-    logging.info('covariance {}'.format(m.covariance))
-    logging.info('fitted values {}'.format(m.values))
-    logging.info('fitted errors {}'.format(m.errors))
+    logging.info("chi^2={}, dof={}, chi^2/dof={}".format(mean_m.fval, dof, mean_m.fval / dof))
+    logging.info('covariance {}'.format(mean_m.covariance))
+    logging.info('fitted values {}'.format(mean_m.values))
+    logging.info('fitted errors {}'.format(mean_m.errors))
 
-    if not m.get_fmin().is_valid:
+    if not mean_m.get_fmin().is_valid:
         logging.error("NOT VALID")
         exit(-1)
 
-    return m
+    params.update(mean_m.values)
+
+    bootstrap_m = {}
+    for b in range(N):
+        logging.info("fitting bootstrap {}".format(b))
+        model_obj.set_bootstrap(b)
+        bootstrap_m[b] = Minuit(model_fun, errordef=dof, print_level=0, pedantic=True, **params)
+        bootstrap_m[b].set_strategy(2)
+        bootstrap_results = bootstrap_m[b].migrad()
+        logging.debug(bootstrap_results)
+        if not bootstrap_m[b].get_fmin().is_valid:
+            logging.error("NOT VALID for bootstrap".format(b))
+            exit(-1)
+
+    logging.info('fitted mean values {}'.format(mean_m.values))
+    logging.info('fitted mean errors {}'.format(mean_m.errors))
+
+    means = []
+    for i in ARGS:
+        x = [b.values[i] for b in bootstrap_m.values()]
+        ex = [b.errors[i] for b in bootstrap_m.values()]
+        means.append(np.mean(x))
+        logging.info("bootstraped {}: mean {} med {} std {}".format(i, np.mean(x), np.median(x), np.std(x)))
+        logging.info("bootstraped error {}: mean {} med {} std {}".format(i, np.mean(ex), np.median(ex), np.std(ex)))
+
+    boot_ave_fval = model_fun(*means)
+    return mean_m, bootstrap_m, boot_ave_fval
 
 
 def write_data(fit_parameters, output_stub, suffix, model):
@@ -99,15 +134,35 @@ def write_data(fit_parameters, output_stub, suffix, model):
                                                  fit_parameters.errors[name]))
 
 
+def write_bootstrap_data(fit_parameters, boot_fval, output_stub, suffix, model):
+    if output_stub is None:
+        logging.info("Not writing output")
+        return
+    outfilename = output_stub + suffix
+    logging.info("writing a_inv to {}".format(outfilename))
+    with open(outfilename, "w") as ofile:
+        fval = boot_fval
+        dof = np.mean([b.errordef for b in fit_parameters.values()])
+        chisqrbydof = fval / dof
+        ofile.write("#{} chisqr {}, dof {}, chisqr/dof {}\n".format(model, fval, dof, chisqrbydof))
+
+        for name in fit_parameters[0].values.keys():
+            values = [b.values[name] for b in fit_parameters.values()]
+            value = np.mean(values)
+            error = np.std(values)
+            ofile.write("{}, {} +/- {}\n".format(name, value, error))
+
+
 def interpolate_chiral_spacing(options):
     """ script to interpolate the heavy mass """
     logging.debug("Called with {}".format(options))
 
     alldata = read_files(options.files, options.fitdata, cutoff=options.cutoff, hqm_cutoff=options.hqm_cutoff)
 
-    fit_paramsters = interpolate(alldata, options.model, options)
+    mean_fit_parameters, bootstrap_fit_parameters, boot_fval = interpolate(alldata, options.model, options)
 
-    write_data(fit_paramsters, options.output_stub, ".fit", options.model)
+    write_data(mean_fit_parameters, options.output_stub, ".fit", options.model)
+    write_bootstrap_data(bootstrap_fit_parameters, boot_fval, options.output_stub, "bootstraped.fit", options.model)
 
 
 if __name__ == "__main__":
