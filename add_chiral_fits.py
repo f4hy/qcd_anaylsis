@@ -50,6 +50,10 @@ def add_chiral_fit(axe, xran, chiral_fit_file=None, options=None):
     except:
         pass
 
+    return choose_fit(axe, xran, fittype, values, errors)
+
+def choose_fit(axe, xran, fittype, values, errors):
+
     if fittype.startswith("combined"):
         if options.ydata == "fpi":
             fittype = fittype.replace("combined", "FPI")
