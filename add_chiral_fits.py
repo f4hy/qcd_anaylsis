@@ -28,7 +28,6 @@ plotsettings = dict(linestyle="none", ms=12, elinewidth=4,
                     capsize=8, capthick=2, mew=2, c="k")
 
 
-
 def add_chiral_fit(axe, xran, chiral_fit_file=None, options=None):
 
     values = {}
@@ -40,7 +39,7 @@ def add_chiral_fit(axe, xran, chiral_fit_file=None, options=None):
             fittype = i.split(" ")[0][1:]
             continue
 
-        name, val, err = (j.strip() for j in i.replace("+/-",",").split(","))
+        name, val, err = (j.strip() for j in i.replace("+/-", ",").split(","))
         values[name] = float(val)
         errors[name] = float(err)
 
@@ -51,6 +50,7 @@ def add_chiral_fit(axe, xran, chiral_fit_file=None, options=None):
         pass
 
     return choose_fit(axe, xran, fittype, values, errors)
+
 
 def choose_fit(axe, xran, fittype, values, errors):
 
@@ -83,7 +83,6 @@ def choose_fit(axe, xran, fittype, values, errors):
 
     if fittype.startswith("FPI_x_NNLO"):
         return add_X_NNLO_fit(axe, xran, values, errors)
-
 
     if fittype.startswith("mpisqrbymq_const"):
         return add_mpisqrbymq_const_fit(axe, xran, values, errors)
@@ -154,14 +153,11 @@ def choose_fit(axe, xran, fittype, values, errors):
     if fittype.startswith("fdssqrtms_ratio"):
         return fdssqrtms_ratio(axe, xran, values, errors)
 
-
     if fittype.startswith("fdsqrtm"):
         return fdsqrtm(axe, xran, values, errors)
 
     if fittype.startswith("fdssqrtms"):
         return fdssqrtms(axe, xran, values, errors)
-
-
 
     print fittype
     print "not supported"
@@ -257,12 +253,12 @@ def add_mpisqrbymq_const_fit(axe, xran, values, errors):
     M/mq = 2B*(1+...)
     """
     B = values["B"]
-    x =  np.linspace(xran[0], xran[1], num=500)
-    y = np.full_like(x, 2*B)
+    x = np.linspace(xran[0], xran[1], num=500)
+    y = np.full_like(x, 2 * B)
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<450$ MeV"
     plabel = "const fit: {}".format(paramstring)
     if "cutoff" in values.keys():
@@ -271,19 +267,20 @@ def add_mpisqrbymq_const_fit(axe, xran, values, errors):
 
     return plots
 
+
 def add_mpisqrbymq_xi_NLO_fit(axe, xran, values, errors):
     """
     M/mq = 2B*(1+...)
     """
     B = values["B"]
     c3 = values["c3"]
-    xi =  np.linspace(xran[0], xran[1], num=500)
+    xi = np.linspace(xran[0], xran[1], num=500)
 
-    y = 2*B*(1.0+0.5*xi*np.log(xi) ) + c3*xi
+    y = 2 * B * (1.0 + 0.5 * xi * np.log(xi)) + c3 * xi
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<450$ MeV"
     plabel = "NLO {}".format(paramstring)
     plabel = "NLO $ M_\pi<450$ MeV"
@@ -305,17 +302,17 @@ def add_mpisqrbymq_xi_NNLO_fit(axe, xran, values, errors):
     alpha = values["alpha"]
     beta = values["beta"]
     ellphys = values["ellphys"]
-    xi =  np.linspace(xran[0], xran[1], num=500)
+    xi = np.linspace(xran[0], xran[1], num=500)
 
-    y = 2*B*(1.0+0.5*xi*np.log(xi) +7.0/8.0*(xi*np.log(xi))**2+
-             (c4/F_0 - 1.0/3.0 *(ellphys+16) )*np.log(xi)*xi**2) + c3*xi*(1-5*xi*np.log(xi)) + alpha*xi**2
+    y = 2 * B * (1.0 + 0.5 * xi * np.log(xi) + 7.0 / 8.0 * (xi * np.log(xi))**2 +
+                 (c4 / F_0 - 1.0 / 3.0 * (ellphys + 16)) * np.log(xi) * xi**2) + c3 * xi * (1 - 5 * xi * np.log(xi)) + alpha * xi**2
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<450$ MeV"
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<450$ MeV"
     plabel = "NNLO {}".format(paramstring)
     plabel = "NNLO"
@@ -328,7 +325,6 @@ def add_mpisqrbymq_xi_NNLO_fit(axe, xran, values, errors):
     return plots
 
 
-
 def add_mpisqrbymq_x_NLO_fit(axe, xran, values, errors):
     """
     M/mq = 2B*(1+...)
@@ -336,16 +332,16 @@ def add_mpisqrbymq_x_NLO_fit(axe, xran, values, errors):
     B = values["B"]
     LAMBDA3 = values["Lambda3"]
     F_0 = values["F_0"]
-    x =  np.linspace(xran[0], xran[1], num=500)
+    x = np.linspace(xran[0], xran[1], num=500)
 
-    Msqr = x*(8*(np.pi**2)*(F_0**2))
+    Msqr = x * (8 * (np.pi**2) * (F_0**2))
     arg = LAMBDA3**2 / Msqr
 
-    y = 2*B*(1.0-0.5*x*np.log(arg) )
+    y = 2 * B * (1.0 - 0.5 * x * np.log(arg))
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<450$ MeV"
     plabel = "NLO {}".format(paramstring)
     plabel = "NLO $M_\pi < 450$ MeV"
@@ -367,18 +363,18 @@ def add_mpisqrbymq_x_NLO_all_fit(axe, xran, values, errors):
     gamma_1 = values["gamma_1"]
     gamma_s1 = values["gamma_s1"]
     gamma_s2 = values["gamma_s2"]
-    x =  np.linspace(xran[0], xran[1], num=500)
+    x = np.linspace(xran[0], xran[1], num=500)
 
-    Msqr = x*(8*(np.pi**2)*(F_0**2))
+    Msqr = x * (8 * (np.pi**2) * (F_0**2))
 
-    arg1 = (LAMBDA4**2)/Msqr
-    arg2 = (LAMBDA3**2)/Msqr
+    arg1 = (LAMBDA4**2) / Msqr
+    arg2 = (LAMBDA3**2) / Msqr
 
-    y = 2*B*(1.0-0.5*x*np.log(arg2) )
+    y = 2 * B * (1.0 - 0.5 * x * np.log(arg2))
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<450$ MeV"
     plabel = "NLO $Mss=0$ $a \\to 0$ fit: {}".format(paramstring)
     plabel = "NLO $ M_\pi<450$ MeV"
@@ -397,15 +393,15 @@ def add_X_NLO_fit(axe, xran, values, errors):
     B = values["B"]
     F_0 = values["F_0"]
     LAMBDA4 = values["Lambda4"]
-    x =  np.linspace(xran[0], xran[1], num=500)
+    x = np.linspace(xran[0], xran[1], num=500)
 
-    Msqr = x*(8*(np.pi**2)*(F_0**2))
+    Msqr = x * (8 * (np.pi**2) * (F_0**2))
     arg = LAMBDA4**2 / Msqr
-    y = F_0 * (1 + x*np.log(arg) )
+    y = F_0 * (1 + x * np.log(arg))
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<450$ MeV"
     plabel = "NLO {}".format(paramstring)
     plabel = "NLO $M_\pi < 450$ MeV"
@@ -427,16 +423,16 @@ def add_X_NLO_all_fit(axe, xran, values, errors):
     gamma_1 = values["gamma_1"]
     gamma_s1 = values["gamma_s1"]
     gamma_s2 = values["gamma_s2"]
-    x =  np.linspace(xran[0], xran[1], num=500)
+    x = np.linspace(xran[0], xran[1], num=500)
 
-    Msqr = x*(8*(np.pi**2)*(F_0**2))
+    Msqr = x * (8 * (np.pi**2) * (F_0**2))
     arg1 = LAMBDA4**2 / Msqr
     arg2 = LAMBDA3**2 / Msqr
-    y = F_0 * (1 + x*np.log(arg1))
+    y = F_0 * (1 + x * np.log(arg1))
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<450$ MeV"
     plabel = "NLO $\Delta Mss=0$ fit: {}".format(paramstring)
     plabel = "NLO $ M_\pi<450$ MeV"
@@ -447,19 +443,18 @@ def add_X_NLO_all_fit(axe, xran, values, errors):
     return plots
 
 
-
 def add_XI_NLO_fit(axe, xran, values, errors):
     """
     F = F_pi [ 1 + xi ln(M_pi^2 / Lambda_4^2) ]
     """
     F_0 = values["F_0"]
     c4 = values["c4"]
-    xi =  np.linspace(xran[0], xran[1], num=500)
+    xi = np.linspace(xran[0], xran[1], num=500)
 
-    y = F_0 * (1 - xi*np.log(xi)  ) + c4*xi
+    y = F_0 * (1 - xi * np.log(xi)) + c4 * xi
 
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     print values
     print values[' M_\pi<']
     paramstring = "$ M_\pi<${}".format(values[" M_\\pi<"])
@@ -479,12 +474,13 @@ def add_XI_NNLO_fit(axe, xran, values, errors):
     c4 = values["c4"]
     beta = values["beta"]
     ellphys = values["ellphys"]
-    xi =  np.linspace(xran[0], xran[1], num=500)
+    xi = np.linspace(xran[0], xran[1], num=500)
 
-    y = F_0 * (1 - xi*np.log(xi) + 5.0/4.0*(xi*np.log(xi))**2 + 1/6.0*(ellphys+53.0/2.0)*xi*xi*np.log(xi)) + c4*xi*(1-5*xi*np.log(xi)) + beta*xi**2
+    y = F_0 * (1 - xi * np.log(xi) + 5.0 / 4.0 * (xi * np.log(xi))**2 + 1 / 6.0 * (ellphys + 53.0 / 2.0)
+               * xi * xi * np.log(xi)) + c4 * xi * (1 - 5 * xi * np.log(xi)) + beta * xi**2
 
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "NNLO {}".format(paramstring)
     plabel = "NNLO"
@@ -492,6 +488,7 @@ def add_XI_NNLO_fit(axe, xran, values, errors):
     plots = []
     plots.extend(axe.plot(xi, y, label=plabel, ls="--", lw=2))
     return plots
+
 
 def add_X_NNLO_fit(axe, xran, values, errors):
     """
@@ -506,10 +503,9 @@ def add_X_NNLO_fit(axe, xran, values, errors):
     km = values["km"]
     kf = values["kf"]
 
-    x =  np.linspace(xran[0], xran[1], num=500)
+    x = np.linspace(xran[0], xran[1], num=500)
 
-
-    Msqr = x*(8*(np.pi**2)*(F_0**2))
+    Msqr = x * (8 * (np.pi**2) * (F_0**2))
     arg4 = LAMBDA4**2 / Msqr
     arg3 = LAMBDA3**2 / Msqr
     # arg12 = LAMBDA12**2 / Msqr
@@ -517,24 +513,22 @@ def add_X_NNLO_fit(axe, xran, values, errors):
     l1 = -0.4
     l2 = 4.3
 
-    Lambda1sqr = (phys_pion**2)*np.exp(l1)
-    Lambda2sqr = (phys_pion**2)*np.exp(l2)
+    Lambda1sqr = (phys_pion**2) * np.exp(l1)
+    Lambda2sqr = (phys_pion**2) * np.exp(l2)
 
-    lnLambda12sqr = (7.0*np.log(Lambda1sqr) + 8.0*np.log(Lambda2sqr))/15.0
+    lnLambda12sqr = (7.0 * np.log(Lambda1sqr) + 8.0 * np.log(Lambda2sqr)) / 15.0
     lambda12sqr = np.exp(lnLambda12sqr)
 
-    arg12 = lambda12sqr/Msqr
+    arg12 = lambda12sqr / Msqr
 
-    lm = 1.0/51.0 * (60.0*np.log(arg12) - 9.0*np.log(arg3)+49.0)
-    lf = 1.0/30.0 * (30.0*np.log(arg12) + 6.0*np.log(arg3)-6.0*np.log(arg4)+23.0)
+    lm = 1.0 / 51.0 * (60.0 * np.log(arg12) - 9.0 * np.log(arg3) + 49.0)
+    lf = 1.0 / 30.0 * (30.0 * np.log(arg12) + 6.0 * np.log(arg3) - 6.0 * np.log(arg4) + 23.0)
 
-
-
-    y = F_0 * (1.0 + x*np.log(arg4)-5.0/4.0*(x**2)*(lf)**2+kf*x**2)
+    y = F_0 * (1.0 + x * np.log(arg4) - 5.0 / 4.0 * (x**2) * (lf)**2 + kf * x**2)
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "NNLO {}".format(paramstring)
     plabel = "NNLO"
@@ -543,6 +537,7 @@ def add_X_NNLO_fit(axe, xran, values, errors):
     plots.extend(axe.plot(x, y, label=plabel,  ls="--", lw=2))
 
     return plots
+
 
 def add_X_NNLO_all_fit(axe, xran, values, errors):
     """
@@ -557,10 +552,9 @@ def add_X_NNLO_all_fit(axe, xran, values, errors):
     km = values["km"]
     kf = values["kf"]
 
-    x =  np.linspace(xran[0], xran[1], num=500)
+    x = np.linspace(xran[0], xran[1], num=500)
 
-
-    Msqr = x*(8*(np.pi**2)*(F_0**2))
+    Msqr = x * (8 * (np.pi**2) * (F_0**2))
     arg4 = LAMBDA4**2 / Msqr
     arg3 = LAMBDA3**2 / Msqr
     # arg12 = LAMBDA12**2 / Msqr
@@ -568,24 +562,22 @@ def add_X_NNLO_all_fit(axe, xran, values, errors):
     l1 = -0.4
     l2 = 4.3
 
-    Lambda1sqr = (phys_pion**2)*np.exp(l1)
-    Lambda2sqr = (phys_pion**2)*np.exp(l2)
+    Lambda1sqr = (phys_pion**2) * np.exp(l1)
+    Lambda2sqr = (phys_pion**2) * np.exp(l2)
 
-    lnLambda12sqr = (7.0*np.log(Lambda1sqr) + 8.0*np.log(Lambda2sqr))/15.0
+    lnLambda12sqr = (7.0 * np.log(Lambda1sqr) + 8.0 * np.log(Lambda2sqr)) / 15.0
     lambda12sqr = np.exp(lnLambda12sqr)
 
-    arg12 = lambda12sqr/Msqr
+    arg12 = lambda12sqr / Msqr
 
-    lm = 1.0/51.0 * (60.0*np.log(arg12) - 9.0*np.log(arg3)+49.0)
-    lf = 1.0/30.0 * (30.0*np.log(arg12) + 6.0*np.log(arg3)-6.0*np.log(arg4)+23.0)
+    lm = 1.0 / 51.0 * (60.0 * np.log(arg12) - 9.0 * np.log(arg3) + 49.0)
+    lf = 1.0 / 30.0 * (30.0 * np.log(arg12) + 6.0 * np.log(arg3) - 6.0 * np.log(arg4) + 23.0)
 
-
-
-    y = F_0 * (1.0 + x*np.log(arg4)-5.0/4.0*(x**2)*(lf)**2+kf*x**2)
+    y = F_0 * (1.0 + x * np.log(arg4) - 5.0 / 4.0 * (x**2) * (lf)**2 + kf * x**2)
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "NNLO Mss=0 fit: {}".format(paramstring)
     plabel = "NNLO $a\\to 0$ $\Delta Mss=0$ "
@@ -596,6 +588,7 @@ def add_X_NNLO_all_fit(axe, xran, values, errors):
     plots.extend(axe.plot(x, y, label=plabel,  ls="--", lw=2))
 
     return plots
+
 
 def add_X_NNLO_fixa0_fit(axe, xran, values, errors):
     """
@@ -610,11 +603,11 @@ def add_X_NNLO_fixa0_fit(axe, xran, values, errors):
     km = values["km"]
     kf = values["kf"]
 
-    x =  np.linspace(xran[0], xran[1], num=500)
+    x = np.linspace(xran[0], xran[1], num=500)
 
     gamma_2 = values["gamma_2"]
 
-    Msqr = x*(8*(np.pi**2)*(F_0**2))
+    Msqr = x * (8 * (np.pi**2) * (F_0**2))
     arg4 = LAMBDA4**2 / Msqr
     arg3 = LAMBDA3**2 / Msqr
     # arg12 = LAMBDA12**2 / Msqr
@@ -622,24 +615,22 @@ def add_X_NNLO_fixa0_fit(axe, xran, values, errors):
     l1 = -0.4
     l2 = 4.3
 
-    Lambda1sqr = (phys_pion**2)*np.exp(l1)
-    Lambda2sqr = (phys_pion**2)*np.exp(l2)
+    Lambda1sqr = (phys_pion**2) * np.exp(l1)
+    Lambda2sqr = (phys_pion**2) * np.exp(l2)
 
-    lnLambda12sqr = (7.0*np.log(Lambda1sqr) + 8.0*np.log(Lambda2sqr))/15.0
+    lnLambda12sqr = (7.0 * np.log(Lambda1sqr) + 8.0 * np.log(Lambda2sqr)) / 15.0
     lambda12sqr = np.exp(lnLambda12sqr)
 
-    arg12 = lambda12sqr/Msqr
+    arg12 = lambda12sqr / Msqr
 
-    lm = 1.0/51.0 * (60.0*np.log(arg12) - 9.0*np.log(arg3)+49.0)
-    lf = 1.0/30.0 * (30.0*np.log(arg12) + 6.0*np.log(arg3)-6.0*np.log(arg4)+23.0)
+    lm = 1.0 / 51.0 * (60.0 * np.log(arg12) - 9.0 * np.log(arg3) + 49.0)
+    lf = 1.0 / 30.0 * (30.0 * np.log(arg12) + 6.0 * np.log(arg3) - 6.0 * np.log(arg4) + 23.0)
 
-
-
-    y = F_0 * (1.0 + x*np.log(arg4)-5.0/4.0*(x**2)*(lf)**2+kf*x**2) / (1+gamma_2*(0.05**2))
+    y = F_0 * (1.0 + x * np.log(arg4) - 5.0 / 4.0 * (x**2) * (lf)**2 + kf * x**2) / (1 + gamma_2 * (0.05**2))
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "NNLO Mss=0 fit: {}".format(paramstring)
     plabel = "NNLO"
@@ -661,32 +652,31 @@ def add_mpisqrbymq_x_NNLO_fit(axe, xran, values, errors):
     # l12 = values["l12"]
     km = values["km"]
     kf = values["kf"]
-    x =  np.linspace(xran[0], xran[1], num=500)
+    x = np.linspace(xran[0], xran[1], num=500)
 
-    Msqr = x*(8*(np.pi**2)*(F_0**2))
+    Msqr = x * (8 * (np.pi**2) * (F_0**2))
     arg4 = LAMBDA4**2 / Msqr
     arg3 = LAMBDA3**2 / Msqr
     # # arg12 = LAMBDA12**2 / Msqr
 
-
     l1 = -0.4
     l2 = 4.3
-    Lambda1sqr = (phys_pion**2)*np.exp(l1)
-    Lambda2sqr = (phys_pion**2)*np.exp(l2)
+    Lambda1sqr = (phys_pion**2) * np.exp(l1)
+    Lambda2sqr = (phys_pion**2) * np.exp(l2)
 
-    lnLambda12sqr = (7.0*np.log(Lambda1sqr) + 8.0*np.log(Lambda2sqr))/15.0
+    lnLambda12sqr = (7.0 * np.log(Lambda1sqr) + 8.0 * np.log(Lambda2sqr)) / 15.0
     lambda12sqr = np.exp(lnLambda12sqr)
 
-    arg12 = lambda12sqr/Msqr
+    arg12 = lambda12sqr / Msqr
 
-    lm = 1.0/51.0 * (60.0*np.log(arg12) - 9.0*np.log(arg3)+49.0)
-    lf = 1.0/30.0 * (30.0*np.log(arg12) + 6.0*np.log(arg3)-6.0*np.log(arg4)+23.0)
+    lm = 1.0 / 51.0 * (60.0 * np.log(arg12) - 9.0 * np.log(arg3) + 49.0)
+    lf = 1.0 / 30.0 * (30.0 * np.log(arg12) + 6.0 * np.log(arg3) - 6.0 * np.log(arg4) + 23.0)
 
-    y = 2*B*(1.0-0.5*x*np.log(arg3)+17.0/8.0*(x**2)*(lm)**2 + km*x**2 )
+    y = 2 * B * (1.0 - 0.5 * x * np.log(arg3) + 17.0 / 8.0 * (x**2) * (lm)**2 + km * x**2)
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "NNLO {}".format(paramstring)
     plabel = "NNLO"
@@ -695,6 +685,7 @@ def add_mpisqrbymq_x_NNLO_fit(axe, xran, values, errors):
     plots.extend(axe.plot(x, y, label=plabel,  ls="--", lw=2))
 
     return plots
+
 
 def add_mpisqrbymq_x_NNLO_all_fit(axe, xran, values, errors):
     """
@@ -707,32 +698,31 @@ def add_mpisqrbymq_x_NNLO_all_fit(axe, xran, values, errors):
     # l12 = values["l12"]
     km = values["km"]
     kf = values["kf"]
-    x =  np.linspace(xran[0], xran[1], num=500)
+    x = np.linspace(xran[0], xran[1], num=500)
 
-    Msqr = x*(8*(np.pi**2)*(F_0**2))
+    Msqr = x * (8 * (np.pi**2) * (F_0**2))
     arg4 = LAMBDA4**2 / Msqr
     arg3 = LAMBDA3**2 / Msqr
     # # arg12 = LAMBDA12**2 / Msqr
 
-
     l1 = -0.4
     l2 = 4.3
-    Lambda1sqr = (phys_pion**2)*np.exp(l1)
-    Lambda2sqr = (phys_pion**2)*np.exp(l2)
+    Lambda1sqr = (phys_pion**2) * np.exp(l1)
+    Lambda2sqr = (phys_pion**2) * np.exp(l2)
 
-    lnLambda12sqr = (7.0*np.log(Lambda1sqr) + 8.0*np.log(Lambda2sqr))/15.0
+    lnLambda12sqr = (7.0 * np.log(Lambda1sqr) + 8.0 * np.log(Lambda2sqr)) / 15.0
     lambda12sqr = np.exp(lnLambda12sqr)
 
-    arg12 = lambda12sqr/Msqr
+    arg12 = lambda12sqr / Msqr
 
-    lm = 1.0/51.0 * (60.0*np.log(arg12) - 9.0*np.log(arg3)+49.0)
-    lf = 1.0/30.0 * (30.0*np.log(arg12) + 6.0*np.log(arg3)-6.0*np.log(arg4)+23.0)
+    lm = 1.0 / 51.0 * (60.0 * np.log(arg12) - 9.0 * np.log(arg3) + 49.0)
+    lf = 1.0 / 30.0 * (30.0 * np.log(arg12) + 6.0 * np.log(arg3) - 6.0 * np.log(arg4) + 23.0)
 
-    y = 2*B*(1.0-0.5*x*np.log(arg3)+17.0/8.0*(x**2)*(lm)**2 + km*x**2 )
+    y = 2 * B * (1.0 - 0.5 * x * np.log(arg3) + 17.0 / 8.0 * (x**2) * (lm)**2 + km * x**2)
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "NNLO Mss=0 $a \\to 0$ fit: {}".format(paramstring)
     plabel = "NNLO $a\\to 0$ $\Delta Mss=0$ "
@@ -757,26 +747,25 @@ def add_XI_inverse_NNLO_fit(axe, xran, values, errors):
     cm = values["cm"]
     cf = values["cf"]
 
-    xi =  np.linspace(xran[0], xran[1], num=500)
+    xi = np.linspace(xran[0], xran[1], num=500)
 
-    Msqr = xi*(8*(np.pi**2)*(F_0**2))
+    Msqr = xi * (8 * (np.pi**2) * (F_0**2))
 
     arg4 = LAMBDA4**2 / Msqr
     arg3 = LAMBDA3**2 / Msqr
 
-    lambda12sqr = (phys_pion**2)*np.exp(l12)
+    lambda12sqr = (phys_pion**2) * np.exp(l12)
 
-    arg12 = lambda12sqr/Msqr
+    arg12 = lambda12sqr / Msqr
 
-    lnOmegaM = 1.0/15.0 * (60.0*np.log(arg12) - 33.0*np.log(arg3) - 12.0*np.log(arg4)+52.0)
-    lnOmegaF = 1.0/3.0 * (-15.0*np.log(arg12) + 18.0*np.log(arg4) - 29.0/2.0)
+    lnOmegaM = 1.0 / 15.0 * (60.0 * np.log(arg12) - 33.0 * np.log(arg3) - 12.0 * np.log(arg4) + 52.0)
+    lnOmegaF = 1.0 / 3.0 * (-15.0 * np.log(arg12) + 18.0 * np.log(arg4) - 29.0 / 2.0)
 
-
-    y = F_0 / (1.0 - xi*np.log(arg4) - 1.0/4.0*(xi*lnOmegaF)**2 + cf*(xi**2))
+    y = F_0 / (1.0 - xi * np.log(arg4) - 1.0 / 4.0 * (xi * lnOmegaF)**2 + cf * (xi**2))
 
     del values["l12"]
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "NNLO inverse fit: {}".format(paramstring)
     plabel = "NNLO"
@@ -800,9 +789,8 @@ def add_XI_inverse_NNLO_fit(axe, xran, values, errors):
 
     #     plots.extend(axe.plot(xi, y, label=plabel, ls="--", lw=2))
 
-
-
     return plots
+
 
 def add_fD_chiral(axe, xran, values, errors):
     f_D0 = values["f_D0"]
@@ -811,21 +799,19 @@ def add_fD_chiral(axe, xran, values, errors):
     c1 = values["c1"]
     g = values["g"]
 
-    mpisqr =  np.linspace(xran[0], xran[1], num=500)
+    mpisqr = np.linspace(xran[0], xran[1], num=500)
 
-
-    factor = 3.0*(1+3.0*g**2) / 4.0
+    factor = 3.0 * (1 + 3.0 * g**2) / 4.0
     F = 114.64
     arg = mpisqr / mu**2
-    y = f_D0*(1.0 -  factor*(mpisqr/(8*(np.pi**2)*(F**2)))*np.log(arg) + c1*mpisqr  )
+    y = f_D0 * (1.0 - factor * (mpisqr / (8 * (np.pi**2) * (F**2))) * np.log(arg) + c1 * mpisqr)
 
     # print y[1]
     # exit(-1)
 
-
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "NLO {}".format(paramstring)
     plabel = "NLO $M_\pi <450$ MeV"
@@ -835,6 +821,7 @@ def add_fD_chiral(axe, xran, values, errors):
 
     return plots
 
+
 def add_fDsbyfD_chiral(axe, xran, values, errors):
     f = values["f"]
 
@@ -842,19 +829,17 @@ def add_fDsbyfD_chiral(axe, xran, values, errors):
     c1 = values["c1"]
     k = values["k"]
 
-    mpisqr =  np.linspace(xran[0], xran[1], num=500)
-
+    mpisqr = np.linspace(xran[0], xran[1], num=500)
 
     arg = mpisqr / mu**2
-    y = (1.0 +  k*(mpisqr/(8*(np.pi**2)*(f**2)))*np.log(arg) + c1*mpisqr   )
+    y = (1.0 + k * (mpisqr / (8 * (np.pi**2) * (f**2))) * np.log(arg) + c1 * mpisqr)
 
     # print y[1]
     # exit(-1)
 
-
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "NLO {}".format(paramstring)
     if "cutoff" in values.keys():
@@ -871,16 +856,16 @@ def add_MD_linear_mpisqr(axe, xran, values, errors):
     gamma_1 = values["gamma_1"]
     gamma_s1 = values["gamma_s1"]
 
-    mpisqr =  np.linspace(xran[0], xran[1], num=500)
+    mpisqr = np.linspace(xran[0], xran[1], num=500)
 
     a_beta417 = 197.3269788 / scale["4.17"]
 
-    y = MDphys*(1.0+b*(mpisqr-phys_pion**2))
-    y1 =(1+gamma_1*(a_beta417**2)) * MDphys*(1.0+b*(mpisqr-phys_pion**2))
+    y = MDphys * (1.0 + b * (mpisqr - phys_pion**2))
+    y1 = (1 + gamma_1 * (a_beta417**2)) * MDphys * (1.0 + b * (mpisqr - phys_pion**2))
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "Linear fit"
     if "cutoff" in values.keys():
@@ -891,6 +876,7 @@ def add_MD_linear_mpisqr(axe, xran, values, errors):
 
     return plots
 
+
 def add_MDs_linear_mpisqr(axe, xran, values, errors):
     MDsphys = values["MDsphys"]
 
@@ -898,16 +884,16 @@ def add_MDs_linear_mpisqr(axe, xran, values, errors):
     gamma_1 = values["gamma_1"]
     gamma_s1 = values["gamma_s1"]
 
-    mpisqr =  np.linspace(xran[0], xran[1], num=500)
+    mpisqr = np.linspace(xran[0], xran[1], num=500)
 
     a_beta417 = 197.3269788 / scale["4.17"]
 
-    y = MDsphys*(1.0+b*(mpisqr-phys_pion**2))
-    y1 =(1+gamma_1*(a_beta417**2)) * MDsphys*(1.0+b*(mpisqr-phys_pion**2))
+    y = MDsphys * (1.0 + b * (mpisqr - phys_pion**2))
+    y1 = (1 + gamma_1 * (a_beta417**2)) * MDsphys * (1.0 + b * (mpisqr - phys_pion**2))
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "Linear fit"
     if "cutoff" in values.keys():
@@ -918,6 +904,7 @@ def add_MDs_linear_mpisqr(axe, xran, values, errors):
 
     return plots
 
+
 def add_FD_linear_mpisqr(axe, xran, values, errors):
     FDphys = values["FDphys"]
 
@@ -925,16 +912,16 @@ def add_FD_linear_mpisqr(axe, xran, values, errors):
     gamma_1 = values["gamma_1"]
     gamma_s1 = values["gamma_s1"]
 
-    mpisqr =  np.linspace(xran[0], xran[1], num=500)
+    mpisqr = np.linspace(xran[0], xran[1], num=500)
 
     a_beta417 = 197.3269788 / scale["4.17"]
 
-    y = FDphys*(1.0+b*(mpisqr-phys_pion**2))
-    y1 =(1+gamma_1*(a_beta417**2)) * FDphys*(1.0+b*(mpisqr-phys_pion**2))
+    y = FDphys * (1.0 + b * (mpisqr - phys_pion**2))
+    y1 = (1 + gamma_1 * (a_beta417**2)) * FDphys * (1.0 + b * (mpisqr - phys_pion**2))
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "Linear fit in continuum limit"
     if "cutoff" in values.keys():
@@ -945,6 +932,7 @@ def add_FD_linear_mpisqr(axe, xran, values, errors):
 
     return plots
 
+
 def add_FDs_linear_mpisqr(axe, xran, values, errors):
     FDsphys = values["FDsphys"]
 
@@ -952,16 +940,16 @@ def add_FDs_linear_mpisqr(axe, xran, values, errors):
     gamma_1 = values["gamma_1"]
     gamma_s1 = values["gamma_s1"]
 
-    mpisqr =  np.linspace(xran[0], xran[1], num=500)
+    mpisqr = np.linspace(xran[0], xran[1], num=500)
 
     a_beta417 = 197.3269788 / scale["4.17"]
 
-    y = FDsphys*(1.0+b*(mpisqr-phys_pion**2))
-    y1 =(1+gamma_1*(a_beta417**2)) * FDsphys*(1.0+b*(mpisqr-phys_pion**2))
+    y = FDsphys * (1.0 + b * (mpisqr - phys_pion**2))
+    y1 = (1 + gamma_1 * (a_beta417**2)) * FDsphys * (1.0 + b * (mpisqr - phys_pion**2))
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "Linear fit in continuum limit"
     if "cutoff" in values.keys():
@@ -972,6 +960,7 @@ def add_FDs_linear_mpisqr(axe, xran, values, errors):
 
     return plots
 
+
 def add_FDsbyFD_linear_mpisqr(axe, xran, values, errors):
     FDsbyFDphys = values["FDsbyFDphys"]
 
@@ -979,16 +968,16 @@ def add_FDsbyFD_linear_mpisqr(axe, xran, values, errors):
     gamma_1 = values["gamma_1"]
     gamma_s1 = values["gamma_s1"]
 
-    mpisqr =  np.linspace(xran[0], xran[1], num=500)
+    mpisqr = np.linspace(xran[0], xran[1], num=500)
 
     a_beta417 = 197.3269788 / scale["4.17"]
 
-    y = FDsbyFDphys*(1.0+b*(mpisqr-phys_pion**2))
-    y1 =(1+gamma_1*(a_beta417**2)) * FDsbyFDphys*(1.0+b*(mpisqr-phys_pion**2))
+    y = FDsbyFDphys * (1.0 + b * (mpisqr - phys_pion**2))
+    y1 = (1 + gamma_1 * (a_beta417**2)) * FDsbyFDphys * (1.0 + b * (mpisqr - phys_pion**2))
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "Linear fit"
     if "cutoff" in values.keys():
@@ -1007,16 +996,16 @@ def add_Mhs_minus_Mhh(axe, xran, values, errors):
     gamma_1 = values["gamma_1"]
     gamma_s1 = values["gamma_s1"]
 
-    mHH_inv =  np.linspace(xran[0], xran[1], num=500)
+    mHH_inv = np.linspace(xran[0], xran[1], num=500)
 
     a_beta417 = 197.3269788 / scale["4.17"]
 
-    y = ( M_Bs+alpha*(mHH_inv))
-    y1 =(1+gamma_1*(a_beta417**2)) * ( M_Bs + alpha*(mHH_inv))
+    y = (M_Bs + alpha * (mHH_inv))
+    y1 = (1 + gamma_1 * (a_beta417**2)) * (M_Bs + alpha * (mHH_inv))
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "Linear fit"
     if "cutoff" in values.keys():
@@ -1024,12 +1013,15 @@ def add_Mhs_minus_Mhh(axe, xran, values, errors):
     plots.extend(axe.plot(mHH_inv, y, label=plabel,  ls="--", lw=2))
     plots.extend(axe.plot(mHH_inv, y1, label="Linear fit $\\beta=4.17$", ls=":", lw=2))
 
-    logging.info("Ploting point at x={}, y={} pm {}".format(1.0/9460.30, M_Bs+alpha*(1.0/9460.30) , errors["M_Bs"]+errors["alpha"]*(1.0/9460.30)))
+    logging.info("Ploting point at x={}, y={} pm {}".format(1.0 / 9460.30, M_Bs + alpha *
+                                                            (1.0 / 9460.30), errors["M_Bs"] + errors["alpha"] * (1.0 / 9460.30)))
 
-    axe.errorbar(1.0/9460.30, y=M_Bs+alpha*(1.0/9460.30), yerr=errors["M_Bs"]+errors["alpha"]*(1.0/9460.30), label="test", **plotsettings)
+    axe.errorbar(1.0 / 9460.30, y=M_Bs + alpha * (1.0 / 9460.30),
+                 yerr=errors["M_Bs"] + errors["alpha"] * (1.0 / 9460.30), label="test", **plotsettings)
     # axe.errorbar(phys_pion**2, y=FDsbyFDphys, yerr=errors["FDsbyFDphys"], **plotsettings)
 
     return plots
+
 
 def add_quad_Mhs_minus_Mhh(axe, xran, values, errors):
     M_Bs = values["M_Bs"]
@@ -1039,16 +1031,16 @@ def add_quad_Mhs_minus_Mhh(axe, xran, values, errors):
     gamma_1 = values["gamma_1"]
     gamma_s1 = values["gamma_s1"]
 
-    mHH_inv =  np.linspace(xran[0], xran[1], num=500)
+    mHH_inv = np.linspace(xran[0], xran[1], num=500)
 
     a_beta417 = 197.3269788 / scale["4.17"]
 
-    y = ( M_Bs+alpha*(mHH_inv)+beta*(mHH_inv)**2)
-    y1 =(1+gamma_1*(a_beta417**2)) * ( M_Bs + alpha*(mHH_inv)+ beta*(mHH_inv)**2)
+    y = (M_Bs + alpha * (mHH_inv) + beta * (mHH_inv)**2)
+    y1 = (1 + gamma_1 * (a_beta417**2)) * (M_Bs + alpha * (mHH_inv) + beta * (mHH_inv)**2)
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "Qaudratic fit"
     if "cutoff" in values.keys():
@@ -1056,9 +1048,11 @@ def add_quad_Mhs_minus_Mhh(axe, xran, values, errors):
     plots.extend(axe.plot(mHH_inv, y, label=plabel,  ls="--", lw=2))
     plots.extend(axe.plot(mHH_inv, y1, label="Quadratic fit $\\beta=4.17$", ls=":", lw=2))
 
-    logging.info("Ploting point at x={}, y={} pm {}".format(1.0/9460.30, M_Bs+alpha*(1.0/9460.30)+beta*(1.0/9460.30)**2 , errors["M_Bs"]+errors["alpha"]*(1.0/9460.30)+errors["beta"]*(1.0/9460.30)**2))
+    logging.info("Ploting point at x={}, y={} pm {}".format(1.0 / 9460.30, M_Bs + alpha * (1.0 / 9460.30) + beta *
+                                                            (1.0 / 9460.30)**2, errors["M_Bs"] + errors["alpha"] * (1.0 / 9460.30) + errors["beta"] * (1.0 / 9460.30)**2))
 
-    axe.errorbar(1.0/9460.30, y=M_Bs+alpha*(1.0/9460.30)+beta*(1.0/9460.30)**2, yerr=errors["M_Bs"]+errors["alpha"]*(1.0/9460.30)+errors["beta"]*(1.0/9460.30)**2, label="test", **plotsettings)
+    axe.errorbar(1.0 / 9460.30, y=M_Bs + alpha * (1.0 / 9460.30) + beta * (1.0 / 9460.30)**2, yerr=errors["M_Bs"] + errors[
+                 "alpha"] * (1.0 / 9460.30) + errors["beta"] * (1.0 / 9460.30)**2, label="test", **plotsettings)
     # axe.errorbar(phys_pion**2, y=FDsbyFDphys, yerr=errors["FDsbyFDphys"], **plotsettings)
 
     return plots
@@ -1070,26 +1064,25 @@ def fdsqrtm(axe, xran, values, errors):
 
     values["C1"] *= 1000.0
     values["C2"] *= (1000.0)**2
-    values["gamma"] *= 1.0/(10000.0)
-    values["eta"] *= 1.0/(100.0)
+    values["gamma"] *= 1.0 / (10000.0)
+    values["eta"] *= 1.0 / (100.0)
     values["mu"] *= 0.001
 
     errors["C1"] *= 1000.0
     errors["C2"] *= (1000.0)**2
-    errors["gamma"] *= 1.0/(10000.0)
-    errors["eta"] *= 1.0/(100.0)
+    errors["gamma"] *= 1.0 / (10000.0)
+    errors["eta"] *= 1.0 / (100.0)
     errors["mu"] *= 0.001
 
     C1 = values["C1"]
     C2 = values["C2"]
 
-
     gamma = values["gamma"]
     eta = values["eta"]
     mu = values["mu"]
 
-    mD_inv =  np.linspace(xran[0], xran[1], num=500)
-    m = 1/mD_inv
+    mD_inv = np.linspace(xran[0], xran[1], num=500)
+    m = 1 / mD_inv
 
     a_beta417 = 197.3269788 / scale["4.17"]
     a_beta435 = 197.3269788 / scale["4.35"]
@@ -1097,14 +1090,17 @@ def fdsqrtm(axe, xran, values, errors):
 
     print a_beta417, a_beta435, a_beta447
 
-    y = Fsqrtm_inf*(1 + C1 * mD_inv + C2 * mD_inv**2 )
-    y1 = Fsqrtm_inf*(1 + C1 * mD_inv + C2 * mD_inv**2 + gamma *(m*a_beta417)**2 + eta*m*a_beta417**2 + mu * a_beta417**2)
-    y2 = Fsqrtm_inf*(1 + C1 * mD_inv + C2 * mD_inv**2 + gamma *(m*a_beta435)**2 + eta*m*a_beta435**2 + mu * a_beta435**2)
-    y3 = Fsqrtm_inf*(1 + C1 * mD_inv + C2 * mD_inv**2 + gamma *(m*a_beta447)**2 + eta*m*a_beta447**2 + mu * a_beta447**2)
+    y = Fsqrtm_inf * (1 + C1 * mD_inv + C2 * mD_inv**2)
+    y1 = Fsqrtm_inf * (1 + C1 * mD_inv + C2 * mD_inv**2 + gamma * (m * a_beta417)
+                       ** 2 + eta * m * a_beta417**2 + mu * a_beta417**2)
+    y2 = Fsqrtm_inf * (1 + C1 * mD_inv + C2 * mD_inv**2 + gamma * (m * a_beta435)
+                       ** 2 + eta * m * a_beta435**2 + mu * a_beta435**2)
+    y3 = Fsqrtm_inf * (1 + C1 * mD_inv + C2 * mD_inv**2 + gamma * (m * a_beta447)
+                       ** 2 + eta * m * a_beta447**2 + mu * a_beta447**2)
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     #paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     print paramstring
     plabel = "Qaudratic fit"
@@ -1123,8 +1119,8 @@ def fdsqrtm(axe, xran, values, errors):
     #              yerr=errors["Fsqrtm_inf"]*(1 + errors["C1"] * mB_inv + errors["C2"] * mB_inv**2 ),
     #              label="test", color='k', ecolor='k', mec='k', alpha=0.2, **plotsettings)
 
-
     return plots
+
 
 def fdssqrtms(axe, xran, values, errors):
 
@@ -1132,26 +1128,25 @@ def fdssqrtms(axe, xran, values, errors):
 
     values["C1"] *= 1000.0
     values["C2"] *= (1000.0)**2
-    values["gamma"] *= 1.0/(10000.0)
-    values["eta"] *= 1.0/(100.0)
+    values["gamma"] *= 1.0 / (10000.0)
+    values["eta"] *= 1.0 / (100.0)
     values["mu"] *= 0.001
 
     errors["C1"] *= 1000.0
     errors["C2"] *= (1000.0)**2
-    errors["gamma"] *= 1.0/(10000.0)
-    errors["eta"] *= 1.0/(100.0)
+    errors["gamma"] *= 1.0 / (10000.0)
+    errors["eta"] *= 1.0 / (100.0)
     errors["mu"] *= 0.001
 
     C1 = values["C1"]
     C2 = values["C2"]
 
-
     gamma = values["gamma"]
     eta = values["eta"]
     mu = values["mu"]
 
-    mDs_inv =  np.linspace(xran[0], xran[1], num=500)
-    m = 1/mDs_inv
+    mDs_inv = np.linspace(xran[0], xran[1], num=500)
+    m = 1 / mDs_inv
 
     a_beta417 = 197.3269788 / scale["4.17"]
     a_beta435 = 197.3269788 / scale["4.35"]
@@ -1159,14 +1154,17 @@ def fdssqrtms(axe, xran, values, errors):
 
     print a_beta417, a_beta435, a_beta447
 
-    y = Fssqrtms_inf*(1 + C1 * mDs_inv + C2 * mDs_inv**2 )
-    y1 = Fssqrtms_inf*(1 + C1 * mDs_inv + C2 * mDs_inv**2 + gamma *(m*a_beta417)**2 + eta*m*a_beta417**2 + mu * a_beta417**2)
-    y2 = Fssqrtms_inf*(1 + C1 * mDs_inv + C2 * mDs_inv**2 + gamma *(m*a_beta435)**2 + eta*m*a_beta435**2 + mu * a_beta435**2)
-    y3 = Fssqrtms_inf*(1 + C1 * mDs_inv + C2 * mDs_inv**2 + gamma *(m*a_beta447)**2 + eta*m*a_beta447**2 + mu * a_beta447**2)
+    y = Fssqrtms_inf * (1 + C1 * mDs_inv + C2 * mDs_inv**2)
+    y1 = Fssqrtms_inf * (1 + C1 * mDs_inv + C2 * mDs_inv**2 + gamma * (m * a_beta417)
+                         ** 2 + eta * m * a_beta417**2 + mu * a_beta417**2)
+    y2 = Fssqrtms_inf * (1 + C1 * mDs_inv + C2 * mDs_inv**2 + gamma * (m * a_beta435)
+                         ** 2 + eta * m * a_beta435**2 + mu * a_beta435**2)
+    y3 = Fssqrtms_inf * (1 + C1 * mDs_inv + C2 * mDs_inv**2 + gamma * (m * a_beta447)
+                         ** 2 + eta * m * a_beta447**2 + mu * a_beta447**2)
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v),float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     #paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     print paramstring
     plabel = "Qaudratic fit"
@@ -1185,7 +1183,6 @@ def fdssqrtms(axe, xran, values, errors):
     #              yerr=errors["Fsqrtm_inf"]*(1 + errors["C1"] * mB_inv + errors["C2"] * mB_inv**2 ),
     #              label="test", color='k', ecolor='k', mec='k', alpha=0.2, **plotsettings)
 
-
     return plots
 
 
@@ -1196,17 +1193,16 @@ def fdssqrtms_ratio(axe, xran, values, errors):
     gamma_1 = values["gamma_1"]
 
     mDs_inv = np.linspace(xran[0], xran[1], num=500)
-    m = 1/mDs_inv
+    m = 1 / mDs_inv
 
     a_beta417 = 197.3269788 / scale["4.17"]
 
-
-    y = 1 + z/m + z2/(m**2)
-    y1 =(1+gamma_1*(a_beta417**2)) * (1 + z/m + z2/(m**2))
+    y = 1 + z / m + z2 / (m**2)
+    y1 = (1 + gamma_1 * (a_beta417**2)) * (1 + z / m + z2 / (m**2))
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v), float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     #paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     print paramstring
     plabel = "fit"
@@ -1219,8 +1215,8 @@ def fdssqrtms_ratio(axe, xran, values, errors):
 
     plots.extend(axe.plot(mDs_inv, y1, label="fit $\\beta=4.17$",  ls="--", lw=2, color='b'))
 
-
     return plots
+
 
 def fdssqrtms_mq_ratio(axe, xran, values, errors):
 
@@ -1229,17 +1225,16 @@ def fdssqrtms_mq_ratio(axe, xran, values, errors):
     gamma_A = values["gamma_A"]
 
     mq_inv = np.linspace(xran[0], xran[1], num=500)
-    m = 1/mq_inv
+    m = 1 / mq_inv
 
     a_beta417 = 197.3269788 / scale["4.17"]
 
-
-    y = 1 + z/m + z2/(m**2)
-    y1 =(1+gamma_A*(a_beta417**2)) * (1 + z/m + z2/(m**2))
+    y = 1 + z / m + z2 / (m**2)
+    y1 = (1 + gamma_A * (a_beta417**2)) * (1 + z / m + z2 / (m**2))
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v), float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     #paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     print paramstring
     plabel = "fit"
@@ -1251,7 +1246,6 @@ def fdssqrtms_mq_ratio(axe, xran, values, errors):
     plots.extend(axe.plot(mq_inv, y, label=plabel,  ls="--", lw=2, color="k"))
 
     plots.extend(axe.plot(mq_inv, y1, label="fit $\\beta=4.17$",  ls="--", lw=2, color='b'))
-
 
     return plots
 
@@ -1265,21 +1259,23 @@ def fdssqrtms_mq_ma_ratio(axe, xran, values, errors):
     gamma_MMA = values["gamma_MMA"]
 
     mq_inv = np.linspace(xran[0], xran[1], num=500)
-    m = 1/mq_inv
+    m = 1 / mq_inv
 
     a_beta417 = 197.3269788 / scale["4.17"]
     a_beta435 = 197.3269788 / scale["4.35"]
     a_beta447 = 197.3269788 / scale["4.47"]
 
-
-    y = 1 + z/m + z2/(m**2)
-    y1 =(1+gamma_A*(a_beta417**2)+gamma_MA*m*(a_beta417**2)+gamma_MMA*(m*a_beta417)**2) * (1 + z/m + z2/(m**2))
-    y2 =(1+gamma_A*(a_beta435**2)+gamma_MA*m*(a_beta435**2)+gamma_MMA*(m*a_beta435)**2) * (1 + z/m + z2/(m**2))
-    y3 =(1+gamma_A*(a_beta447**2)+gamma_MA*m*(a_beta447**2)+gamma_MMA*(m*a_beta447)**2) * (1 + z/m + z2/(m**2))
+    y = 1 + z / m + z2 / (m**2)
+    y1 = (1 + gamma_A * (a_beta417**2) + gamma_MA * m * (a_beta417**2) +
+          gamma_MMA * (m * a_beta417)**2) * (1 + z / m + z2 / (m**2))
+    y2 = (1 + gamma_A * (a_beta435**2) + gamma_MA * m * (a_beta435**2) +
+          gamma_MMA * (m * a_beta435)**2) * (1 + z / m + z2 / (m**2))
+    y3 = (1 + gamma_A * (a_beta447**2) + gamma_MA * m * (a_beta447**2) +
+          gamma_MMA * (m * a_beta447)**2) * (1 + z / m + z2 / (m**2))
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v), float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     #paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     print paramstring
     plabel = "fit"
@@ -1294,7 +1290,6 @@ def fdssqrtms_mq_ma_ratio(axe, xran, values, errors):
     plots.extend(axe.plot(mq_inv, y2, label="fit $\\beta=4.35$",  ls="--", lw=2, color='r'))
     plots.extend(axe.plot(mq_inv, y3, label="fit $\\beta=4.47$",  ls="--", lw=2, color='m'))
 
-
     return plots
 
 
@@ -1305,17 +1300,16 @@ def fdsqrtm_ratio(axe, xran, values, errors):
     gamma_A = values["gamma_A"]
 
     mDs_inv = np.linspace(xran[0], xran[1], num=500)
-    m = 1/mDs_inv
+    m = 1 / mDs_inv
 
     a_beta417 = 197.3269788 / scale["4.17"]
 
-
-    y = 1 + z/m + z2/(m**2)
-    y1 =(1+gamma_A*(a_beta417**2)) * (1 + z/m + z2/(m**2))
+    y = 1 + z / m + z2 / (m**2)
+    y1 = (1 + gamma_A * (a_beta417**2)) * (1 + z / m + z2 / (m**2))
 
     plots = []
-    paramstring = " ".join("${}={}$".format(format_parameters(k),print_paren_error(float(v), float(errors[k])))
-                           for k,v in sorted(values.iteritems()) )
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
     #paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     print paramstring
     plabel = "fit"
@@ -1327,6 +1321,5 @@ def fdsqrtm_ratio(axe, xran, values, errors):
         plots.extend(axe.plot(mDs_inv, y, label=plabel,  ls="--", lw=2, color="k"))
 
     plots.extend(axe.plot(mDs_inv, y1, label="fit $\\beta=4.17$",  ls="--", lw=2, color='b'))
-
 
     return plots
