@@ -51,6 +51,24 @@ def add_chiral_fit(axe, xran, chiral_fit_file=None, options=None):
 
     return choose_fit(axe, xran, fittype, values, errors)
 
+def add_boot_fit(axe, xran, boot_fit_file=None, options=None):
+
+    # bootdata = pd.read_csv(boot_fit_file)
+    # print bootdata
+    # for i in bootdata:
+    #     print i
+
+    comment = boot_fit_file.readline().strip("#\n ")
+    comments = comment.split(",")
+    model, names = comments[0], comments[1:]
+
+    for i in boot_fit_file:
+        values = dict(zip(names,map(float,i.split(","))))
+        errors = dict(zip(names,[0.0]*len(names)))
+
+        x = choose_fit(axe, xran, model, values, errors)
+    return x
+
 
 def choose_fit(axe, xran, fittype, values, errors):
 
