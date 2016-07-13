@@ -157,7 +157,7 @@ def write_bootstrap_data(fit_parameters, boot_fval, output_stub, suffix, model):
     logging.info("writing bootstraps of fit to {}".format(bootstraps_filename))
     with open(bootstraps_filename, "w") as ofile:
         names = fit_parameters[0].values.keys()
-        ofile.write("#" + ",".join(names) + "\n")
+        ofile.write("# " + model + ","+ ",".join(names) + "\n")
         for b,d in fit_parameters.iteritems():
             line = ",".join(["{}".format(d.values[n]) for n in names])
             ofile.write("{}\n".format(line))
