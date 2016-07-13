@@ -51,7 +51,9 @@ def add_mc_lines(axe, options, auto_key):
             axe.plot([mq*(1.25)**i, mq*(1.25)**i], [0, mcline*(1.15)**i], color=auto_key((i, None, None), check=False)[0], ls="--", lw=2)
             axe.annotate("$1.25^{}".format(i) + "M_{q_h}$", xy=(-150+mq*(1.25)**i, 1500), fontsize=30, rotation=90)
 
-
+def add_vert_lines(axe, options):
+    if options.xdata == "1/mheavyq":
+        axe.axvline(x=1.0/4600.0, linewidth=2, color='k', ls="dotted")
 
 def test():
 

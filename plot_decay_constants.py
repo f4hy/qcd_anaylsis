@@ -22,13 +22,14 @@ from ensemble_data import ensemble_data, NoStrangeInterp
 
 from auto_key import auto_key
 
-from add_chiral_fits import add_chiral_fit
+from add_chiral_fits import add_chiral_fit, add_boot_fit
 
 from get_data import get_data
 
 from itertools import cycle
 
 from plot_helpers import add_mc_lines
+from plot_helpers import add_vert_lines
 
 def round5(x):
     return int(5 * np.around(x/5.0))
@@ -163,7 +164,7 @@ def plot_decay_constant(options):
             #continue
 
         if options.mhcut and p.heavyq_mass > options.mhcut:
-            alpha = 0.1
+            alpha = 0.01
 
         plotsettings = dict(linestyle="none", c=color, marker=mark,
                             label=label, ms=15, elinewidth=4,
@@ -210,6 +211,8 @@ def plot_decay_constant(options):
 
 
     add_mc_lines(axe, options, auto_key)
+    add_vert_lines(axe, options)
+
 
     if options.physx:
         physxplot = axe.axvline(xphysical, color='k', ls="--", lw=2, label="physical point")
@@ -259,8 +262,15 @@ def plot_decay_constant(options):
     if options.chiral_fit_file:
         del legend_handles[:]
         for i in options.chiral_fit_file:
-            chiral_line = add_chiral_fit(axe, xran, i, options)
+            fit_lines = add_chiral_fit(axe, xran, i, options)
+            legend_handles.extend(fit_lines)
+
+    if options.boot_fit_file:
+        del legend_handles[:]
+        for i in options.boot_fit_file:
+            chiral_line = add_boot_fit(axe, xran, i, options)
             legend_handles.extend(chiral_line)
+
 
     if options.xlabel:
         axe.set_xlabel(options.xlabel, labelpad=20, **fontsettings)
@@ -387,6 +397,8 @@ if __name__ == "__main__":
                         help="add interpolated lines")
     parser.add_argument("--chiral_fit_file", type=argparse.FileType('r'), required=False,
                         action='append', help="add chiral interpolated lines")
+    parser.add_argument("--boot_fit_file", type=argparse.FileType('r'), required=False,
+                        action='append', help="add bootstrap fit lines")
     parser.add_argument("--mpisqrbymq", action="store_true",
                         help="compute mpisqr divided by mq, strange edge case")
     parser.add_argument("--ydata", required=False, type=str,
