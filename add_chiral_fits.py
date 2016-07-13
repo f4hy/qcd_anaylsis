@@ -144,6 +144,12 @@ def choose_fit(axe, xran, fittype, values, errors):
     if fittype.startswith("ms_mq_ma_ratio"):
         return fdssqrtms_mq_ma_ratio(axe, xran, values, errors)
 
+    if fittype.startswith("m_mq_ma_ratio"):
+        return fdssqrtms_mq_ma_ratio(axe, xran, values, errors)
+
+    if fittype.startswith("fdsqrtm_mq_ma_ratio"):
+        return fdssqrtms_mq_ma_ratio(axe, xran, values, errors)
+
     if fittype.startswith("fdssqrtms_mq_ma_ratio"):
         return fdssqrtms_mq_ma_ratio(axe, xran, values, errors)
 

@@ -649,6 +649,28 @@ class Model(object):
 
             fun = self.fdssqrtms_mq_ma_ratio
 
+        elif self.type_string == "fdsqrtm_mq_ma_ratio":
+
+            z_guess = 200.0
+            z2_guess = -100000.0
+            gammaA_guess = 11.0
+            gammaMA_guess = 0.01
+            gammaMMA_guess = 0.1
+            gammaS_guess = 2.0e-8
+            gammaP_guess = 2.0e-8
+
+            params = paramdict("z", z_guess, z_guess/2)
+            params.update(paramdict("z2", z2_guess, z2_guess/2))
+            params.update(paramdict("gamma_A", gammaA_guess, gammaA_guess))
+            params.update(paramdict("gamma_S", gammaS_guess, gammaS_guess))
+            params.update(paramdict("gamma_P", gammaP_guess, gammaP_guess))
+
+            params.update(paramdict("gamma_MA", gammaMA_guess, gammaMA_guess))
+            params.update(paramdict("gamma_MMA", gammaMMA_guess, gammaMMA_guess))
+
+            fun = self.fdsqrtm_mq_ma_ratio
+
+
         elif self.type_string == "fdsqrtm_ratio":
 
             z_guess = 1.0
@@ -681,6 +703,28 @@ class Model(object):
             params.update(paramdict("gamma_MMA", gammaMMA_guess, gammaMMA_guess))
 
             fun = self.ms_mq_ma_ratio
+
+        elif self.type_string == "m_mq_ma_ratio":
+
+            z_guess = 200.0
+            z2_guess = -100000.0
+            gammaA_guess = 11.0
+            gammaMA_guess = 0.01
+            gammaMMA_guess = 0.1
+            gammaS_guess = 2.0e-8
+            gammaP_guess = 2.0e-8
+
+            params = paramdict("z", z_guess, z_guess/2)
+            params.update(paramdict("z2", z2_guess, z2_guess/2))
+            params.update(paramdict("gamma_A", gammaA_guess, gammaA_guess))
+            params.update(paramdict("gamma_S", gammaS_guess, gammaS_guess))
+            params.update(paramdict("gamma_P", gammaP_guess, gammaP_guess))
+
+            params.update(paramdict("gamma_MA", gammaMA_guess, gammaMA_guess))
+            params.update(paramdict("gamma_MMA", gammaMMA_guess, gammaMMA_guess))
+
+            fun = self.m_mq_ma_ratio
+
 
         else:
             logging.error("Function not supported yet")
@@ -1616,7 +1660,7 @@ class Model(object):
 
         A = self.a[~np.isnan(datameans)]
 
-        M1 = (1+gamma_S*delta_Mss)*(1.0+gamma_P*(mpisqr-phys_pion**2))*(1+gamma_A*(A**2)) * (1 + z/m + z2/(m**2))
+        M1 = (1+gamma_S*delta_Mss+gamma_P*(mpisqr-phys_pion**2)+gamma_A*(A**2)) * (1 + z/m + z2/(m**2))
 
 
         sqr_diff1 = (pdatameans - M1)**2
@@ -1645,11 +1689,41 @@ class Model(object):
 
         A = self.a[~np.isnan(datameans)]
 
-        M1 = (1+gamma_S*delta_Mss)*(1.0+gamma_P*(mpisqr-phys_pion**2))*(1+gamma_A*(A**2)+gamma_MA*(m*A**2)+gamma_MMA*((m*A)**2)) * (1 + z/m + z2/(m**2))
+        M1 = (1+gamma_S*delta_Mss+gamma_P*(mpisqr-phys_pion**2)+gamma_A*(A**2)+gamma_MA*(m*A**2)+gamma_MMA*((m*A)**2)) * (1 + z/m + z2/(m**2))
 
 
         sqr_diff1 = (pdatameans - M1)**2
         return np.sum(sqr_diff1/pdatavar)
+
+    def fdsqrtm_mq_ma_ratio(self, z, z2, gamma_A, gamma_S, gamma_P, gamma_MA, gamma_MMA):
+
+        data = self.fD_div_ratio * np.sqrt(self.D_mass_div_ratio)
+        datameans = self.bstrapdata(data)
+        pdatameans = datameans[~np.isnan(datameans)]
+        datavar = data.var(1)
+        pdatavar = datavar[~np.isnan(datameans)]
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata(self.mKsqr)) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+        mpisqr = mpisqr[~np.isnan(datameans)]
+        delta_Mss = delta_Mss[~np.isnan(datameans)]
+
+        m = self.heavyq_mass
+        m = m[~np.isnan(datameans)]
+
+        A = self.a[~np.isnan(datameans)]
+
+        M1 = (1+gamma_S*delta_Mss+gamma_P*(mpisqr-phys_pion**2)+gamma_A*(A**2)+gamma_MA*(m*A**2)+gamma_MMA*((m*A)**2)) * (1 + z/m + z2/(m**2))
+
+
+        sqr_diff1 = (pdatameans - M1)**2
+        return np.sum(sqr_diff1/pdatavar)
+
 
     def ms_mq_ma_ratio(self, z, z2, gamma_A, gamma_S, gamma_P, gamma_MA, gamma_MMA):
 
@@ -1675,10 +1749,40 @@ class Model(object):
 
         A = self.a[~np.isnan(datameans)]
 
-        M1 = (1+gamma_S*delta_Mss)*(1.0+gamma_P*(mpisqr-phys_pion**2))*(1+gamma_A*(A**2)+gamma_MA*(m*A**2)+gamma_MMA*((m*A)**2)) * (1 + z/m + z2/(m**2))
+        M1 = (1+gamma_S*delta_Mss+gamma_P*(mpisqr-phys_pion**2)+gamma_A*(A**2)+gamma_MA*(m*A**2)+gamma_MMA*((m*A)**2)) * (1 + z/m + z2/(m**2))
 
         sqr_diff1 = (pdatameans - M1)**2
         return np.sum(sqr_diff1/pdatavar)
+
+    def m_mq_ma_ratio(self, z, z2, gamma_A, gamma_S, gamma_P, gamma_MA, gamma_MMA):
+
+        data = self.D_mass_div_ratio / 1.25
+
+        datameans = self.bstrapdata(data)
+        pdatameans = datameans[~np.isnan(datameans)]
+        datavar = data.var(1)
+        pdatavar = datavar[~np.isnan(datameans)]
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata((self.mKsqr))) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+        mpisqr = mpisqr[~np.isnan(datameans)]
+        delta_Mss = delta_Mss[~np.isnan(datameans)]
+
+        m = self.heavyq_mass
+        m = m[~np.isnan(datameans)]
+
+        A = self.a[~np.isnan(datameans)]
+
+        M1 = (1+gamma_S*delta_Mss+gamma_P*(mpisqr-phys_pion**2)+gamma_A*(A**2)+gamma_MA*(m*A**2)+gamma_MMA*((m*A)**2)) * (1 + z/m + z2/(m**2))
+
+        sqr_diff1 = (pdatameans - M1)**2
+        return np.sum(sqr_diff1/pdatavar)
+
 
     def fdsqrtm_ratio(self, z, z2, gamma_1):
 
