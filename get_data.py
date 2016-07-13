@@ -188,6 +188,16 @@ def get_data(ed, data_type, options):
         label = "$  \\frac{1}{1.25}\\frac{m_{h^{+1}s} }{ m_{hs} }$"
         return np.mean(data), np.std(data), label, {"HQL": 1.0}
 
+    if data_type == "mD_renorm_ratio":
+        mdata_ratio = ed.D_mass_ratio(scaled=options.scale)
+
+        if np.all(np.isnan(mdata_ratio)):
+            mdata_ratio = np.mean(mdata_ratio)
+        data = mdata_ratio / 1.25
+
+
+        label = "$  \\frac{1}{1.25}\\frac{m_{h^{+1}\ell} }{ m_{h\ell} }$"
+        return np.mean(data), np.std(data), label, {"HQL": 1.0}
 
 
     if data_type == "fDA_divsqrtmD_renorm":
