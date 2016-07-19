@@ -213,6 +213,11 @@ def plot_decay_constant(options):
     add_mc_lines(axe, options, auto_key)
     add_vert_lines(axe, options)
 
+    for xline in options.xlines:
+        axe.axvline(x=xline, linewidth=2, color='k', ls="dotted")
+    for yline in options.ylines:
+        axe.axhline(y=yline, linewidth=2, color='k', ls="dotted")
+
 
     if options.physx:
         physxplot = axe.axvline(xphysical, color='k', ls="--", lw=2, label="physical point")
@@ -238,7 +243,10 @@ def plot_decay_constant(options):
             for l in pointfile:
                 x,y = l.split(",")
                 axe.errorbar(float(x), float(y), yerr=0, color='k', markersize=15, ecolor='k', marker='s')
-                print x, y
+                logging.info("adding points {} {}".format(x, y))
+                ymax = max(ymax, float(y))
+                ymin = min(ymin, float(y))
+                xmax = max(xmax, float(x))
 
     if options.xrange:
         logging.info("setting x range to {}".format(options.xrange))
@@ -393,6 +401,10 @@ if __name__ == "__main__":
                         help="add physical point")
     parser.add_argument("--physx", action="store_true",
                         help="draw line at physical x")
+    parser.add_argument("--xlines", required=False, type=float, action='append', default=[],
+                        help="draw line at a given xvalue")
+    parser.add_argument("--ylines", required=False, type=float, action='append', default=[],
+                        help="draw line at a given yvalue")
     parser.add_argument("-I", "--interpolate", type=argparse.FileType('r'), required=False,
                         help="add interpolated lines")
     parser.add_argument("--chiral_fit_file", type=argparse.FileType('r'), required=False,
