@@ -186,6 +186,7 @@ class data_params(object):
 
         if self.heavyq_mass is not None:
             self.heavy_m1, self.heavy_m2 = get_heavy_m1_m2(self.heavyq_mass)
+            self.heavy_m1_next, self.heavy_m2_next = get_heavy_m1_m2(self.heavyq_mass_next)
 
         self.ratio = "ratio" in filename
 
