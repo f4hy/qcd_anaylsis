@@ -12,6 +12,8 @@ from ensamble_info import unphys_etas
 import matplotlib.pyplot as plt
 from residualmasses import residual_mass, residual_mass_errors
 
+from msbar_convert import get_matm
+
 def get_data(ed, data_type, options):
 
     def dataindex():
@@ -177,27 +179,122 @@ def get_data(ed, data_type, options):
         label = "$ \\frac{\hat{f}_{h^{+1}s}\, \sqrt{m_{h^{+1}s}} }{ \hat{f}_{hs}\, \sqrt{m_{hs}} }$"
         return data.mean(), data.std(), label, {"HQL": 1.0}
 
-    if data_type == "mDs_renorm_ratio":
-        mdata_ratio = ed.Ds_mass_ratio(scaled=options.scale)
 
+    if data_type == "mD_ratio":
+        mdata_ratio = ed.D_mass_ratio(scaled=options.scale, corrected=False)
         if np.all(np.isnan(mdata_ratio)):
             mdata_ratio = np.mean(mdata_ratio)
         data = mdata_ratio / 1.25
 
+        label = "$  \\frac{1}{1.25}\\frac{m_{h^{+1}\ell} }{ m_{h\ell} }$"
+        return np.mean(data), np.std(data), label, {"HQL": 1.0}
+
+
+    if data_type == "mD_corrected_ratio":
+        mdata_ratio = ed.D_mass_ratio(scaled=options.scale, corrected=True)
+        if np.all(np.isnan(mdata_ratio)):
+            mdata_ratio = np.mean(mdata_ratio)
+        data = mdata_ratio / 1.25
+
+        label = "$  \\frac{1}{1.25}\\frac{\widetilde{m}_{h^{+1}\ell} }{ \widetilde{m}_{h\ell} }$"
+        return np.mean(data), np.std(data), label, {"HQL": 1.0}
+
+
+    if data_type == "mD_pole_ratio":
+        mdata_ratio = ed.D_mass_ratio(scaled=options.scale, corrected=False)
+        if np.all(np.isnan(mdata_ratio)):
+            mdata_ratio = np.mean(mdata_ratio)
+        data = mdata_ratio
+
+        m1 = ed.dp.heavyq_mass*scale[ed.dp.beta]
+        m2 = ed.dp.heavyq_mass_next*scale[ed.dp.beta]
+
+        rho_mu = get_matm(m1, m1)
+        rho_mu_next = get_matm(m2, m2)
+
+        data = data / (rho_mu_next / rho_mu)
+
+        label = "$  \\frac{m_{q}^{m(m)}}{m_{q^{+1}}^{m(m)}} \\frac{{m}_{h^{+1}\ell} }{ {m}_{h\ell} }$"
+        return np.mean(data), np.std(data), label, {"HQL": 1.0}
+
+
+
+    if data_type == "mD_corrected_pole_ratio":
+        mdata_ratio = ed.D_mass_ratio(scaled=options.scale, corrected=True)
+        if np.all(np.isnan(mdata_ratio)):
+            mdata_ratio = np.mean(mdata_ratio)
+        data = mdata_ratio
+
+        m1 = ed.dp.heavyq_mass*scale[ed.dp.beta]
+        m2 = ed.dp.heavyq_mass_next*scale[ed.dp.beta]
+
+        rho_mu = get_matm(m1, m1)
+        rho_mu_next = get_matm(m2, m2)
+
+        data = data / (rho_mu_next / rho_mu)
+
+        label = "$  \\frac{m_{q}^{m(m)}}{m_{q^{+1}}^{m(m)}} \\frac{\widetilde{m}_{h^{+1}\ell} }{ \widetilde{m}_{h\ell} }$"
+        return np.mean(data), np.std(data), label, {"HQL": 1.0}
+
+
+
+    if data_type == "mDs_ratio":
+        mdata_ratio = ed.Ds_mass_ratio(scaled=options.scale, corrected=False)
+        if np.all(np.isnan(mdata_ratio)):
+            mdata_ratio = np.mean(mdata_ratio)
+        data = mdata_ratio / 1.25
 
         label = "$  \\frac{1}{1.25}\\frac{m_{h^{+1}s} }{ m_{hs} }$"
         return np.mean(data), np.std(data), label, {"HQL": 1.0}
 
-    if data_type == "mD_renorm_ratio":
-        mdata_ratio = ed.D_mass_ratio(scaled=options.scale)
 
+    if data_type == "mDs_corrected_ratio":
+        mdata_ratio = ed.Ds_mass_ratio(scaled=options.scale, corrected=True)
         if np.all(np.isnan(mdata_ratio)):
             mdata_ratio = np.mean(mdata_ratio)
         data = mdata_ratio / 1.25
 
-
-        label = "$  \\frac{1}{1.25}\\frac{m_{h^{+1}\ell} }{ m_{h\ell} }$"
+        label = "$  \\frac{1}{1.25}\\frac{\widetilde{m}_{h^{+1}s} }{ \widetilde{m}_{hs} }$"
         return np.mean(data), np.std(data), label, {"HQL": 1.0}
+
+
+    if data_type == "mDs_pole_ratio":
+        mdata_ratio = ed.Ds_mass_ratio(scaled=options.scale, corrected=False)
+        if np.all(np.isnan(mdata_ratio)):
+            mdata_ratio = np.mean(mdata_ratio)
+        data = mdata_ratio
+
+        m1 = ed.dp.heavyq_mass*scale[ed.dp.beta]
+        m2 = ed.dp.heavyq_mass_next*scale[ed.dp.beta]
+
+        rho_mu = get_matm(m1, m1)
+        rho_mu_next = get_matm(m2, m2)
+
+        data = data / (rho_mu_next / rho_mu)
+
+        label = "$  \\frac{m_{q}^{m(m)}}{m_{q^{+1}}^{m(m)}} \\frac{{m}_{h^{+1}s} }{ {m}_{hs} }$"
+        return np.mean(data), np.std(data), label, {"HQL": 1.0}
+
+
+
+    if data_type == "mDs_corrected_pole_ratio":
+        mdata_ratio = ed.Ds_mass_ratio(scaled=options.scale, corrected=True)
+        if np.all(np.isnan(mdata_ratio)):
+            mdata_ratio = np.mean(mdata_ratio)
+        data = mdata_ratio
+
+        m1 = ed.dp.heavyq_mass*scale[ed.dp.beta]
+        m2 = ed.dp.heavyq_mass_next*scale[ed.dp.beta]
+
+        rho_mu = get_matm(m1, m1)
+        rho_mu_next = get_matm(m2, m2)
+
+        data = data / (rho_mu_next / rho_mu)
+
+        label = "$  \\frac{m_{q}^{m(m)}}{m_{q^{+1}}^{m(m)}} \\frac{\widetilde{m}_{h^{+1}s} }{ \widetilde{m}_{hs} }$"
+        return np.mean(data), np.std(data), label, {"HQL": 1.0}
+
+
 
 
     if data_type == "fDA_divsqrtmD_renorm":
@@ -637,30 +734,33 @@ def get_data(ed, data_type, options):
         mdata = ed.D_mass(scaled=options.scale)
         m1 = ed.dp.heavy_m1
         m2 = ed.dp.heavy_m2
-        data = 1.0/(mdata +(m2 - m1)*scale[ed.dp.beta])
+        data = 1.0/(mdata +(m2 - m1))
         label = "$1/(m_{hl} + m_2 - m_1)$"
         if options.scale:
             label += " [1/MeV]"
+            data = 1.0/(mdata +(m2 - m1)*scale[ed.dp.beta])
         return data.mean(), data.std(), label, {"Charm": 1.0/phys_D, "Bottom": 1.0/phys_MB}
 
     if data_type == "1/mD_div_corrected":
         mdata = ed.D_mass_div(scaled=options.scale)
         m1 = ed.dp.heavy_m1
         m2 = ed.dp.heavy_m2
-        data = 1.0/(mdata +(m2 - m1)*scale[ed.dp.beta])
+        data = 1.0/(mdata +(m2 - m1))
         label = "$1/(\hat{m}_{hl} + m_2 - m_1)$"
         if options.scale:
             label += " [1/MeV]"
+            data = 1.0/(mdata +(m2 - m1)*scale[ed.dp.beta])
         return data.mean(), data.std(), label, {"Charm": 1.0/phys_D, "Bottom": 1.0/phys_MB}
 
     if data_type == "1/mDs_div_corrected":
         mdata = ed.Ds_mass_div(scaled=options.scale)
         m1 = ed.dp.heavy_m1
         m2 = ed.dp.heavy_m2
-        data = 1.0/(mdata +(m2 - m1)*scale[ed.dp.beta])
+        data = 1.0/(mdata +(m2 - m1))
         label = "$1/(\hat{m}_{hs} + m_2 - m_1)$"
         if options.scale:
             label += " [1/MeV]"
+            data = 1.0/(mdata +(m2 - m1) *scale[ed.dp.beta])
         return data.mean(), data.std(), label, {"Charm": 1.0/phys_Ds, "Bottom": 1.0/phys_MB}
 
 
@@ -669,10 +769,11 @@ def get_data(ed, data_type, options):
         mdata = ed.Ds_mass(scaled=options.scale)
         m1 = ed.dp.heavy_m1
         m2 = ed.dp.heavy_m2
-        data = 1.0/(mdata +(m2 - m1)*scale[ed.dp.beta])
+        data = 1.0/(mdata +(m2 - m1))
         label = "$1/(m_{hs}+m_2 - m_1)$"
         if options.scale:
             label += " [1/MeV]"
+            data = 1.0/(mdata +(m2 - m1)*scale[ed.dp.beta])
         return data.mean(), data.std(), label, {"Charm": 1.0/phys_Ds, "Bottom": 1.0/phys_MBs}
 
     if data_type == "mD":
@@ -683,25 +784,40 @@ def get_data(ed, data_type, options):
         return data.mean(), data.std(), label, {"Charm": phys_D, "Bottom": phys_MB}
 
     if data_type == "mD_corrected":
+        mdata = ed.D_mass(scaled=options.scale)
+        m = ed.dp.heavyq_mass
+        m1 = ed.dp.heavy_m1
+        m2 = ed.dp.heavy_m2
+        data = mdata + (m2 - m1)
+        label = "$m_{hl} + m_2 - m_1$"
+        if options.scale:
+            label += " [MeV]"
+            data = mdata + (m2 - m1)*scale[ed.dp.beta]
+        return data.mean(), data.std(), label, {"Charm": phys_D, "Bottom": phys_MB}
+
+    if data_type == "m1_m2":
         data = ed.D_mass(scaled=options.scale)
         m = ed.dp.heavyq_mass
         m1 = ed.dp.heavy_m1
         m2 = ed.dp.heavy_m2
-        data = data + (m2 - m1)*scale[ed.dp.beta]
-        label = "$m_{hl} + m_2 - m_1$"
+        data = (m2 - m1)
+        label = "$m_2 - m_1$"
         if options.scale:
             label += " [MeV]"
-        return data.mean(), data.std(), label, {"Charm": phys_D, "Bottom": phys_MB}
+            data = data*scale[ed.dp.beta]
+        return data.mean(), data.std(), label, {"": None}
+
 
     if data_type == "mD_div_corrected":
-        data = ed.D_mass_div(scaled=options.scale)
+        mdata = ed.D_mass_div(scaled=options.scale)
         m = ed.dp.heavyq_mass
         m1 = ed.dp.heavy_m1
         m2 = ed.dp.heavy_m2
-        data = data + (m2 - m1)*scale[ed.dp.beta]
+        data = mdata + (m2 - m1)
         label = "$\hat{m}_{hl} + m_2 - m_1$"
         if options.scale:
             label += " [MeV]"
+            data = mdata + (m2 - m1)*scale[ed.dp.beta]
         return data.mean(), data.std(), label, {"Charm": phys_D, "Bottom": phys_MB}
 
 
@@ -715,16 +831,18 @@ def get_data(ed, data_type, options):
 
 
     if data_type == "mDs_corrected":
-        data = ed.Ds_mass(scaled=options.scale)
+        mdata = ed.Ds_mass(scaled=options.scale)
 
         m1 = ed.dp.heavy_m1
         m2 = ed.dp.heavy_m2
 
-        data = data + (m2 - m1)*scale[ed.dp.beta]
+        data = mdata + (m2 - m1)
 
         label = "$m_{hs}+m_2-m_1$"
         if options.scale:
             label += " [MeV]"
+            data = mdata + (m2 - m1)*scale[ed.dp.beta]
+
         return data.mean(), data.std(), label, {"Charm": phys_Ds, "Bottom": phys_MBs}
 
 
@@ -780,11 +898,22 @@ def get_data(ed, data_type, options):
             label += " [MeV]"
         return data, err, label, {"PDG": phys_mhq}
 
+    if data_type == "mheavyq_bare":
+        data = ed.dp.heavyq_mass
+        print ed.dp.latspacing
+        err = 0.0
+        label = "$m_{q_h}^{bare}$"
+        if options.scale:
+            data = scale[ed.dp.beta]*data
+            label += " [MeV]"
+        return data, err, label, {"PDG": phys_mhq}
+
+
     if data_type == "1/mheavyq":
         data = 1.0/(ed.dp.heavyq_mass / Zs[ed.dp.beta])
         print ed.dp.latspacing
         err = 0.0
-        label = "$1/m_{q_h}$"
+        label = "$1/\\bar{m}_{q_h}$"
         if options.scale:
             data = data / scale[ed.dp.beta]
             label += " [1/MeV]"
