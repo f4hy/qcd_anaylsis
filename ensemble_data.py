@@ -150,20 +150,26 @@ class ensemble_data(object):
             return self.scale*self.get_mass("heavy-ud")
         return self.get_mass("heavy-ud")
 
-    def D_mass_ratio(self, scaled=False):
+    def D_mass_ratio(self, scaled=False, corrected=False):
         mass1  = self.get_mass("heavy-ud")
         try:
             mass2 = self.get_mass("heavy-ud", nextheavy=True)
         except MissingData:
             return [np.nan]*len(mass1)
+        if corrected:
+            mass1 = mass1 + (self.dp.heavy_m2 - self.dp.heavy_m1)
+            mass2 = mass2 + (self.dp.heavy_m2_next - self.dp.heavy_m1_next)
         return mass2 / mass1
 
-    def Ds_mass_ratio(self, scaled=False):
+    def Ds_mass_ratio(self, scaled=False, corrected=False):
         mass1  = self.get_mass("heavy-s")
         try:
             mass2 = self.get_mass("heavy-s", nextheavy=True)
         except MissingData:
             return [np.nan]*len(mass1)
+        if corrected:
+            mass1 = mass1 + (self.dp.heavy_m2 - self.dp.heavy_m1)
+            mass2 = mass2 + (self.dp.heavy_m2_next - self.dp.heavy_m1_next)
         return mass2 / mass1
 
 
