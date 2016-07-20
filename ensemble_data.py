@@ -7,7 +7,7 @@ from ensamble_info import flavor_map, scale, data_params, determine_flavor, read
 from residualmasses import residual_mass
 import glob
 from ensamble_info import Zs, Zv
-from alpha_s import get_Cmu
+from alpha_s import get_Cmu_mbar
 
 #FITTYPE="singlecorrelated"
 FITTYPE="uncorrelated"
@@ -150,7 +150,11 @@ class ensemble_data(object):
             return self.scale*self.get_mass("heavy-ud")
         return self.get_mass("heavy-ud")
 
-    def D_mass_ratio(self, scaled=False, corrected=False):
+    def D_mass_ratio(self, scaled=False, div=False, corrected=False):
+        divwild = None
+        if div:
+            divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_{0}_*/*.boot".format(FITTYPE)
+
         mass1  = self.get_mass("heavy-ud")
         try:
             mass2 = self.get_mass("heavy-ud", nextheavy=True)
@@ -161,10 +165,14 @@ class ensemble_data(object):
             mass2 = mass2 + (self.dp.heavy_m2_next - self.dp.heavy_m1_next)
         return mass2 / mass1
 
-    def Ds_mass_ratio(self, scaled=False, corrected=False):
-        mass1  = self.get_mass("heavy-s")
+    def Ds_mass_ratio(self, scaled=False, div=False, corrected=False):
+        divwild = None
+        if div:
+            divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_{0}_*/*.boot".format(FITTYPE)
+
+        mass1  = self.get_mass("heavy-s", wild=divwild)
         try:
-            mass2 = self.get_mass("heavy-s", nextheavy=True)
+            mass2 = self.get_mass("heavy-s", wild=divwild, nextheavy=True)
         except MissingData:
             return [np.nan]*len(mass1)
         if corrected:
@@ -183,23 +191,23 @@ class ensemble_data(object):
             return self.scale*self.get_mass("heavy-s", op="A4")
         return self.get_mass("heavy-s", op="A4")
 
-    def D_mass_div_ratio(self, scaled=False):
-        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_{0}_*/*.boot".format(FITTYPE)
-        try:
-            mass1 = self.get_mass("heavy-ud", wild=divwild)
-            mass2 = self.get_mass("heavy-ud", wild=divwild, nextheavy=True)
-        except MissingData:
-            return [np.nan]*len(mass1)
-        return mass2 / mass1
+    # def D_mass_div_ratio(self, scaled=False):
+    #     divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_{0}_*/*.boot".format(FITTYPE)
+    #     try:
+    #         mass1 = self.get_mass("heavy-ud", wild=divwild)
+    #         mass2 = self.get_mass("heavy-ud", wild=divwild, nextheavy=True)
+    #     except MissingData:
+    #         return [np.nan]*len(mass1)
+    #     return mass2 / mass1
 
-    def Ds_mass_div_ratio(self, scaled=False):
-        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_{0}_*/*.boot".format(FITTYPE)
-        try:
-            mass1 = self.get_mass("heavy-s", wild=divwild)
-            mass2 = self.get_mass("heavy-s", wild=divwild, nextheavy=True)
-        except MissingData:
-            return [np.nan]*len(mass1)
-        return mass2 / mass1
+    # def Ds_mass_div_ratio(self, scaled=False):
+    #     divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_{0}_*/*.boot".format(FITTYPE)
+    #     try:
+    #         mass1 = self.get_mass("heavy-s", wild=divwild)
+    #         mass2 = self.get_mass("heavy-s", wild=divwild, nextheavy=True)
+    #     except MissingData:
+    #         return [np.nan]*len(mass1)
+    #     return mass2 / mass1
 
 
     def D_mass_div(self, scaled=False):
@@ -302,7 +310,7 @@ class ensemble_data(object):
             data = scale[self.dp.beta] * data
         return data
 
-    def fD(self, scaled=False, renorm=False, div=False):
+    def fD(self, scaled=False, renorm=False, div=False, matched=False):
         if div:
             divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_{0}_*/*.boot".format(FITTYPE)
             amp1data, amp2data = self.get_amps("heavy-ud", wild=divwild)
@@ -328,6 +336,13 @@ class ensemble_data(object):
 
         if scaled:
             data = scale[self.dp.beta] * data
+
+        if matched:
+            mq1 = self.scale * self.dp.heavyq_mass / Zs[self.dp.beta]
+            print mq1
+            C1 = get_Cmu_mbar(mq1)
+            data = data / C1
+
         return data
 
     def fD_ratio(self, scaled=False, renorm=False, div=False, matched=False):
@@ -376,8 +391,8 @@ class ensemble_data(object):
         if matched:
             mq1 = self.scale * self.dp.heavyq_mass / Zs[self.dp.beta]
             mq2 = self.scale * self.dp.heavyq_mass_next / Zs[self.dp.beta]
-            C1 = get_Cmu(mq1)
-            C2 = get_Cmu(mq2)
+            C1 = get_Cmu_mbar(mq1)
+            C2 = get_Cmu_mbar(mq2)
             data1 = data1 / C1
             data2 = data2 / C2
 
@@ -388,7 +403,7 @@ class ensemble_data(object):
         return data
 
 
-    def fDs_ratio(self, scaled=False, renorm=False, div=False):
+    def fDs_ratio(self, scaled=False, renorm=False, div=False, matched=False):
         try:
             if div:
                 divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_{0}_*/*.boot".format(FITTYPE)
@@ -430,6 +445,14 @@ class ensemble_data(object):
         ampdata2 = (amp1data2**2 / amp2data2) / ampfactor2
         data1 = (qh1 + ql)*np.sqrt(2*(ampdata1) / massdata1**3)
         data2 = (qh2 + ql)*np.sqrt(2*(ampdata2) / massdata2**3)
+
+        if matched:
+            mq1 = self.scale * self.dp.heavyq_mass / Zs[self.dp.beta]
+            mq2 = self.scale * self.dp.heavyq_mass_next / Zs[self.dp.beta]
+            C1 = get_Cmu_mbar(mq1)
+            C2 = get_Cmu_mbar(mq2)
+            data1 = data1 / C1
+            data2 = data2 / C2
 
         data = data2 / data1
 

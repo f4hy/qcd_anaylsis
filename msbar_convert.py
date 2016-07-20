@@ -7,25 +7,26 @@ from alpha_s import get_alpha
 
 pi = np.pi
 
-def get_matm(m0, g):
+def get_matm(m, g):
 
+    m0=m/1000.0
     m2gv = 2.0
-    a2gv = get_alpha(m2gv)
+    a2gv = get_alpha(m2gv*1000.0)
     As2gv = a2gv / pi
 
     c0 = As2gv**(4.0/9.0)*(1.0+0.895062*As2gv+
                               1.37143*As2gv**2.0+1.95168*As2gv**3.0)
 
-    m1 = g
+    m1 = g/1000.0
     for i in range(200):
-        As = get_alpha(m1) / pi
+        As = get_alpha(m1*1000.0) / pi
         c1 = As**(4.0/9.0)*(1.0+0.895062*As+ 1.37143*As**2.0+1.95168*As**3.0)
         m1_out = (c1 / c0) * m0
         logging.debug("{} {} {} {}".format(i, m0, m1, m1_out))
         if np.isclose(m1,m1_out):
-            return m1_out
+            return m1_out*1000.0
         m1 = m1_out
-    logging.error("did not converge")
+    logging.error("did not converge {} {}".format(m, m0, m1))
     return np.nan
 
 
