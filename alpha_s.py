@@ -123,8 +123,8 @@ def matching(alpha, beta, M, mbar):
     + (-469.0/864.0 - 7.0/648.0*pi**2.0)*Lbar**2.0 + 25.0/144.0*Lbar**3.0)
     CHH = - 5857.0/7776.0 + 1.0/405.0*pi**2.0 + 11.0/18.0*zeta3;
     CHL = - 193.0/432.0 + 29.0/648.0*pi**2.0;
-    CLL = (1751.0/46656.0 - 13.0/648.0*pi**2.0 - 7.0/108.0*zeta3 + 35.0/2592.0*L + 5.0/432.0*L**2.0
-    - 1.0/216.0*L**3.0)
+    CLL = (1751.0/46656.0 - 13.0/648.0*pi**2.0 - 7.0/108.0*zeta3 + 35.0/2592.0*Lbar + 5.0/432.0*Lbar**2.0
+    - 1.0/216.0*Lbar**3.0)
     CGM = 0.0
     CHM = 0.0
     CLM = 0.0
@@ -133,7 +133,7 @@ def matching(alpha, beta, M, mbar):
     C3 = (CGG + CGH*nh + CGL*nl + CHH*nh**2.0 + CHL*nh*nl + CLL*nl**2.0
     + CGM*nm + CHM*nh*nm + CLM*nl*nm + CMM*nm**2.0)
     C3bar = (C1Lbar*(-2.0*Cm2+Cm1**2.0)
-    + C2Lbar*(-2.0*Cm1) + C2Lbar2*Lbar*(-2.0*Cm1))
+    + C2Lbar*(-2.0*Cm1) + C2Lbar2*Lbar*(-4.0*Cm1))
 
     # total
     Cmu1 = As*C1;
