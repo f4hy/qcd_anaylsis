@@ -225,7 +225,6 @@ def plot_decay_constant(options):
 
     if options.addpoint:
         logging.info("adding point {}".format(options.addpoint))
-        print options.addpoint
         px = float(options.addpoint[1])
         py = float(options.addpoint[2])
         physplot = axe.errorbar(px, py, yerr=0, marker="x",
