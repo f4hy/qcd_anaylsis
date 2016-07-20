@@ -1,9 +1,10 @@
+
 import numpy as np
 from alpha_s import *
 from mpmath import *
 
 '''
-Script to calculate matching coefficients up to 
+Script to calculate matching coefficients up to
 alpha_s**3 as in Bekavac et. al. arxiv:0911.3356
 Result is matching to get HQET values from
 QCD, i.e. result * QCD = HQET.
