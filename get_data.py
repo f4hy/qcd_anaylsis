@@ -149,6 +149,17 @@ def get_data(ed, data_type, options):
             label += " [MeV^(3/2)]"
         return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
 
+
+    if data_type == "fD_divsqrtmD_renorm_matched_ratio":
+        fdata_ratio = ed.fD_ratio(scaled=options.scale, renorm=True, div=True, matched=True)
+        mdata_ratio = ed.D_mass_ratio(scaled=options.scale)
+
+        data = fdata_ratio*np.sqrt(mdata_ratio)
+
+        label = "$\\frac{\hat{f}_{h^{+1}l}\, \sqrt{m_{h^{+1}l}} }{ \hat{f}_{hl}\, \sqrt{m_{hl}} } \\frac{C(\\bar{m}_q)}{C(\\bar{m}_q^{+1})})}$"
+        return data.mean(), data.std(), label, {"HQL": 1.0}
+
+
     if data_type == "fD_divsqrtmD_renorm_ratio":
         fdata_ratio = ed.fD_ratio(scaled=options.scale, renorm=True, div=True)
         mdata_ratio = ed.D_mass_ratio(scaled=options.scale)

@@ -7,7 +7,7 @@ from ensamble_info import flavor_map, scale, data_params, determine_flavor, read
 from residualmasses import residual_mass
 import glob
 from ensamble_info import Zs, Zv
-
+from alpha_s import get_Cmu
 
 #FITTYPE="singlecorrelated"
 FITTYPE="uncorrelated"
@@ -330,7 +330,7 @@ class ensemble_data(object):
             data = scale[self.dp.beta] * data
         return data
 
-    def fD_ratio(self, scaled=False, renorm=False, div=False):
+    def fD_ratio(self, scaled=False, renorm=False, div=False, matched=False):
         try:
             if div:
                 divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_{0}_*/*.boot".format(FITTYPE)
@@ -373,7 +373,17 @@ class ensemble_data(object):
         data1 = (qh1 + ql)*np.sqrt(2*(ampdata1) / massdata1**3)
         data2 = (qh2 + ql)*np.sqrt(2*(ampdata2) / massdata2**3)
 
+        if matched:
+            mq1 = self.scale * self.dp.heavyq_mass / Zs[self.dp.beta]
+            mq2 = self.scale * self.dp.heavyq_mass_next / Zs[self.dp.beta]
+            C1 = get_Cmu(mq1)
+            C2 = get_Cmu(mq2)
+            data1 = data1 / C1
+            data2 = data2 / C2
+
         data = data2 / data1
+
+
 
         return data
 
