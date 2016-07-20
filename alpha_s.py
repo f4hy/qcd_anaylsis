@@ -144,16 +144,19 @@ def matching(alpha, beta, M, mbar):
     return {1: Cmu1, 2: Cmu2, 3:Cmu3, 's': Cmu}
 
 
-def get_Cmu(m):
+def get_Cmu(m_mev):
+    m_gev = m_mev/1000.0
+    m = m_gev
     b = beta(m)
     a = alpha_s(b, m)
     mp = pole_mass(a, b, m)
     c = matching(a, b, mp, m)
     return c["s"]
 
-def get_alpha(m):
-    b = beta(m)
-    a = alpha_s(b, m)
+def get_alpha(m_mev):
+    m_gev = m_mev/1000.0
+    b = beta(m_gev)
+    a = alpha_s(b, m_gev)
     return a['s']
 
 def main(options):
