@@ -149,6 +149,19 @@ def get_data(ed, data_type, options):
             label += " [MeV^(3/2)]"
         return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
 
+    if data_type == "fD_divsqrtmD_renorm_matched":
+        fdata = ed.fD(scaled=options.scale, renorm=True, div=True, matched=True)
+        mdata = ed.D_mass(scaled=options.scale)
+
+        data = fdata*np.sqrt(mdata)
+
+        label = "$\hat{f}_{hl}\, \sqrt{m_{hl}} / C(m)$"
+        if options.scale:
+            label += " [MeV^(3/2)]"
+        return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
+
+
+
 
     if data_type == "fD_divsqrtmD_renorm_matched_ratio":
         fdata_ratio = ed.fD_ratio(scaled=options.scale, renorm=True, div=True, matched=True)
@@ -911,7 +924,6 @@ def get_data(ed, data_type, options):
 
     if data_type == "mheavyq_bare":
         data = ed.dp.heavyq_mass
-        print ed.dp.latspacing
         err = 0.0
         label = "$m_{q_h}^{bare}$"
         if options.scale:
@@ -922,7 +934,6 @@ def get_data(ed, data_type, options):
 
     if data_type == "1/mheavyq":
         data = 1.0/(ed.dp.heavyq_mass / Zs[ed.dp.beta])
-        print ed.dp.latspacing
         err = 0.0
         label = "$1/\\bar{m}_{q_h}$"
         if options.scale:
