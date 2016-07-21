@@ -3,6 +3,7 @@ import logging
 import argparse
 import numpy as np
 
+
 Nf = 3.0                      # in GeV
 Lambda = 0.340              # in GeV
 
@@ -153,16 +154,36 @@ def get_Cmu(m_mev):
     c = matching(a, b, mp, m)
     return c["s"]
 
+def get_Cmu_mbar(m_mev):
+    from msbar_convert import get_matm
+
+    mbar = get_matm(m_mev, m_mev)
+    m_gev = mbar/1000.0
+
+    m = m_gev
+    b = beta(m)
+    a = alpha_s(b, m)
+    mp = pole_mass(a, b, m)
+    c = matching(a, b, mp, m)
+    return c["s"]
+
+
 def get_alpha(m_mev):
     m_gev = m_mev/1000.0
     b = beta(m_gev)
     a = alpha_s(b, m_gev)
     return a['s']
 
+
+
 def main(options):
+    from msbar_convert import get_matm
 
     for s in options.scales:
         cmu = get_Cmu(s)
+        print cmu
+        print get_Cmu_mbar(s)
+        print get_Cmu(get_matm(s,s))
         print "Cmu = {}".format(cmu)
 
 
