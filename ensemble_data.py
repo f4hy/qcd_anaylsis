@@ -339,7 +339,6 @@ class ensemble_data(object):
 
         if matched:
             mq1 = self.scale * self.dp.heavyq_mass / Zs[self.dp.beta]
-            print mq1
             C1 = get_Cmu_mbar(mq1)
             data = data / C1
 
