@@ -51,7 +51,6 @@ def add_chiral_fit(axe, xran, chiral_fit_file=None, options=None):
     errors = {}
 
     for i in chiral_fit_file:
-        print i
         if i.startswith("#"):
             fittype = i.split(" ")[0][1:]
             continue
@@ -67,7 +66,7 @@ def add_chiral_fit(axe, xran, chiral_fit_file=None, options=None):
     except:
         pass
 
-    ratio_chain(fittype, values)
+    #ratio_chain(fittype, values)
 
 
     return choose_fit(axe, xran, fittype, values, errors, fill=False, save=True)
@@ -80,18 +79,18 @@ def add_boot_fit(axe, xran, boot_fit_file=None, options=None):
     #     print i
     meanfilename = boot_fit_file.name.replace(".boot", ".fit")
     meanfile = open(meanfilename)
-    add_chiral_fit(axe, xran, chiral_fit_file=meanfile, options=options)
+    meanfit = add_chiral_fit(axe, xran, chiral_fit_file=meanfile, options=options)
 
     comment = boot_fit_file.readline().strip("#\n ")
     comments = comment.split(",")
     model, names = comments[0], comments[1:]
 
-    for i in boot_fit_file:
-        values = dict(zip(names,map(float,i.split(","))))
-        errors = dict(zip(names,[0.0]*len(names)))
+    # for i in boot_fit_file:
+    #     values = dict(zip(names,map(float,i.split(","))))
+    #     errors = dict(zip(names,[0.0]*len(names)))
 
-        x = choose_fit(axe, xran, model, values, errors, fill=True, save=False)
-    return x
+    #     x = choose_fit(axe, xran, model, values, errors, fill=True, save=False)
+    return meanfit
 
 
 
@@ -191,7 +190,26 @@ def choose_fit(axe, xran, fittype, values, errors, fill=False, save=False):
     if fittype.startswith("m_mq_ma_ratio"):
         return fdssqrtms_mq_ma_ratio(axe, xran, values, errors, fill=fill, save=save)
 
+    if fittype.startswith("mD_corrected_pole_ratio"):
+        return fdssqrtms_mq_ma_ratio(axe, xran, values, errors, fill=fill, save=save)
+
+    if fittype.startswith("mDs_corrected_pole_ratio"):
+        return fdssqrtms_mq_ma_ratio(axe, xran, values, errors, fill=fill, save=save)
+
+    if fittype.startswith("mD_pole_ratio"):
+        return fdssqrtms_mq_ma_ratio(axe, xran, values, errors, fill=fill, save=save)
+
+    if fittype.startswith("mDs_pole_ratio"):
+        return fdssqrtms_mq_ma_ratio(axe, xran, values, errors, fill=fill, save=save)
+
+
+    if fittype.startswith("fdsqrtmd_matched_ratio"):
+        return fdssqrtms_mq_ma_ratio(axe, xran, values, errors, fill=fill, save=save)
+
     if fittype.startswith("fdsqrtm_mq_ma_ratio"):
+        return fdssqrtms_mq_ma_ratio(axe, xran, values, errors, fill=fill, save=save)
+
+    if fittype.startswith("fdssqrtms_matched_ratio"):
         return fdssqrtms_mq_ma_ratio(axe, xran, values, errors, fill=fill, save=save)
 
     if fittype.startswith("fdssqrtms_mq_ma_ratio"):
@@ -209,8 +227,7 @@ def choose_fit(axe, xran, fittype, values, errors, fill=False, save=False):
     if fittype.startswith("fdssqrtms"):
         return fdssqrtms(axe, xran, values, errors, fill=fill, save=save)
 
-    print fittype
-    print "not supported"
+    logging.error("{} not supported".format(fittype))
     exit(-1)
 
     if "OMEGA_F" in values.keys():
@@ -370,8 +387,6 @@ def add_mpisqrbymq_xi_NNLO_fit(axe, xran, values, errors, fill=False, save=False
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=xi, y=y, params={"label":plabel,  "ls":"--", "lw":2})
 
-    print plots
-
     return plots
 
 
@@ -505,8 +520,6 @@ def add_XI_NLO_fit(axe, xran, values, errors, fill=False, save=False):
 
     paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
                            for k, v in sorted(values.iteritems()))
-    print values
-    print values[' M_\pi<']
     paramstring = "$ M_\pi<${}".format(values[" M_\\pi<"])
     plabel = "NLO {}".format(paramstring)
     plabel = "NLO $ M_\pi<450$ MeV"
