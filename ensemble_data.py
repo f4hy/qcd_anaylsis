@@ -483,7 +483,7 @@ class ensemble_data(object):
             data = scale[self.dp.beta] * data
         return data
 
-    def fDs(self, scaled=False, renorm=False, div=False):
+    def fDs(self, scaled=False, renorm=False, div=False, matched=False):
         if div:
             divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_{0}_*/*.boot".format(FITTYPE)
             amp1data, amp2data = self.get_amps("heavy-s", wild=divwild)
@@ -508,6 +508,13 @@ class ensemble_data(object):
         data = (q1 + q2)*np.sqrt(2*(ampdata) / massdata**3)
         if scaled:
             data = scale[self.dp.beta] * data
+
+        if matched:
+            mq1 = self.scale * self.dp.heavyq_mass / Zs[self.dp.beta]
+            C1 = get_Cmu_mbar(mq1)
+            data = data / C1
+
+
         return data
 
     def fDsA(self, scaled=False, renorm=False, div=False):
