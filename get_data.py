@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 from residualmasses import residual_mass, residual_mass_errors
 
 from msbar_convert import get_matm
+from alpha_s import get_Cmu_mbar
+
 
 def get_data(ed, data_type, options):
 
@@ -158,8 +160,18 @@ def get_data(ed, data_type, options):
         label = "$\hat{f}_{hl}\, \sqrt{m_{hl}} / C(m)$"
         if options.scale:
             label += " [MeV^(3/2)]"
-        return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
+        return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D)/get_Cmu_mbar(1080.0) , "Bottom": phys_FB*np.sqrt(phys_MB)/get_Cmu_mbar(4100.0)}
 
+    if data_type == "fDs_divsqrtmDs_renorm_matched":
+        fdata = ed.fDs(scaled=options.scale, renorm=True, div=True, matched=True)
+        mdata = ed.Ds_mass(scaled=options.scale)
+
+        data = fdata*np.sqrt(mdata)
+
+        label = "$\hat{f}_{hs}\, \sqrt{m_{hs}} / C(m)$"
+        if options.scale:
+            label += " [MeV^(3/2)]"
+        return data.mean(), data.std(), label, {"Charm": phys_FDs*np.sqrt(phys_Ds)/get_Cmu_mbar(1080.0) , "Bottom": phys_FBs*np.sqrt(phys_MBs)/get_Cmu_mbar(4100.0)}
 
 
 
