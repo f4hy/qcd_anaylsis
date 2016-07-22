@@ -65,7 +65,7 @@ class Model(object):
 
         self.mKsqr = make_array("kaon_mass", scaled=True)**2
 
-        self.mD = make_array("D_mass", scaled=True)
+        self.mD= make_array("D_mass", scaled=True)
         self.mDA = make_array("D_mass_axial", scaled=True)
 
         self.mDs = make_array("Ds_mass", scaled=True)
@@ -77,6 +77,13 @@ class Model(object):
         self.xi = make_array("xi", scaled=True)
 
         self.fD = make_array("fD", scaled=True)
+        self.fD_div = make_array("fD", scaled=True, renorm=True, div=True)
+        self.fD_matched = make_array("fD", scaled=True, renorm=True, div=True, matched=True)
+
+        self.fDs = make_array("fDs", scaled=True)
+        self.fDs_div = make_array("fDs", scaled=True, renorm=True, div=True)
+        self.fDs_matched = make_array("fDs", scaled=True, renorm=True, div=True, matched=True)
+
 
         self.fDA = make_array("fDA", scaled=True)
         self.fDsA = make_array("fDsA", scaled=True)
@@ -86,7 +93,8 @@ class Model(object):
         self.mD_div = make_array("D_mass_div", scaled=True)
         self.mDs_div = make_array("Ds_mass_div", scaled=True)
 
-        self.fDs = make_array("fDs", scaled=True)
+
+
 
         self.D_mass_ratio = make_array("D_mass_ratio", scaled=False)
         self.D_mass_div_ratio = make_array("D_mass_ratio", scaled=False, div=True, corrected=False)
@@ -594,6 +602,73 @@ class Model(object):
 
             fun = self.fdsqrtm_chiral_dmss_HQET
 
+        elif self.type_string == "fdsqrtm_HQET_matched":
+            Fsqrtm_inf_guess = 20000.0
+            C1_guess = -1.0
+            C2_guess = 1.0
+            gamma_guess = 0.001
+            eta_guess = -1.0
+            mu_guess = -9000.0
+            b_guess = 0.0000004
+            delta_S = 0.01
+            params = paramdict("Fsqrtm_inf", Fsqrtm_inf_guess, Fsqrtm_inf_guess/10.0, limits=(0, None))
+            params.update(paramdict("C1", C1_guess, C1_guess/2))
+            params.update(paramdict("C2", C2_guess, C2_guess/2))
+
+            params.update(paramdict("gamma", gamma_guess, gamma_guess/2))
+            params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
+            params.update(paramdict("mu", mu_guess, mu_guess/2))
+
+            params.update(paramdict("b", b_guess, b_guess/2))
+            params.update(paramdict("delta_S", delta_S, delta_S/2))
+
+            fun = self.fdsqrtm_HQET_matched
+
+        elif self.type_string == "fdsqrtm_HQET_matched_nom2":
+            Fsqrtm_inf_guess = 20000.0
+            C1_guess = -1.0
+            C2_guess = 1.0
+            gamma_guess = 0.001
+            eta_guess = -1.0
+            mu_guess = -9000.0
+            b_guess = 0.0000004
+            delta_S = 0.01
+            params = paramdict("Fsqrtm_inf", Fsqrtm_inf_guess, Fsqrtm_inf_guess/10.0, limits=(0, None))
+            params.update(paramdict("C1", C1_guess, C1_guess/2))
+            params.update(paramdict("C2", C2_guess, C2_guess/2))
+
+            params.update(paramdict("gamma", gamma_guess, gamma_guess/2))
+            params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
+            params.update(paramdict("mu", mu_guess, mu_guess/2))
+
+            params.update(paramdict("b", b_guess, b_guess/2))
+            params.update(paramdict("delta_S", delta_S, delta_S/2))
+
+            fun = self.fdsqrtm_HQET_matched_nom2
+
+        elif self.type_string == "fdssqrtms_HQET_matched_nom2":
+            Fssqrtms_inf_guess = 20000.0
+            C1_guess = -1.0
+            C2_guess = 1.0
+            gamma_guess = 0.001
+            eta_guess = -1.0
+            mu_guess = -9000.0
+            b_guess = 0.0000004
+            delta_S = 0.01
+            params = paramdict("Fssqrtms_inf", Fssqrtms_inf_guess, Fssqrtms_inf_guess/10.0, limits=(0, None))
+            params.update(paramdict("C1", C1_guess, C1_guess/2))
+            params.update(paramdict("C2", C2_guess, C2_guess/2))
+
+            params.update(paramdict("gamma", gamma_guess, gamma_guess/2))
+            params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
+            params.update(paramdict("mu", mu_guess, mu_guess/2))
+
+            params.update(paramdict("b", b_guess, b_guess/2))
+            params.update(paramdict("delta_S", delta_S, delta_S/2))
+
+            fun = self.fdssqrtms_HQET_matched_nom2
+
+
         elif self.type_string == "fdssqrtms_chiral_dmss_HQET":
             Fssqrtms_inf_guess = 20000.0
             C1_guess = -1.0
@@ -765,15 +840,15 @@ class Model(object):
         elif self.type_string == "mD_corrected_pole_ratio":
 
             z_guess = 200.0
-            z2_guess = -100000.0
-            gammaA_guess = 1.0
-            gammaMA_guess = -0.01
-            gammaMMA_guess = 0.01
+            z2_guess = 100.0
+            gammaA_guess = 5.0
+            gammaMA_guess = 0.01
+            gammaMMA_guess = 0.00001
             gammaS_guess = 2.0e-8
             gammaP_guess = -2.0e-8
 
-            params = paramdict("z", z_guess, z_guess/2)
-            params.update(paramdict("z2", z2_guess, z2_guess/2))
+            params = paramdict("z", z_guess, z_guess*2)
+            params.update(paramdict("z2", z2_guess, z2_guess*2))
             params.update(paramdict("gamma_A", gammaA_guess, gammaA_guess))
             params.update(paramdict("gamma_S", gammaS_guess, gammaS_guess))
             params.update(paramdict("gamma_P", gammaP_guess, gammaP_guess))
@@ -786,16 +861,16 @@ class Model(object):
 
         elif self.type_string == "mDs_corrected_pole_ratio":
 
-            z_guess = -200.0
-            z2_guess = 100000.0
-            gammaA_guess = 11.0
+            z_guess = 200.0
+            z2_guess = 100.0
+            gammaA_guess = 5.0
             gammaMA_guess = 0.01
-            gammaMMA_guess = 0.01
+            gammaMMA_guess = 0.00001
             gammaS_guess = 2.0e-8
-            gammaP_guess = 2.0e-8
+            gammaP_guess = -2.0e-8
 
-            params = paramdict("z", z_guess, z_guess/2)
-            params.update(paramdict("z2", z2_guess, z2_guess/2))
+            params = paramdict("z", z_guess, z_guess*2)
+            params.update(paramdict("z2", z2_guess, z2_guess*2))
             params.update(paramdict("gamma_A", gammaA_guess, gammaA_guess))
             params.update(paramdict("gamma_S", gammaS_guess, gammaS_guess))
             params.update(paramdict("gamma_P", gammaP_guess, gammaP_guess))
@@ -804,6 +879,49 @@ class Model(object):
             params.update(paramdict("gamma_MMA", gammaMMA_guess, gammaMMA_guess))
 
             fun = self.mDs_corrected_pole_ratio
+
+        elif self.type_string == "mD_pole_ratio":
+
+            z_guess = 200.0
+            z2_guess = 100.0
+            gammaA_guess = 50.0
+            gammaMA_guess = 0.01
+            gammaMMA_guess = 0.00001
+            gammaS_guess = 2.0e-8
+            gammaP_guess = -2.0e-8
+
+            params = paramdict("z", z_guess, z_guess*2)
+            params.update(paramdict("z2", z2_guess, z2_guess*2))
+            params.update(paramdict("gamma_A", gammaA_guess, gammaA_guess))
+            params.update(paramdict("gamma_S", gammaS_guess, gammaS_guess))
+            params.update(paramdict("gamma_P", gammaP_guess, gammaP_guess))
+
+            params.update(paramdict("gamma_MA", gammaMA_guess, gammaMA_guess))
+            params.update(paramdict("gamma_MMA", gammaMMA_guess, gammaMMA_guess))
+
+            fun = self.mD_pole_ratio
+
+
+        elif self.type_string == "mDs_pole_ratio":
+
+            z_guess = 200.0
+            z2_guess = 100.0
+            gammaA_guess = 50.0
+            gammaMA_guess = 0.01
+            gammaMMA_guess = 0.00001
+            gammaS_guess = 2.0e-8
+            gammaP_guess = -2.0e-8
+
+            params = paramdict("z", z_guess, z_guess*2)
+            params.update(paramdict("z2", z2_guess, z2_guess*2))
+            params.update(paramdict("gamma_A", gammaA_guess, gammaA_guess))
+            params.update(paramdict("gamma_S", gammaS_guess, gammaS_guess))
+            params.update(paramdict("gamma_P", gammaP_guess, gammaP_guess))
+
+            params.update(paramdict("gamma_MA", gammaMA_guess, gammaMA_guess))
+            params.update(paramdict("gamma_MMA", gammaMMA_guess, gammaMMA_guess))
+
+            fun = self.mDs_pole_ratio
 
 
         else:
@@ -1673,6 +1791,71 @@ class Model(object):
         sqr_diff1 = (data - M1)**2
         return np.sum(sqr_diff1/var)
 
+    def fdsqrtm_HQET_matched(self, Fsqrtm_inf, C1, C2, gamma, eta, mu, b, delta_S):
+
+        fdsqrm_data = self.fD_matched * np.sqrt(self.mD_div)
+        data = self.bstrapdata(fdsqrm_data)
+        var = fdsqrm_data.var(1)
+
+
+        m = self.bstrapdata(self.mD_div) + self.m2 - self.m1
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata(self.mKsqr)) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)/10000000
+
+
+        M1 = Fsqrtm_inf*(1+delta_S*delta_Mss)*(1.0+b*(mpisqr-phys_pion**2))*( 1.0 + C1*1000.0 / m + C2*1000000 / (m**2) + (gamma/10000.0) *(m*self.a)**2 + (eta/100.0)*m*self.a**2 + (mu*0.001)*self.a**2)
+
+        sqr_diff1 = (data - M1)**2
+        return np.sum(sqr_diff1/var)
+
+    def fdsqrtm_HQET_matched_nom2(self, Fsqrtm_inf, C1, C2, gamma, eta, mu, b, delta_S):
+
+        fdsqrm_data = self.fD_matched * np.sqrt(self.mD_div)
+        data = self.bstrapdata(fdsqrm_data)
+        var = fdsqrm_data.var(1)
+
+        m = self.bstrapdata(self.mD_div)
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata(self.mKsqr)) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)/10000000
+
+
+        M1 = Fsqrtm_inf*(1+delta_S*delta_Mss)*(1.0+b*(mpisqr-phys_pion**2))*( 1.0 + C1*1000.0 / m + C2*1000000 / (m**2) + (gamma/10000.0) *(m*self.a)**2 + (eta/100.0)*m*self.a**2 + (mu*0.001)*self.a**2)
+
+        sqr_diff1 = (data - M1)**2
+        return np.sum(sqr_diff1/var)
+
+    def fdssqrtms_HQET_matched_nom2(self, Fssqrtms_inf, C1, C2, gamma, eta, mu, b, delta_S):
+
+        fdssqrms_data = self.fDs_matched * np.sqrt(self.mDs_div)
+        data = self.bstrapdata(fdssqrms_data)
+        var = fdssqrms_data.var(1)
+
+        m = self.bstrapdata(self.mDs_div)
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata(self.mKsqr)) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)/10000000
+
+
+        M1 = Fssqrtms_inf*(1+delta_S*delta_Mss)*(1.0+b*(mpisqr-phys_pion**2))*( 1.0 + C1*1000.0 / m + C2*1000000 / (m**2) + (gamma/10000.0) *(m*self.a)**2 + (eta/100.0)*m*self.a**2 + (mu*0.001)*self.a**2)
+
+        sqr_diff1 = (data - M1)**2
+        return np.sum(sqr_diff1/var)
+
+
     def fdssqrtms_chiral_dmss_HQET(self, Fssqrtms_inf, C1, C2, gamma, eta, mu, b, delta_S):
 
         fdssqrms_data = self.fDsA_div * np.sqrt(self.mDs_div)
@@ -1862,6 +2045,245 @@ class Model(object):
 
         sqr_diff1 = (pdatameans - M1)**2
         return np.sum(sqr_diff1/pdatavar)
+
+    def mD_corrected_pole_ratio(self, z, z2, gamma_A, gamma_S, gamma_P, gamma_MA, gamma_MMA):
+
+        data = self.D_mass_div_ratio
+
+        Lambda = (self.rho_mu_next / self.rho_mu)
+
+
+        data = np.array([data[i] / Lambda[i] for i in range(data.shape[0]) ])
+
+        datameans = self.bstrapdata(data)
+
+        pdatameans = datameans[~np.isnan(datameans)]
+
+
+        datavar = data.var(1)
+        pdatavar = datavar[~np.isnan(datameans)]
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata((self.mKsqr))) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+        mpisqr = mpisqr[~np.isnan(datameans)]
+        delta_Mss = delta_Mss[~np.isnan(datameans)]
+
+        m = self.heavyq_mass
+        m = m[~np.isnan(datameans)]
+
+        A = self.a[~np.isnan(datameans)]
+
+        M1 = (1+gamma_S*delta_Mss+gamma_P*(mpisqr-phys_pion**2)+gamma_A*(A**2)+gamma_MA*(m*A**2)+gamma_MMA*((m*A)**2)) * (1 + z/m + z2/(m**2))
+
+        sqr_diff1 = (pdatameans - M1)**2
+        return np.sum(sqr_diff1/pdatavar)
+
+
+    def mDs_mq_ma_ratio(self, z, z2, gamma_A, gamma_S, gamma_P, gamma_MA, gamma_MMA):
+
+        data = self.Ds_mass_div_ratio / 1.25
+
+        datameans = self.bstrapdata(data)
+        pdatameans = datameans[~np.isnan(datameans)]
+        datavar = data.var(1)
+        pdatavar = datavar[~np.isnan(datameans)]
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata((self.mKsqr))) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+        mpisqr = mpisqr[~np.isnan(datameans)]
+        delta_Mss = delta_Mss[~np.isnan(datameans)]
+
+        m = self.heavyq_mass
+        m = m[~np.isnan(datameans)]
+
+        A = self.a[~np.isnan(datameans)]
+
+        M1 = (1+gamma_S*delta_Mss+gamma_P*(mpisqr-phys_pion**2)+gamma_A*(A**2)+gamma_MA*(m*A**2)+gamma_MMA*((m*A)**2)) * (1 + z/m + z2/(m**2))
+
+        sqr_diff1 = (pdatameans - M1)**2
+        return np.sum(sqr_diff1/pdatavar)
+
+    def mD_corrected_pole_ratio(self, z, z2, gamma_A, gamma_S, gamma_P, gamma_MA, gamma_MMA):
+
+        data = self.D_mass_div_cor_ratio
+
+        Lambda = (self.rho_mu_next / self.rho_mu)
+
+        data = np.array([data[i] / Lambda[i] for i in range(data.shape[0]) ])
+
+
+        datameans = self.bstrapdata(data)
+        pdatameans = datameans[~np.isnan(datameans)]
+
+
+        datavar = data.var(1)
+        pdatavar = datavar[~np.isnan(datameans)]
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata((self.mKsqr))) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+        mpisqr = mpisqr[~np.isnan(datameans)]
+        delta_Mss = delta_Mss[~np.isnan(datameans)]
+
+        m = self.heavyq_mass
+        m = m[~np.isnan(datameans)]
+
+        A = self.a[~np.isnan(datameans)]
+
+        M1 = (1+gamma_S*delta_Mss+gamma_P*(mpisqr-phys_pion**2)+gamma_A*(A**2)+gamma_MA*(m*A**2)+gamma_MMA*((m*A)**2)) * (1 + z/m + z2/(m**2))
+
+        sqr_diff1 = (pdatameans - M1)**2
+        return np.sum(sqr_diff1/pdatavar)
+
+    def mDs_corrected_pole_ratio(self, z, z2, gamma_A, gamma_S, gamma_P, gamma_MA, gamma_MMA):
+
+        data = self.Ds_mass_div_cor_ratio
+
+        Lambda = (self.rho_mu_next / self.rho_mu)
+
+        data = np.array([data[i] / Lambda[i] for i in range(data.shape[0]) ])
+
+        datameans = self.bstrapdata(data)
+        pdatameans = datameans[~np.isnan(datameans)]
+
+        datavar = data.var(1)
+        pdatavar = datavar[~np.isnan(datameans)]
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata((self.mKsqr))) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+        mpisqr = mpisqr[~np.isnan(datameans)]
+        delta_Mss = delta_Mss[~np.isnan(datameans)]
+
+        m = self.heavyq_mass
+        m = m[~np.isnan(datameans)]
+
+        A = self.a[~np.isnan(datameans)]
+
+        M1 = (1+gamma_S*delta_Mss+gamma_P*(mpisqr-phys_pion**2)+gamma_A*(A**2)+gamma_MA*(m*A**2)+gamma_MMA*((m*A)**2)) * (1 + z/m + z2/(m**2))
+
+        sqr_diff1 = (pdatameans - M1)**2
+        return np.sum(sqr_diff1/pdatavar)
+
+    def mD_pole_ratio(self, z, z2, gamma_A, gamma_S, gamma_P, gamma_MA, gamma_MMA):
+
+        data = self.D_mass_div_ratio
+
+        Lambda = (self.rho_mu_next / self.rho_mu)
+
+        data = np.array([data[i] / Lambda[i] for i in range(data.shape[0]) ])
+
+
+        datameans = self.bstrapdata(data)
+        pdatameans = datameans[~np.isnan(datameans)]
+
+
+        datavar = data.var(1)
+        pdatavar = datavar[~np.isnan(datameans)]
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata((self.mKsqr))) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+        mpisqr = mpisqr[~np.isnan(datameans)]
+        delta_Mss = delta_Mss[~np.isnan(datameans)]
+
+        m = self.heavyq_mass
+        m = m[~np.isnan(datameans)]
+
+        A = self.a[~np.isnan(datameans)]
+
+        M1 = (1+gamma_S*delta_Mss+gamma_P*(mpisqr-phys_pion**2)+gamma_A*(A**2)+gamma_MA*(m*A**2)+gamma_MMA*((m*A)**2)) * (1 + z/m + z2/(m**2))
+
+        sqr_diff1 = (pdatameans - M1)**2
+        return np.sum(sqr_diff1/pdatavar)
+
+    def mDs_pole_ratio(self, z, z2, gamma_A, gamma_S, gamma_P, gamma_MA, gamma_MMA):
+
+        data = self.Ds_mass_div_ratio
+
+        Lambda = (self.rho_mu_next / self.rho_mu)
+
+        data = np.array([data[i] / Lambda[i] for i in range(data.shape[0]) ])
+
+        datameans = self.bstrapdata(data)
+        pdatameans = datameans[~np.isnan(datameans)]
+
+        datavar = data.var(1)
+        pdatavar = datavar[~np.isnan(datameans)]
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata((self.mKsqr))) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+        mpisqr = mpisqr[~np.isnan(datameans)]
+        delta_Mss = delta_Mss[~np.isnan(datameans)]
+
+        m = self.heavyq_mass
+        m = m[~np.isnan(datameans)]
+
+        A = self.a[~np.isnan(datameans)]
+
+        M1 = (1+gamma_S*delta_Mss+gamma_P*(mpisqr-phys_pion**2)+gamma_A*(A**2)+gamma_MA*(m*A**2)+gamma_MMA*((m*A)**2)) * (1 + z/m + z2/(m**2))
+
+        sqr_diff1 = (pdatameans - M1)**2
+        return np.sum(sqr_diff1/pdatavar)
+
+
+
+    def fdsqrtmd_matched_ratio(self, z, z2, gamma_A, gamma_S, gamma_P, gamma_MA, gamma_MMA):
+
+        data = self.fD_matched_ratio * np.sqrt(self.D_mass_div_ratio)
+        datameans = self.bstrapdata(data)
+        pdatameans = datameans[~np.isnan(datameans)]
+        datavar = data.var(1)
+        pdatavar = datavar[~np.isnan(datameans)]
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata(self.mKsqr)) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+        mpisqr = mpisqr[~np.isnan(datameans)]
+        delta_Mss = delta_Mss[~np.isnan(datameans)]
+
+        m = self.heavyq_mass
+        m = m[~np.isnan(datameans)]
+
+        A = self.a[~np.isnan(datameans)]
+
+        M1 = (1+gamma_S*delta_Mss+gamma_P*(mpisqr-phys_pion**2)+gamma_A*(A**2)+gamma_MA*(m*A**2)+gamma_MMA*((m*A)**2)) * (1 + z/m + z2/(m**2))
+
+
+        sqr_diff1 = (pdatameans - M1)**2
+        return np.sum(sqr_diff1/pdatavar)
+
 
 
     def fdsqrtm_ratio(self, z, z2, gamma_1):
