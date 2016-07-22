@@ -10,6 +10,7 @@ from ensamble_info import phys_pionplus
 
 from ensemble_data import ensemble_data, MissingData
 
+from msbar_convert import get_matm
 
 class Model(object):
 
@@ -39,6 +40,8 @@ class Model(object):
                 logging.warning("Missing {} data".format(funname))
                 return None
 
+        logging.info("buidling data")
+
         self.a = np.array([dp.latspacing for dp in dps])
 
         self.qmass = np.array([data[dp].scale*(residual_mass(dp)+dp.ud_mass) for dp in dps])
@@ -47,9 +50,15 @@ class Model(object):
         self.res_err = np.array([data[dp].scale*residual_mass_errors(dp) for dp in dps])
 
         self.heavyq_mass = np.array([data[dp].scale*(dp.heavyq_mass) / Zs[dp.beta] for dp in dps])
+        self.heavyq_mass_next = np.array([data[dp].scale*(dp.heavyq_mass_next) / Zs[dp.beta] for dp in dps])
+
+        self.rho_mu = np.array([get_matm(hqm,hqm) for hqm in self.heavyq_mass])
+        self.rho_mu_next = np.array([get_matm(hqmn,hqmn) for hqmn in self.heavyq_mass_next])
 
         self.m1 = np.array([dp.heavy_m1*data[dp].scale for dp in dps])
         self.m2 = np.array([dp.heavy_m2*data[dp].scale for dp in dps])
+
+
 
         self.mpisqr = make_array("pion_mass", scaled=True)**2
         self.mpi = make_array("pion_mass", scaled=True)
@@ -80,14 +89,21 @@ class Model(object):
         self.fDs = make_array("fDs", scaled=True)
 
         self.D_mass_ratio = make_array("D_mass_ratio", scaled=False)
-        self.D_mass_div_ratio = make_array("D_mass_div_ratio", scaled=False)
+        self.D_mass_div_ratio = make_array("D_mass_ratio", scaled=False, div=True, corrected=False)
+        self.D_mass_div_cor_ratio = make_array("D_mass_ratio", scaled=False, div=True, corrected=True)
         self.fD_ratio = make_array("fD_ratio", scaled=False)
         self.fD_div_ratio = make_array("fD_ratio", scaled=False, renorm=True, div=True)
+        self.fD_matched_ratio = make_array("fD_ratio", scaled=False, renorm=True, div=True, matched=True)
 
         self.Ds_mass_ratio = make_array("Ds_mass_ratio", scaled=False)
-        self.Ds_mass_div_ratio = make_array("Ds_mass_div_ratio", scaled=False)
+        self.Ds_mass_div_ratio = make_array("Ds_mass_ratio", scaled=False, div=True, corrected=False)
+        self.Ds_mass_div_cor_ratio = make_array("Ds_mass_ratio", scaled=False, div=True, corrected=True)
         self.fDs_ratio = make_array("fDs_ratio", scaled=False)
         self.fDs_div_ratio = make_array("fDs_ratio", scaled=False, renorm=True, div=True)
+        self.fDs_matched_ratio = make_array("fDs_ratio", scaled=False, renorm=True, div=True, matched=True)
+
+        logging.info("Data read")
+
 
     def bstrapdata(self, d):
         if self.bootstrap is None or self.bootstrap == "mean":
@@ -670,6 +686,27 @@ class Model(object):
 
             fun = self.fdsqrtm_mq_ma_ratio
 
+        elif self.type_string == "fdsqrtmd_matched_ratio":
+
+            z_guess = 200.0
+            z2_guess = -100000.0
+            gammaA_guess = 11.0
+            gammaMA_guess = 0.01
+            gammaMMA_guess = 0.1
+            gammaS_guess = 2.0e-8
+            gammaP_guess = 2.0e-8
+
+            params = paramdict("z", z_guess, z_guess/2)
+            params.update(paramdict("z2", z2_guess, z2_guess/2))
+            params.update(paramdict("gamma_A", gammaA_guess, gammaA_guess))
+            params.update(paramdict("gamma_S", gammaS_guess, gammaS_guess))
+            params.update(paramdict("gamma_P", gammaP_guess, gammaP_guess))
+
+            params.update(paramdict("gamma_MA", gammaMA_guess, gammaMA_guess))
+            params.update(paramdict("gamma_MMA", gammaMMA_guess, gammaMMA_guess))
+
+            fun = self.fdsqrtmd_matched_ratio
+
 
         elif self.type_string == "fdsqrtm_ratio":
 
@@ -724,6 +761,49 @@ class Model(object):
             params.update(paramdict("gamma_MMA", gammaMMA_guess, gammaMMA_guess))
 
             fun = self.m_mq_ma_ratio
+
+        elif self.type_string == "mD_corrected_pole_ratio":
+
+            z_guess = 200.0
+            z2_guess = -100000.0
+            gammaA_guess = 1.0
+            gammaMA_guess = -0.01
+            gammaMMA_guess = 0.01
+            gammaS_guess = 2.0e-8
+            gammaP_guess = -2.0e-8
+
+            params = paramdict("z", z_guess, z_guess/2)
+            params.update(paramdict("z2", z2_guess, z2_guess/2))
+            params.update(paramdict("gamma_A", gammaA_guess, gammaA_guess))
+            params.update(paramdict("gamma_S", gammaS_guess, gammaS_guess))
+            params.update(paramdict("gamma_P", gammaP_guess, gammaP_guess))
+
+            params.update(paramdict("gamma_MA", gammaMA_guess, gammaMA_guess))
+            params.update(paramdict("gamma_MMA", gammaMMA_guess, gammaMMA_guess))
+
+            fun = self.mD_corrected_pole_ratio
+
+
+        elif self.type_string == "mDs_corrected_pole_ratio":
+
+            z_guess = -200.0
+            z2_guess = 100000.0
+            gammaA_guess = 11.0
+            gammaMA_guess = 0.01
+            gammaMMA_guess = 0.01
+            gammaS_guess = 2.0e-8
+            gammaP_guess = 2.0e-8
+
+            params = paramdict("z", z_guess, z_guess/2)
+            params.update(paramdict("z2", z2_guess, z2_guess/2))
+            params.update(paramdict("gamma_A", gammaA_guess, gammaA_guess))
+            params.update(paramdict("gamma_S", gammaS_guess, gammaS_guess))
+            params.update(paramdict("gamma_P", gammaP_guess, gammaP_guess))
+
+            params.update(paramdict("gamma_MA", gammaMA_guess, gammaMA_guess))
+            params.update(paramdict("gamma_MMA", gammaMMA_guess, gammaMMA_guess))
+
+            fun = self.mDs_corrected_pole_ratio
 
 
         else:
@@ -1754,7 +1834,7 @@ class Model(object):
         sqr_diff1 = (pdatameans - M1)**2
         return np.sum(sqr_diff1/pdatavar)
 
-    def m_mq_ma_ratio(self, z, z2, gamma_A, gamma_S, gamma_P, gamma_MA, gamma_MMA):
+    def mD_mq_ma_ratio(self, z, z2, gamma_A, gamma_S, gamma_P, gamma_MA, gamma_MMA):
 
         data = self.D_mass_div_ratio / 1.25
 
