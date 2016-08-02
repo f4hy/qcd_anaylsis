@@ -174,6 +174,10 @@ def choose_fit(axe, xran, fittype, values, errors, fill=False, save=False):
     if fittype.startswith("FDs_linear"):
         return add_FDs_linear_mpisqr(axe, xran, values, errors, fill=fill, save=save)
 
+    if fittype.startswith("FDsA_linear"):
+        return add_FDs_linear_mpisqr(axe, xran, values, errors, fill=fill, save=save)
+
+
     if fittype.startswith("FDsbyFD_linear"):
         return add_FDsbyFD_linear_mpisqr(axe, xran, values, errors, fill=fill, save=save)
 
@@ -226,14 +230,23 @@ def choose_fit(axe, xran, fittype, values, errors, fill=False, save=False):
     if fittype.startswith("fdsqrtm_HQET_matched_nom2"):
         return fdsqrtm_noscale(axe, xran, values, errors, fill=fill, save=save)
 
+    if fittype.startswith("fdAsqrtm_HQET_matched_alphas"):
+        return fdsqrtm_noscale_alphas(axe, xran, values, errors, fill=fill, save=save)
+
+
     if fittype.startswith("fdsqrtm_HQET_matched_alphas"):
         return fdsqrtm_noscale_alphas(axe, xran, values, errors, fill=fill, save=save)
+
+
 
     if fittype.startswith("fdsqrtm_HQET_matched"):
         return fdsqrtm_noscale(axe, xran, values, errors, fill=fill, save=save)
 
     if fittype.startswith("fdsqrtm"):
         return fdsqrtm(axe, xran, values, errors, fill=fill, save=save)
+
+    if fittype.startswith("fdsAsqrtms_HQET_matched_alphas"):
+        return fdssqrtms_noscale_alphas(axe, xran, values, errors, fill=fill, save=save)
 
     if fittype.startswith("fdssqrtms_HQET_matched_alphas"):
         return fdssqrtms_noscale_alphas(axe, xran, values, errors, fill=fill, save=save)
