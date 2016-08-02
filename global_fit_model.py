@@ -12,6 +12,8 @@ from ensemble_data import ensemble_data, MissingData
 
 from msbar_convert import get_matm
 
+from alpha_s import get_alpha
+
 class Model(object):
 
     def __init__(self, data, type_string, options):
@@ -43,6 +45,8 @@ class Model(object):
         logging.info("buidling data")
 
         self.a = np.array([dp.latspacing for dp in dps])
+        self.scale = np.array([data[dp].scale for dp in dps])
+        self.alpha_s = np.array([get_alpha(data[dp].scale) for dp in dps])
 
         self.qmass = np.array([data[dp].scale*(residual_mass(dp)+dp.ud_mass) for dp in dps])
         self.renorm_qmass = np.array([data[dp].scale*(residual_mass(dp)+dp.ud_mass)/Zs[dp.beta] for
@@ -79,10 +83,13 @@ class Model(object):
         self.fD = make_array("fD", scaled=True)
         self.fD_div = make_array("fD", scaled=True, renorm=True, div=True)
         self.fD_matched = make_array("fD", scaled=True, renorm=True, div=True, matched=True)
+        self.fDA_matched = make_array("fDA", scaled=True, renorm=True, div=True, matched=True)
 
         self.fDs = make_array("fDs", scaled=True)
         self.fDs_div = make_array("fDs", scaled=True, renorm=True, div=True)
         self.fDs_matched = make_array("fDs", scaled=True, renorm=True, div=True, matched=True)
+        self.fDsA_matched = make_array("fDsA", scaled=True, renorm=True, div=True, matched=True)
+
 
 
         self.fDA = make_array("fDA", scaled=True)
@@ -92,7 +99,8 @@ class Model(object):
         self.fDsA_div = make_array("fDsA", scaled=True, renorm=True, div=True)
         self.mD_div = make_array("D_mass_div", scaled=True)
         self.mDs_div = make_array("Ds_mass_div", scaled=True)
-
+        self.mDA_div = make_array("DA_mass_div", scaled=True)
+        self.mDsA_div = make_array("DsA_mass_div", scaled=True)
 
 
 
@@ -411,6 +419,16 @@ class Model(object):
 
             fun = self.FDs_linear_mpisqr_asqr_mss
 
+        elif self.type_string == "FDsA_linear_mpisqr_asqr_mss":
+            params = paramdict("FDsphys", np.mean(self.fDs.mean(1)), np.mean(self.fDs.var(1)), limits=(0, None))
+
+            params.update(paramdict("b", 0.0, 0.1))
+            params.update(paramdict("gamma_1", 0.0, 0.1))
+            params.update(paramdict("gamma_s1", 0.0, 0.1))
+
+            fun = self.FDsA_linear_mpisqr_asqr_mss
+
+
         elif self.type_string == "FDsbyFD_linear_mpisqr_asqr_mss":
             params = paramdict("FDsbyFDphys", 1.2, 0.1, limits=(0, None))
 
@@ -460,34 +478,16 @@ class Model(object):
 
             fun = self.fdsqrtm
 
-        elif self.type_string == "fdsqrtm_chiral":
-            Fsqrtm_inf_guess = 28000.0
-            C1_guess = -0.6
-            C2_guess = -0.6
-            gamma_guess = -0.07
-            eta_guess = 1.0
-            mu_guess = 28332.0
-            b_guess = 0.0000004
-            params = paramdict("Fsqrtm_inf", Fsqrtm_inf_guess, Fsqrtm_inf_guess/10.0, limits=(0, None))
-            params.update(paramdict("C1", C1_guess, C1_guess/2))
-            params.update(paramdict("C2", C2_guess, C2_guess/2))
-
-            params.update(paramdict("gamma", gamma_guess, gamma_guess/2))
-            params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
-            params.update(paramdict("mu", mu_guess, mu_guess/2))
-            params.update(paramdict("b", b_guess, b_guess/2))
-
-            fun = self.fdsqrtm_chiral
 
         elif self.type_string == "fdsqrtm_chiral_dmss":
-            Fsqrtm_inf_guess = 28000.0
-            C1_guess = -0.6
-            C2_guess = -0.6
-            gamma_guess = -0.07
-            eta_guess = 1.0
-            mu_guess = 28332.0
-            b_guess = 0.0000004
-            delta_S = 1.0
+            Fsqrtm_inf_guess = 18000.0
+            C1_guess = -100.0
+            C2_guess = 100000.0
+            gamma_guess = -1.0e-9
+            eta_guess = -1.0
+            mu_guess = -1.0e-4
+            b_guess = 1.0e-8
+            delta_S = 1.0e-8
 
             params = paramdict("Fsqrtm_inf", Fsqrtm_inf_guess, Fsqrtm_inf_guess/10.0, limits=(0, None))
             params.update(paramdict("C1", C1_guess, C1_guess/2))
@@ -502,14 +502,14 @@ class Model(object):
             fun = self.fdsqrtm_chiral_dmss
 
         elif self.type_string == "fdssqrtms_chiral_dmss":
-            Fssqrtms_inf_guess = 28000.0
-            C1_guess = -0.6
-            C2_guess = -0.6
-            gamma_guess = -0.07
-            eta_guess = 1.0
-            mu_guess = 28332.0
-            b_guess = 0.0000004
-            delta_S = 1.0
+            Fssqrtms_inf_guess = 18000.0
+            C1_guess = -100.0
+            C2_guess = 100000.0
+            gamma_guess = -1.0e-8
+            eta_guess = -1.0
+            mu_guess = -1.0e-4
+            b_guess = 1.0e-8
+            delta_S = 1.0e-8
 
             params = paramdict("Fssqrtms_inf", Fssqrtms_inf_guess, Fssqrtms_inf_guess/10.0, limits=(0, None))
             params.update(paramdict("C1", C1_guess, C1_guess/2))
@@ -523,72 +523,16 @@ class Model(object):
 
             fun = self.fdssqrtms_chiral_dmss
 
-        elif self.type_string == "fdsqrtm_HQET":
-            Fsqrtm_inf_guess = 20000.0
-            C1_guess = -1.0
-            C2_guess = -1.0
-            gamma_guess = 0.001
-            eta_guess = -1.0
-            mu_guess = -1.0
-            params = paramdict("Fsqrtm_inf", Fsqrtm_inf_guess, Fsqrtm_inf_guess/10.0, limits=(0, None))
-            params.update(paramdict("C1", C1_guess, C1_guess/2))
-            params.update(paramdict("C2", C2_guess, C2_guess/2))
-
-            params.update(paramdict("gamma", gamma_guess, gamma_guess/2))
-            params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
-            params.update(paramdict("mu", mu_guess, mu_guess/2))
-
-            fun = self.fdsqrtm_HQET
-
-        elif self.type_string == "fdsqrtm_dmss_HQET":
-            Fsqrtm_inf_guess = 20000.0
-            C1_guess = -1.0
-            C2_guess = -1.0
-            gamma_guess = 0.001
-            eta_guess = -1.0
-            mu_guess = -1.0
-            delta_S = -0.1
-            params = paramdict("Fsqrtm_inf", Fsqrtm_inf_guess, Fsqrtm_inf_guess/10.0, limits=(0, None))
-            params.update(paramdict("C1", C1_guess, C1_guess/2))
-            params.update(paramdict("C2", C2_guess, C2_guess/2))
-
-            params.update(paramdict("gamma", gamma_guess, gamma_guess/2))
-            params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
-            params.update(paramdict("mu", mu_guess, mu_guess/2))
-
-            params.update(paramdict("delta_S", delta_S, delta_S/2))
-
-            fun = self.fdsqrtm_dmss_HQET
-
-        elif self.type_string == "fdsqrtm_chiral_HQET":
-            Fsqrtm_inf_guess = 20000.0
-            C1_guess = -1.0
-            C2_guess = -1.0
-            gamma_guess = 0.001
-            eta_guess = -1.0
-            mu_guess = -1.0
-            b_guess = 0.0000004
-            params = paramdict("Fsqrtm_inf", Fsqrtm_inf_guess, Fsqrtm_inf_guess/10.0, limits=(0, None))
-            params.update(paramdict("C1", C1_guess, C1_guess/2))
-            params.update(paramdict("C2", C2_guess, C2_guess/2))
-
-            params.update(paramdict("gamma", gamma_guess, gamma_guess/2))
-            params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
-            params.update(paramdict("mu", mu_guess, mu_guess/2))
-
-            params.update(paramdict("b", b_guess, b_guess/2))
-
-            fun = self.fdsqrtm_chiral_HQET
 
         elif self.type_string == "fdsqrtm_chiral_dmss_HQET":
-            Fsqrtm_inf_guess = 20000.0
-            C1_guess = -1.0
-            C2_guess = 1.0
-            gamma_guess = 0.001
+            Fsqrtm_inf_guess = 18000.0
+            C1_guess = -100.0
+            C2_guess = 100000.0
+            gamma_guess = -1.0e-8
             eta_guess = -1.0
-            mu_guess = -9000.0
-            b_guess = 0.0000004
-            delta_S = 0.01
+            mu_guess = -1.0e-3
+            b_guess = 1.0e-8
+            delta_S = 1.0e-8
             params = paramdict("Fsqrtm_inf", Fsqrtm_inf_guess, Fsqrtm_inf_guess/10.0, limits=(0, None))
             params.update(paramdict("C1", C1_guess, C1_guess/2))
             params.update(paramdict("C2", C2_guess, C2_guess/2))
@@ -603,14 +547,14 @@ class Model(object):
             fun = self.fdsqrtm_chiral_dmss_HQET
 
         elif self.type_string == "fdsqrtm_HQET_matched":
-            Fsqrtm_inf_guess = 20000.0
-            C1_guess = -1.0
-            C2_guess = 1.0
-            gamma_guess = 0.001
+            Fsqrtm_inf_guess = 18000.0
+            C1_guess = -100.0
+            C2_guess = 100000.0
+            gamma_guess = -1.0e-8
             eta_guess = -1.0
-            mu_guess = -9000.0
-            b_guess = 0.0000004
-            delta_S = 0.01
+            mu_guess = -1.0e-3
+            b_guess = 1.0e-8
+            delta_S = 1.0e-8
             params = paramdict("Fsqrtm_inf", Fsqrtm_inf_guess, Fsqrtm_inf_guess/10.0, limits=(0, None))
             params.update(paramdict("C1", C1_guess, C1_guess/2))
             params.update(paramdict("C2", C2_guess, C2_guess/2))
@@ -624,18 +568,64 @@ class Model(object):
 
             fun = self.fdsqrtm_HQET_matched
 
-        elif self.type_string == "fdsqrtm_HQET_matched_nom2":
-            Fsqrtm_inf_guess = 20000.0
-            C1_guess = -1.0
-            C2_guess = 1.0
-            gamma_guess = 0.001
+        elif self.type_string == "fdsqrtm_HQET_matched_alphas":
+            Fsqrtm_inf_guess = 16000.0
+            C1_guess = 10.0
+            C2_guess = 10.0
+            gamma_guess = -1.0e-8
             eta_guess = -1.0
-            mu_guess = -9000.0
-            b_guess = 0.0000004
-            delta_S = 0.01
+            mu_guess = -1.0e-3
+            b_guess = 1.0e-8
+            delta_S = 1.0e-8
             params = paramdict("Fsqrtm_inf", Fsqrtm_inf_guess, Fsqrtm_inf_guess/10.0, limits=(0, None))
-            params.update(paramdict("C1", C1_guess, C1_guess/2))
-            params.update(paramdict("C2", C2_guess, C2_guess/2))
+            params.update(paramdict("C1", C1_guess, C1_guess))
+            params.update(paramdict("C2", C2_guess, C2_guess))
+
+            params.update(paramdict("gamma", gamma_guess, gamma_guess/2))
+            params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
+            params.update(paramdict("mu", mu_guess, mu_guess/2))
+
+            params.update(paramdict("b", b_guess, b_guess/2))
+            params.update(paramdict("delta_S", delta_S, delta_S/2))
+
+            fun = self.fdsqrtm_HQET_matched_alphas
+
+        elif self.type_string == "fdAsqrtm_HQET_matched_alphas":
+            Fsqrtm_inf_guess = 16000.0
+            C1_guess = 10.0
+            C2_guess = 10.0
+            gamma_guess = -1.0e-8
+            eta_guess = -1.0
+            mu_guess = -1.0e-3
+            b_guess = 1.0e-8
+            delta_S = 1.0e-8
+            params = paramdict("Fsqrtm_inf", Fsqrtm_inf_guess, Fsqrtm_inf_guess/10.0, limits=(0, None))
+            params.update(paramdict("C1", C1_guess, C1_guess))
+            params.update(paramdict("C2", C2_guess, C2_guess))
+
+            params.update(paramdict("gamma", gamma_guess, gamma_guess/2))
+            params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
+            params.update(paramdict("mu", mu_guess, mu_guess/2))
+
+            params.update(paramdict("b", b_guess, b_guess/2))
+            params.update(paramdict("delta_S", delta_S, delta_S/2))
+
+            fun = self.fdAsqrtm_HQET_matched_alphas
+
+
+
+        elif self.type_string == "fdsqrtm_HQET_matched_nom2":
+            Fsqrtm_inf_guess = 16000.0
+            C1_guess = 10.0
+            C2_guess = 10.0
+            gamma_guess = -1.0e-8
+            eta_guess = -1.0
+            mu_guess = -1.0e-3
+            b_guess = 1.0e-8
+            delta_S = 1.0e-8
+            params = paramdict("Fsqrtm_inf", Fsqrtm_inf_guess, Fsqrtm_inf_guess/10.0, limits=(0, None))
+            params.update(paramdict("C1", C1_guess, C1_guess))
+            params.update(paramdict("C2", C2_guess, C2_guess))
 
             params.update(paramdict("gamma", gamma_guess, gamma_guess/2))
             params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
@@ -647,26 +637,161 @@ class Model(object):
             fun = self.fdsqrtm_HQET_matched_nom2
 
         elif self.type_string == "fdssqrtms_HQET_matched_nom2":
-            Fssqrtms_inf_guess = 20000.0
-            C1_guess = -1.0
-            C2_guess = 1.0
-            gamma_guess = 0.001
+            Fssqrtms_inf_guess = 16000.0
+            C1_guess = -10.0
+            C2_guess = 10.0
+            gamma_guess = -1.0e-8
             eta_guess = -1.0
-            mu_guess = -9000.0
-            b_guess = 0.0000004
-            delta_S = 0.01
-            params = paramdict("Fssqrtms_inf", Fssqrtms_inf_guess, Fssqrtms_inf_guess/10.0, limits=(0, None))
-            params.update(paramdict("C1", C1_guess, C1_guess/2))
-            params.update(paramdict("C2", C2_guess, C2_guess/2))
+            mu_guess = -1.0e-3
+            b_guess = 1.0e-8
+            delta_S = 1.0e-8
+            params = paramdict("Fssqrtms_inf", Fssqrtms_inf_guess, Fssqrtms_inf_guess/10.0, limits=(1000, None))
+            params.update(paramdict("C1", C1_guess, C1_guess))
+            params.update(paramdict("C2", C2_guess, C2_guess))
 
-            params.update(paramdict("gamma", gamma_guess, gamma_guess/2))
+            params.update(paramdict("gamma", gamma_guess, gamma_guess/10))
             params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
-            params.update(paramdict("mu", mu_guess, mu_guess/2))
+            params.update(paramdict("mu", mu_guess, mu_guess/10))
 
-            params.update(paramdict("b", b_guess, b_guess/2))
-            params.update(paramdict("delta_S", delta_S, delta_S/2))
+            params.update(paramdict("b", b_guess, b_guess/10))
+            params.update(paramdict("delta_S", delta_S, delta_S/10))
 
             fun = self.fdssqrtms_HQET_matched_nom2
+
+        elif self.type_string == "fdssqrtms_HQET_matched_nom2_alphas":
+            Fssqrtms_inf_guess = 18000.0
+            C1_guess = -100.0
+            C2_guess = 100000.0
+            gamma_guess = -1.0e-8
+            eta_guess = -1.0
+            mu_guess = -1.0e-3
+            b_guess = 1.0e-8
+            delta_S = 1.0e-8
+            params = paramdict("Fssqrtms_inf", Fssqrtms_inf_guess, Fssqrtms_inf_guess/10.0, limits=(1000, None))
+            params.update(paramdict("C1", C1_guess, C1_guess))
+            params.update(paramdict("C2", C2_guess, C2_guess))
+
+            params.update(paramdict("gamma", gamma_guess, gamma_guess/10))
+            params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
+            params.update(paramdict("mu", mu_guess, mu_guess/10))
+
+            params.update(paramdict("b", b_guess, b_guess/10))
+            params.update(paramdict("delta_S", delta_S, delta_S/10))
+
+            fun = self.fdssqrtms_HQET_matched_nom2_alphas
+
+        elif self.type_string == "fdssqrtms_HQET_matched_alphas":
+            Fssqrtms_inf_guess = 18000.0
+            C1_guess = -100.0
+            C2_guess = 100000.0
+            gamma_guess = -1.0e-8
+            eta_guess = -1.0
+            mu_guess = -1.0e-3
+            b_guess = 1.0e-8
+            delta_S = 1.0e-8
+            params = paramdict("Fssqrtms_inf", Fssqrtms_inf_guess, Fssqrtms_inf_guess/10.0, limits=(1000, None))
+            params.update(paramdict("C1", C1_guess, C1_guess))
+            params.update(paramdict("C2", C2_guess, C2_guess))
+
+            params.update(paramdict("gamma", gamma_guess, gamma_guess/10))
+            params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
+            params.update(paramdict("mu", mu_guess, mu_guess/10))
+
+            params.update(paramdict("b", b_guess, b_guess/10))
+            params.update(paramdict("delta_S", delta_S, delta_S/10))
+
+            fun = self.fdssqrtms_HQET_matched_alphas
+
+        elif self.type_string == "fdsAsqrtms_HQET_matched_alphas":
+            Fssqrtms_inf_guess = 18000.0
+            C1_guess = -100.0
+            C2_guess = 100000.0
+            gamma_guess = -1.0e-8
+            eta_guess = -1.0
+            mu_guess = -1.0e-3
+            b_guess = 1.0e-8
+            delta_S = 1.0e-8
+            params = paramdict("Fssqrtms_inf", Fssqrtms_inf_guess, Fssqrtms_inf_guess/10.0, limits=(1000, None))
+            params.update(paramdict("C1", C1_guess, C1_guess))
+            params.update(paramdict("C2", C2_guess, C2_guess))
+
+            params.update(paramdict("gamma", gamma_guess, gamma_guess/10))
+            params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
+            params.update(paramdict("mu", mu_guess, mu_guess/10))
+
+            params.update(paramdict("b", b_guess, b_guess/10))
+            params.update(paramdict("delta_S", delta_S, delta_S/10))
+
+            fun = self.fdsAsqrtms_HQET_matched_alphas
+
+
+        elif self.type_string == "fdssqrtms_HQET_matched":
+            Fssqrtms_inf_guess = 18000.0
+            C1_guess = -100.0
+            C2_guess = 100000.0
+            gamma_guess = -1.0e-8
+            eta_guess = -1.0
+            mu_guess = -1.0e-3
+            b_guess = 1.0e-8
+            delta_S = 1.0e-8
+            params = paramdict("Fssqrtms_inf", Fssqrtms_inf_guess, Fssqrtms_inf_guess/10.0, limits=(1000, None))
+            params.update(paramdict("C1", C1_guess, C1_guess))
+            params.update(paramdict("C2", C2_guess, C2_guess))
+
+            params.update(paramdict("gamma", gamma_guess, gamma_guess/10))
+            params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
+            params.update(paramdict("mu", mu_guess, mu_guess/10))
+
+            params.update(paramdict("b", b_guess, b_guess/10))
+            params.update(paramdict("delta_S", delta_S, delta_S/10))
+
+            fun = self.fdssqrtms_HQET_matched
+
+
+        elif self.type_string == "fdssqrtms_HQET_matched_nom2_pade":
+            Fssqrtms_inf_guess = 20000.0
+            C1_guess = 1000.0
+            C2_guess = -100000.0
+            gamma_guess = -1.0e-8
+            eta_guess = -1.0
+            mu_guess = -1.0e-5
+            b_guess = 1.0e-8
+            delta_S = 1.0e-8
+            params = paramdict("Fssqrtms_inf", Fssqrtms_inf_guess, Fssqrtms_inf_guess/10.0, limits=(1000, None))
+            params.update(paramdict("C1", C1_guess, C1_guess))
+            params.update(paramdict("C2", C2_guess, C2_guess))
+
+            params.update(paramdict("gamma", gamma_guess, gamma_guess/10))
+            params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
+            params.update(paramdict("mu", mu_guess, mu_guess/10))
+
+            params.update(paramdict("b", b_guess, b_guess/10))
+            params.update(paramdict("delta_S", delta_S, delta_S/10))
+
+            fun = self.fdssqrtms_HQET_matched_nom2_pade
+
+        elif self.type_string == "fdssqrtms_HQET_matched_nom2_pade2":
+            Fssqrtms_inf_guess = 20000.0
+            C1_guess = 1000.0
+            C2_guess = 1000.0
+            gamma_guess = -1.0e-8
+            eta_guess = -1.0
+            mu_guess = -1.0e-5
+            b_guess = 1.0e-8
+            delta_S = 1.0e-8
+            params = paramdict("Fssqrtms_inf", Fssqrtms_inf_guess, Fssqrtms_inf_guess/10.0, limits=(1000, None))
+            params.update(paramdict("C1", C1_guess, C1_guess))
+            params.update(paramdict("C2", C2_guess, C2_guess))
+
+            params.update(paramdict("gamma", gamma_guess, gamma_guess/10))
+            params.update(paramdict("eta", eta_guess, eta_guess/2, fixzero=True))
+            params.update(paramdict("mu", mu_guess, mu_guess/10))
+
+            params.update(paramdict("b", b_guess, b_guess/10))
+            params.update(paramdict("delta_S", delta_S, delta_S/10))
+
+            fun = self.fdssqrtms_HQET_matched_nom2_pade2
+
 
 
         elif self.type_string == "fdssqrtms_chiral_dmss_HQET":
@@ -992,6 +1117,19 @@ class Model(object):
         sqr_diff = (data - M)**2
         return np.sum(sqr_diff/var)
 
+    def FDsA_linear_mpisqr_asqr_mss(self, b, gamma_1, gamma_s1, FDsphys):
+        mpisqr = self.bstrapdata(self.mpisqr)
+        Mss = (2.0*self.bstrapdata(self.mKsqr) - mpisqr)
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+        delta_Mss = Mss - phys_Mss
+
+        M = (1+gamma_1*(self.a**2)+gamma_s1*delta_Mss)* FDsphys*(1.0+b*(mpisqr-phys_pion**2))
+
+
+        data = self.bstrapdata(self.fDsA)
+        var = self.fDsA.var(1)
+        sqr_diff = (data - M)**2
+        return np.sum(sqr_diff/var)
 
 
     def FDsbyFD_linear_mpisqr_asqr_mss(self, b, gamma_1, gamma_s1, FDsbyFDphys):
@@ -1639,36 +1777,6 @@ class Model(object):
         sqr_diff1 = (data - M1)**2
         return np.sum(sqr_diff1/var)
 
-    def fdsqrtm(self, Fsqrtm_inf, C1, C2, gamma, eta, mu):
-
-        fdsqrm_data = self.fDA * np.sqrt(self.mDA)
-        data = self.bstrapdata(fdsqrm_data)
-        var = fdsqrm_data.var(1)
-
-        m = self.bstrapdata(self.mD)
-
-        # M1 = Fsqrtm_inf*( 1.0 + C1 / m + C2 / (m**2) + gamma *(m*self.a)**2 + eta*m*self.a*2 + mu*self.a**2)
-        M1 = Fsqrtm_inf*( 1.0 + C1*1000.0 / m + C2*1000000 / (m**2) + (gamma/10000.0) *(m*self.a)**2 + (eta/100.0)*m*self.a*2 + (mu*0.001)*self.a**2)
-
-
-        sqr_diff1 = (data - M1)**2
-        return np.sum(sqr_diff1/var)
-
-    def fdsqrtm_chiral(self, Fsqrtm_inf, C1, C2, gamma, eta, mu, b):
-
-        fdsqrm_data = self.fDA * np.sqrt(self.mDA)
-        data = self.bstrapdata(fdsqrm_data)
-        var = fdsqrm_data.var(1)
-
-        m = self.bstrapdata(self.mD)
-        mpisqr = self.bstrapdata(self.mpisqr)
-
-        # M1 = Fsqrtm_inf*( 1.0 + C1 / m + C2 / (m**2) + gamma *(m*self.a)**2 + eta*m*self.a*2 + mu*self.a**2)
-        M1 = Fsqrtm_inf*(1.0+b*(mpisqr-phys_pion**2))*( 1.0 + C1*1000.0 / m + C2*1000000 / (m**2) + (gamma/10000.0) *(m*self.a)**2 + (eta/100.0)*m*self.a*2 + (mu*0.001)*self.a**2)
-
-
-        sqr_diff1 = (data - M1)**2
-        return np.sum(sqr_diff1/var)
 
     def fdsqrtm_chiral_dmss(self, Fsqrtm_inf, C1, C2, gamma, eta, mu, b, delta_S):
 
@@ -1681,11 +1789,12 @@ class Model(object):
         Mss = (2.0*self.bstrapdata(self.mKsqr)) - self.bstrapdata(self.mpisqr)
         phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
 
-        delta_Mss = (Mss - phys_Mss)/10000000
+        delta_Mss = (Mss - phys_Mss)
 
 
         # M1 = Fsqrtm_inf*( 1.0 + C1 / m + C2 / (m**2) + gamma *(m*self.a)**2 + eta*m*self.a*2 + mu*self.a**2)
-        M1 = Fsqrtm_inf*(1+delta_S*delta_Mss)*(1.0+b*(mpisqr-phys_pion**2))*( 1.0 + C1*1000.0 / m + C2*1000000 / (m**2) + (gamma/10000.0) *(m*self.a)**2 + (eta/100.0)*m*self.a*2 + (mu*0.001)*self.a**2)
+        delta_all = (1+delta_S*delta_Mss+b*(mpisqr-phys_pion**2)+ (gamma) *(m*self.a)**2 + (eta)*m*self.a*2 + (mu)*self.a**2)
+        M1 = Fsqrtm_inf*delta_all*( 1.0 + C1 / m + C2 / (m**2) )
 
 
         sqr_diff1 = (data - M1)**2
@@ -1702,71 +1811,17 @@ class Model(object):
         Mss = (2.0*self.bstrapdata(self.mKsqr)) - self.bstrapdata(self.mpisqr)
         phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
 
-        delta_Mss = (Mss - phys_Mss)/10000000
+        delta_Mss = (Mss - phys_Mss)
 
 
         # M1 = Fsqrtm_inf*( 1.0 + C1 / m + C2 / (m**2) + gamma *(m*self.a)**2 + eta*m*self.a*2 + mu*self.a**2)
-        M1 = Fssqrtms_inf*(1+delta_S*delta_Mss)*(1.0+b*(mpisqr-phys_pion**2))*( 1.0 + C1*1000.0 / m + C2*1000000 / (m**2) + (gamma/10000.0) *(m*self.a)**2 + (eta/100.0)*m*self.a*2 + (mu*0.001)*self.a**2)
+        delta_all = (1+delta_S*delta_Mss+b*(mpisqr-phys_pion**2)+ (gamma) *(m*self.a)**2 + (eta)*m*self.a*2 + (mu)*self.a**2)
+        M1 = Fssqrtms_inf*delta_all*( 1.0 + C1 / m + C2 / (m**2) )
 
 
         sqr_diff1 = (data - M1)**2
         return np.sum(sqr_diff1/var)
 
-
-
-    def fdsqrtm_HQET(self, Fsqrtm_inf, C1, C2, gamma, eta, mu):
-
-        fdsqrm_data = self.fDA_div * np.sqrt(self.mD_div)
-        data = self.bstrapdata(fdsqrm_data)
-        var = fdsqrm_data.var(1)
-
-        m = self.bstrapdata(self.mD) + self.m2 - self.m1
-
-        M1 = Fsqrtm_inf*( 1.0 + C1*1000.0 / m + C2*1000000 / (m**2) + (gamma/10000.0) *(m*self.a)**2 + (eta/100.0)*m*self.a*2 + (mu*0.001)*self.a**2)
-
-        sqr_diff1 = (data - M1)**2
-        return np.sum(sqr_diff1/var)
-
-    def fdsqrtm_dmss_HQET(self, Fsqrtm_inf, C1, C2, gamma, eta, mu, delta_S):
-
-        fdsqrm_data = self.fDA_div * np.sqrt(self.mD_div)
-        data = self.bstrapdata(fdsqrm_data)
-        var = fdsqrm_data.var(1)
-
-        m = self.bstrapdata(self.mD) + self.m2 - self.m1
-
-        Mss = (2.0*self.bstrapdata(self.mKsqr)) - self.bstrapdata(self.mpisqr)
-        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
-
-        delta_Mss = (Mss - phys_Mss)/10000000
-
-        M1 = Fsqrtm_inf*(1+delta_S*delta_Mss)*( 1.0 + C1*1000.0 / m + C2*1000000 / (m**2) + (gamma/10000.0) *(m*self.a)**2 + (eta/100.0)*m*self.a*2 + (mu*0.001)*self.a**2)
-
-        sqr_diff1 = (data - M1)**2
-        return np.sum(sqr_diff1/var)
-
-    def fdsqrtm_chiral_HQET(self, Fsqrtm_inf, C1, C2, gamma, eta, mu, b):
-
-        fdsqrm_data = self.fDA_div * np.sqrt(self.mD_div)
-        data = self.bstrapdata(fdsqrm_data)
-        var = fdsqrm_data.var(1)
-
-        m = self.bstrapdata(self.mD) + self.m2 - self.m1
-
-        mpisqr = self.bstrapdata(self.mpisqr)
-
-        Mss = (2.0*self.bstrapdata(self.mKsqr)) - mpisqr
-        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
-
-        delta_Mss = Mss - phys_Mss
-
-
-        M1 = Fsqrtm_inf*(1.0+b*(mpisqr-phys_pion**2))*( 1.0 + C1*1000.0 / m + C2*1000000 / (m**2) + (gamma/10000.0) *(m*self.a)**2 + (eta/100.0)*m*self.a*2 + (mu*0.001)*self.a**2)
-
-
-
-        sqr_diff1 = (data - M1)**2
-        return np.sum(sqr_diff1/var)
 
     def fdsqrtm_chiral_dmss_HQET(self, Fsqrtm_inf, C1, C2, gamma, eta, mu, b, delta_S):
 
@@ -1781,10 +1836,11 @@ class Model(object):
         Mss = (2.0*self.bstrapdata(self.mKsqr)) - mpisqr
         phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
 
-        delta_Mss = (Mss - phys_Mss)/10000000
+        delta_Mss = (Mss - phys_Mss)
 
 
-        M1 = Fsqrtm_inf*(1+delta_S*delta_Mss)*(1.0+b*(mpisqr-phys_pion**2))*( 1.0 + C1*1000.0 / m + C2*1000000 / (m**2) + (gamma/10000.0) *(m*self.a)**2 + (eta/100.0)*m*self.a**2 + (mu*0.001)*self.a**2)
+        delta_all = (1+delta_S*delta_Mss+b*(mpisqr-phys_pion**2)+ (gamma) *(m*self.a)**2 + (eta)*m*self.a**2 + (mu)*self.a**2)
+        M1 = Fsqrtm_inf*delta_all*( 1.0 + C1 / m + C2 / (m**2) )
 
 
 
@@ -1805,13 +1861,60 @@ class Model(object):
         Mss = (2.0*self.bstrapdata(self.mKsqr)) - mpisqr
         phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
 
-        delta_Mss = (Mss - phys_Mss)/10000000
+        delta_Mss = (Mss - phys_Mss)
 
-
-        M1 = Fsqrtm_inf*(1+delta_S*delta_Mss)*(1.0+b*(mpisqr-phys_pion**2))*( 1.0 + C1*1000.0 / m + C2*1000000 / (m**2) + (gamma/10000.0) *(m*self.a)**2 + (eta/100.0)*m*self.a**2 + (mu*0.001)*self.a**2)
+        delta_all = (1+delta_S*delta_Mss+b*(mpisqr-phys_pion**2)+ (gamma) *(m*self.a)**2 + (eta)*m*self.a**2 + (mu)*self.a**2)
+        M1 = Fsqrtm_inf*delta_all*( 1.0 + C1 / m + C2 / (m**2) )
 
         sqr_diff1 = (data - M1)**2
         return np.sum(sqr_diff1/var)
+
+    def fdsqrtm_HQET_matched_alphas(self, Fsqrtm_inf, C1, C2, gamma, eta, mu, b, delta_S):
+
+        fdsqrm_data = self.fD_matched * np.sqrt(self.mD_div)
+        data = self.bstrapdata(fdsqrm_data)
+        var = fdsqrm_data.var(1)
+
+
+        m = self.bstrapdata(self.mD_div) + self.m2 - self.m1
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata(self.mKsqr)) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+        delta_all = (1+delta_S*delta_Mss+b*(mpisqr-phys_pion**2)+ (gamma)*self.alpha_s *(m*self.a)**2 + (eta)*m*self.a**2 + (mu)*self.a**2)
+        M1 = Fsqrtm_inf*delta_all*( 1.0 + C1 / m + C2 / (m**2) )
+
+        sqr_diff1 = (data - M1)**2
+        return np.sum(sqr_diff1/var)
+
+
+    def fdAsqrtm_HQET_matched_alphas(self, Fsqrtm_inf, C1, C2, gamma, eta, mu, b, delta_S):
+
+        fdsqrm_data = self.fDA_matched * np.sqrt(self.mDA_div)
+        data = self.bstrapdata(fdsqrm_data)
+        var = fdsqrm_data.var(1)
+
+
+        m = self.bstrapdata(self.mDA_div) + self.m2 - self.m1
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata(self.mKsqr)) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+        delta_all = (1+delta_S*delta_Mss+b*(mpisqr-phys_pion**2)+ (gamma)*self.alpha_s *(m*self.a)**2 + (eta)*m*self.a**2 + (mu)*self.a**2)
+        M1 = Fsqrtm_inf*delta_all*( 1.0 + C1 / m + C2 / (m**2) )
+
+        sqr_diff1 = (data - M1)**2
+        return np.sum(sqr_diff1/var)
+
+
 
     def fdsqrtm_HQET_matched_nom2(self, Fsqrtm_inf, C1, C2, gamma, eta, mu, b, delta_S):
 
@@ -1826,10 +1929,10 @@ class Model(object):
         Mss = (2.0*self.bstrapdata(self.mKsqr)) - mpisqr
         phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
 
-        delta_Mss = (Mss - phys_Mss)/10000000
+        delta_Mss = (Mss - phys_Mss)
 
-
-        M1 = Fsqrtm_inf*(1+delta_S*delta_Mss)*(1.0+b*(mpisqr-phys_pion**2))*( 1.0 + C1*1000.0 / m + C2*1000000 / (m**2) + (gamma/10000.0) *(m*self.a)**2 + (eta/100.0)*m*self.a**2 + (mu*0.001)*self.a**2)
+        delta_all = (1+delta_S*delta_Mss+b*(mpisqr-phys_pion**2)+ (gamma) *(m*self.a)**2 + (eta)*m*self.a**2 + (mu)*self.a**2 )
+        M1 = Fsqrtm_inf*delta_all*( 1.0 + C1 / m + C2 / (m**2) )
 
         sqr_diff1 = (data - M1)**2
         return np.sum(sqr_diff1/var)
@@ -1847,13 +1950,142 @@ class Model(object):
         Mss = (2.0*self.bstrapdata(self.mKsqr)) - mpisqr
         phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
 
-        delta_Mss = (Mss - phys_Mss)/10000000
+        delta_Mss = (Mss - phys_Mss)
 
 
-        M1 = Fssqrtms_inf*(1+delta_S*delta_Mss)*(1.0+b*(mpisqr-phys_pion**2))*( 1.0 + C1*1000.0 / m + C2*1000000 / (m**2) + (gamma/10000.0) *(m*self.a)**2 + (eta/100.0)*m*self.a**2 + (mu*0.001)*self.a**2)
+        M1 = Fssqrtms_inf*(1+delta_S*delta_Mss + b*(mpisqr-phys_pion**2) + (gamma)*(m*self.a)**2 + (eta)*m*self.a**2 + (mu)*self.a**2) * ( 1.0 + C1 / m + C2 / (m**2) )
 
         sqr_diff1 = (data - M1)**2
         return np.sum(sqr_diff1/var)
+
+    def fdssqrtms_HQET_matched(self, Fssqrtms_inf, C1, C2, gamma, eta, mu, b, delta_S):
+
+        fdssqrms_data = self.fDs_matched * np.sqrt(self.mDs_div)
+        data = self.bstrapdata(fdssqrms_data)
+        var = fdssqrms_data.var(1)
+
+        m = self.bstrapdata(self.mDs_div)+ self.m2 - self.m1
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata(self.mKsqr)) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+
+        M1 = Fssqrtms_inf*(1+delta_S*delta_Mss + b*(mpisqr-phys_pion**2) + (gamma)*(m*self.a)**2 + (eta)*m*self.a**2 + (mu)*self.a**2) * ( 1.0 + C1 / m + C2 / (m**2) )
+
+        sqr_diff1 = (data - M1)**2
+        return np.sum(sqr_diff1/var)
+
+    def fdssqrtms_HQET_matched_alphas(self, Fssqrtms_inf, C1, C2, gamma, eta, mu, b, delta_S):
+
+        fdssqrms_data = self.fDs_matched * np.sqrt(self.mDs_div)
+        data = self.bstrapdata(fdssqrms_data)
+        var = fdssqrms_data.var(1)
+
+        m = self.bstrapdata(self.mDs_div)+ self.m2 - self.m1
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata(self.mKsqr)) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+        delta_all = (1+delta_S*delta_Mss + b*(mpisqr-phys_pion**2) + (gamma)*self.alpha_s*(m*self.a)**2 + (eta)*m*self.a**2 + (mu)*self.a**2)
+        M1 = Fssqrtms_inf* delta_all* ( 1.0 + C1 / m + C2 / (m**2) )
+
+        sqr_diff1 = (data - M1)**2
+        return np.sum(sqr_diff1/var)
+
+    def fdsAsqrtms_HQET_matched_alphas(self, Fssqrtms_inf, C1, C2, gamma, eta, mu, b, delta_S):
+
+        fdssqrms_data = self.fDsA_matched * np.sqrt(self.mDsA_div)
+        data = self.bstrapdata(fdssqrms_data)
+        var = fdssqrms_data.var(1)
+
+        m = self.bstrapdata(self.mDsA_div)+ self.m2 - self.m1
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata(self.mKsqr)) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+        delta_all = (1+delta_S*delta_Mss + b*(mpisqr-phys_pion**2) + (gamma)*self.alpha_s*(m*self.a)**2 + (eta)*m*self.a**2 + (mu)*self.a**2)
+        M1 = Fssqrtms_inf* delta_all* ( 1.0 + C1 / m + C2 / (m**2) )
+
+        sqr_diff1 = (data - M1)**2
+        return np.sum(sqr_diff1/var)
+
+
+    def fdssqrtms_HQET_matched_nom2_alphas(self, Fssqrtms_inf, C1, C2, gamma, eta, mu, b, delta_S):
+
+        fdssqrms_data = self.fDs_matched * np.sqrt(self.mDs_div)
+        data = self.bstrapdata(fdssqrms_data)
+        var = fdssqrms_data.var(1)
+
+        m = self.bstrapdata(self.mDs_div)
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata(self.mKsqr)) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+        M1 = Fssqrtms_inf*(1+delta_S*delta_Mss + b*(mpisqr-phys_pion**2) + (gamma)*self.alpha_s*(m*self.a)**2 + (eta)*m*self.a**2 + (mu)*self.a**2) * ( 1.0 + C1 / m + C2 / (m**2) )
+
+        sqr_diff1 = (data - M1)**2
+        return np.sum(sqr_diff1/var)
+
+
+    def fdssqrtms_HQET_matched_nom2_pade(self, Fssqrtms_inf, C1, C2, gamma, eta, mu, b, delta_S):
+
+        fdssqrms_data = self.fDs_matched * np.sqrt(self.mDs_div)
+        data = self.bstrapdata(fdssqrms_data)
+        var = fdssqrms_data.var(1)
+
+        m = self.bstrapdata(self.mDs_div)
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata(self.mKsqr)) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+
+        M1 = Fssqrtms_inf*(1+delta_S*delta_Mss + b*(mpisqr-phys_pion**2) + (gamma)*(m*self.a)**2 + (eta)*m*self.a**2 + (mu)*self.a**2) * (1.0/( 1.0 + C1 / m + C2 / (m**2)) )
+
+        sqr_diff1 = (data - M1)**2
+        return np.sum(sqr_diff1/var)
+
+    def fdssqrtms_HQET_matched_nom2_pade2(self, Fssqrtms_inf, C1, C2, gamma, eta, mu, b, delta_S):
+
+        fdssqrms_data = self.fDs_matched * np.sqrt(self.mDs_div)
+        data = self.bstrapdata(fdssqrms_data)
+        var = fdssqrms_data.var(1)
+
+        m = self.bstrapdata(self.mDs_div)
+
+        mpisqr = self.bstrapdata(self.mpisqr)
+
+        Mss = (2.0*self.bstrapdata(self.mKsqr)) - mpisqr
+        phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
+
+        delta_Mss = (Mss - phys_Mss)
+
+        delta_all = (1+delta_S*delta_Mss + b*(mpisqr-phys_pion**2) + (gamma)*(m*self.a)**2 + (eta)*m*self.a**2 + (mu)*self.a**2)
+        M1 = Fssqrtms_inf* delta_all * ((1.0+ C1 / m)/( 1.0  + C2 / m ) )
+
+        sqr_diff1 = (data - M1)**2
+        return np.sum(sqr_diff1/var)
+
+
 
 
     def fdssqrtms_chiral_dmss_HQET(self, Fssqrtms_inf, C1, C2, gamma, eta, mu, b, delta_S):
@@ -1869,10 +2101,10 @@ class Model(object):
         Mss = (2.0*self.bstrapdata(self.mKsqr)) - mpisqr
         phys_Mss = (2.0*(phys_kaon**2)) - (phys_pion**2)
 
-        delta_Mss = (Mss - phys_Mss)/10000000
+        delta_Mss = (Mss - phys_Mss)
 
-
-        M1 = Fssqrtms_inf*(1+delta_S*delta_Mss)*(1.0+b*(mpisqr-phys_pion**2))*( 1.0 + C1*1000.0 / m + C2*1000000 / (m**2) + (gamma/10000.0) *(m*self.a)**2 + (eta/100.0)*m*self.a**2 + (mu*0.001)*self.a**2)
+        delta_all = (1+delta_S*delta_Mss+b*(mpisqr-phys_pion**2)  + (gamma) *(m*self.a)**2 + (eta)*m*self.a**2 + (mu)*self.a**2)
+        M1 = Fssqrtms_inf*delta_all*( 1.0 + C1 / m + C2 / (m**2))
 
 
 
