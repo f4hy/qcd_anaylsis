@@ -94,6 +94,30 @@ def get_data(ed, data_type, options):
         return data.mean(), data.std(), label, {"Charm": phys_FDs*np.sqrt(phys_Ds), "Bottom": phys_FBs*np.sqrt(phys_MBs)}
 
 
+    if data_type == "fDsqrtmD_renorm":
+        fdata = ed.fD(scaled=options.scale, renorm=True)
+        mdata = ed.D_mass(scaled=options.scale)
+
+        data = fdata*np.sqrt(mdata)
+
+        label = "$\widetilde{f}_{hl}\, \sqrt{m_{hl}}$"
+        if options.scale:
+            label += " [MeV^(3/2)]"
+        return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
+
+
+    if data_type == "fDsqrtmD_raw":
+        fdata = ed.fD(scaled=options.scale)
+        mdata = ed.D_mass(scaled=options.scale)
+
+        data = fdata*np.sqrt(mdata)
+
+        label = "$\widetilde{f}_{hl}\, \sqrt{m_{hl}}$"
+        if options.scale:
+            label += " [MeV^(3/2)]"
+        return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
+
+
     if data_type == "fDAsqrtmD_raw":
         fdata = ed.fDA(scaled=options.scale)
         mdata = ed.D_mass(scaled=options.scale)
@@ -151,9 +175,21 @@ def get_data(ed, data_type, options):
             label += " [MeV^(3/2)]"
         return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
 
+    if data_type == "fD_divsqrtmD":
+        fdata = ed.fD(scaled=options.scale, renorm=False, div=True)
+        mdata = ed.D_mass(scaled=options.scale)
+
+        data = fdata*np.sqrt(mdata)
+
+        label = "$\hat{f}_{hl}\, \sqrt{m_{hl}}$"
+        if options.scale:
+            label += " [MeV^(3/2)]"
+        return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
+
+
     if data_type == "fD_divsqrtmD_renorm_matched":
         fdata = ed.fD(scaled=options.scale, renorm=True, div=True, matched=True)
-        mdata = ed.D_mass(scaled=options.scale)
+        mdata = ed.D_mass_div(scaled=options.scale)
 
         data = fdata*np.sqrt(mdata)
 
