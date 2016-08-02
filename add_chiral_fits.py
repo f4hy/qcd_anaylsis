@@ -26,6 +26,8 @@ from auto_key import auto_key
 
 from ratio_methods import ratio_chain
 
+from alpha_s import get_alpha
+
 plotsettings = dict(linestyle="none", ms=12, elinewidth=4,
                     capsize=8, capthick=2, mew=2, c="k")
 
@@ -221,8 +223,35 @@ def choose_fit(axe, xran, fittype, values, errors, fill=False, save=False):
     if fittype.startswith("fdssqrtms_ratio"):
         return fdssqrtms_ratio(axe, xran, values, errors, fill=fill, save=save)
 
+    if fittype.startswith("fdsqrtm_HQET_matched_nom2"):
+        return fdsqrtm_noscale(axe, xran, values, errors, fill=fill, save=save)
+
+    if fittype.startswith("fdsqrtm_HQET_matched_alphas"):
+        return fdsqrtm_noscale_alphas(axe, xran, values, errors, fill=fill, save=save)
+
+    if fittype.startswith("fdsqrtm_HQET_matched"):
+        return fdsqrtm_noscale(axe, xran, values, errors, fill=fill, save=save)
+
     if fittype.startswith("fdsqrtm"):
         return fdsqrtm(axe, xran, values, errors, fill=fill, save=save)
+
+    if fittype.startswith("fdssqrtms_HQET_matched_alphas"):
+        return fdssqrtms_noscale_alphas(axe, xran, values, errors, fill=fill, save=save)
+
+    if fittype.startswith("fdssqrtms_HQET_matched"):
+        return fdssqrtms_noscale(axe, xran, values, errors, fill=fill, save=save)
+
+    if fittype.startswith("fdssqrtms_HQET_matched_nom2_alphas"):
+        return fdssqrtms_noscale_alphas(axe, xran, values, errors, fill=fill, save=save)
+
+    if fittype.startswith("fdssqrtms_HQET_matched_nom2_pade2"):
+        return fdssqrtms_noscale_pade2(axe, xran, values, errors, fill=fill, save=save)
+
+    if fittype.startswith("fdssqrtms_HQET_matched_nom2_pade"):
+        return fdssqrtms_noscale_pade(axe, xran, values, errors, fill=fill, save=save)
+
+    if fittype.startswith("fdssqrtms_HQET_matched_nom2"):
+        return fdssqrtms_noscale(axe, xran, values, errors, fill=fill, save=save)
 
     if fittype.startswith("fdssqrtms"):
         return fdssqrtms(axe, xran, values, errors, fill=fill, save=save)
@@ -1125,17 +1154,6 @@ def fdsqrtm(axe, xran, values, errors, fill=False, save=False):
 
     Fsqrtm_inf = values["Fsqrtm_inf"]
 
-    values["C1"] *= 1000.0
-    values["C2"] *= (1000.0)**2
-    values["gamma"] *= 1.0 / (10000.0)
-    values["eta"] *= 1.0 / (100.0)
-    values["mu"] *= 0.001
-
-    errors["C1"] *= 1000.0
-    errors["C2"] *= (1000.0)**2
-    errors["gamma"] *= 1.0 / (10000.0)
-    errors["eta"] *= 1.0 / (100.0)
-    errors["mu"] *= 0.001
 
     C1 = values["C1"]
     C2 = values["C2"]
@@ -1154,12 +1172,9 @@ def fdsqrtm(axe, xran, values, errors, fill=False, save=False):
     print a_beta417, a_beta435, a_beta447
 
     y = Fsqrtm_inf * (1 + C1 * mD_inv + C2 * mD_inv**2)
-    y1 = Fsqrtm_inf * (1 + C1 * mD_inv + C2 * mD_inv**2 + gamma * (m * a_beta417)
-                       ** 2 + eta * m * a_beta417**2 + mu * a_beta417**2)
-    y2 = Fsqrtm_inf * (1 + C1 * mD_inv + C2 * mD_inv**2 + gamma * (m * a_beta435)
-                       ** 2 + eta * m * a_beta435**2 + mu * a_beta435**2)
-    y3 = Fsqrtm_inf * (1 + C1 * mD_inv + C2 * mD_inv**2 + gamma * (m * a_beta447)
-                       ** 2 + eta * m * a_beta447**2 + mu * a_beta447**2)
+    y1 = y*(1+ gamma * (m * a_beta417) ** 2 + eta * m * a_beta417**2 + mu * a_beta417**2)
+    y2 = y*(1+ gamma * (m * a_beta435) ** 2 + eta * m * a_beta435**2 + mu * a_beta435**2)
+    y3 = y*(1+ gamma * (m * a_beta447) ** 2 + eta * m * a_beta447**2 + mu * a_beta447**2)
 
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
@@ -1189,17 +1204,17 @@ def fdssqrtms(axe, xran, values, errors, fill=False, save=False):
 
     Fssqrtms_inf = values["Fssqrtms_inf"]
 
-    values["C1"] *= 1000.0
-    values["C2"] *= (1000.0)**2
-    values["gamma"] *= 1.0 / (10000.0)
-    values["eta"] *= 1.0 / (100.0)
-    values["mu"] *= 0.001
+    # values["C1"] *= 1000.0
+    # values["C2"] *= (1000.0)**2
+    # values["gamma"] *= 1.0 / (10000.0)
+    # values["eta"] *= 1.0 / (100.0)
+    # values["mu"] *= 0.001
 
-    errors["C1"] *= 1000.0
-    errors["C2"] *= (1000.0)**2
-    errors["gamma"] *= 1.0 / (10000.0)
-    errors["eta"] *= 1.0 / (100.0)
-    errors["mu"] *= 0.001
+    # errors["C1"] *= 1000.0
+    # errors["C2"] *= (1000.0)**2
+    # errors["gamma"] *= 1.0 / (10000.0)
+    # errors["eta"] *= 1.0 / (100.0)
+    # errors["mu"] *= 0.001
 
     C1 = values["C1"]
     C2 = values["C2"]
@@ -1218,12 +1233,9 @@ def fdssqrtms(axe, xran, values, errors, fill=False, save=False):
     print a_beta417, a_beta435, a_beta447
 
     y = Fssqrtms_inf * (1 + C1 * mDs_inv + C2 * mDs_inv**2)
-    y1 = Fssqrtms_inf * (1 + C1 * mDs_inv + C2 * mDs_inv**2 + gamma * (m * a_beta417)
-                         ** 2 + eta * m * a_beta417**2 + mu * a_beta417**2)
-    y2 = Fssqrtms_inf * (1 + C1 * mDs_inv + C2 * mDs_inv**2 + gamma * (m * a_beta435)
-                         ** 2 + eta * m * a_beta435**2 + mu * a_beta435**2)
-    y3 = Fssqrtms_inf * (1 + C1 * mDs_inv + C2 * mDs_inv**2 + gamma * (m * a_beta447)
-                         ** 2 + eta * m * a_beta447**2 + mu * a_beta447**2)
+    y1 =y*(1 + gamma * (m * a_beta417) ** 2 + eta * m * a_beta417**2 + mu * a_beta417**2)
+    y2 =y*(1 + gamma * (m * a_beta435) ** 2 + eta * m * a_beta435**2 + mu * a_beta435**2)
+    y3 =y*(1 + gamma * (m * a_beta447) ** 2 + eta * m * a_beta447**2 + mu * a_beta447**2)
 
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
@@ -1247,6 +1259,288 @@ def fdssqrtms(axe, xran, values, errors, fill=False, save=False):
     #              label="test", color='k', ecolor='k', mec='k', alpha=0.2, **plotsettings)
 
     return plots
+
+def fdssqrtms_noscale(axe, xran, values, errors, fill=False, save=False):
+
+    Fssqrtms_inf = values["Fssqrtms_inf"]
+
+    C1 = values["C1"]
+    C2 = values["C2"]
+
+    gamma = values["gamma"]
+    eta = values["eta"]
+    mu = values["mu"]
+
+    mDs_inv = np.linspace(xran[0], xran[1], num=500)
+    m = 1 / mDs_inv
+
+    a_beta417 = 197.3269788 / scale["4.17"]
+    a_beta435 = 197.3269788 / scale["4.35"]
+    a_beta447 = 197.3269788 / scale["4.47"]
+
+
+    y = Fssqrtms_inf * (1 + C1 * mDs_inv + C2 * mDs_inv**2)
+    y1 = Fssqrtms_inf * (1 + C1 * mDs_inv + C2 * mDs_inv**2)*(1+ eta * m * a_beta417**2 + mu * a_beta417**2+ gamma * (m * a_beta417) ** 2 )
+    y2 = Fssqrtms_inf * (1 + C1 * mDs_inv + C2 * mDs_inv**2)*(1 + eta * m * a_beta435**2 + mu * a_beta435**2 + gamma * (m * a_beta435) ** 2 )
+    y3 = Fssqrtms_inf * (1 + C1 * mDs_inv + C2 * mDs_inv**2)*(1+ eta * m * a_beta447**2 + mu * a_beta447**2 + gamma * (m * a_beta447) ** 2 )
+
+    plots = []
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
+    #paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    plabel = "Qaudratic fit"
+
+    plabel = paramstring.replace("$ \eta", "\n $ \eta")
+    if "cutoff" in values.keys():
+        plabel += " $M_\pi < {}$".format(values["cutoff"])
+    plabel = "Continuum and Chiral Limit"
+    addplot(plots, axe, fill, save, x=mDs_inv, y=y, params={"label":plabel,  "ls":"--", "lw":2, "color":"k"})
+    addplot(plots, axe, fill, save, x=mDs_inv, y=y1, params={"label":"fit $\\beta:4.17$",  "ls":"--", "lw":2, "color":'b'})
+    addplot(plots, axe, fill, save, x=mDs_inv, y=y2, params={"label":"fit $\\beta:4.35$",  "ls":"--", "lw":2, "color":'r'})
+    addplot(plots, axe, fill, save, x=mDs_inv, y=y3, params={"label":"fit $\\beta:4.47$",  "ls":"--", "lw":2, "color":'m'})
+
+    # mB_inv = 1.0/5279.0
+    # axe.errorbar(mB_inv, y=Fsqrtm_inf*(1 + C1 * mB_inv + C2 * mB_inv**2 ),
+    #              yerr=errors["Fsqrtm_inf"]*(1 + errors["C1"] * mB_inv + errors["C2"] * mB_inv**2 ),
+    #              label="test", color='k', ecolor='k', mec='k', alpha=0.2, **plotsettings)
+
+    return plots
+
+def fdsqrtm_noscale(axe, xran, values, errors, fill=False, save=False):
+
+    Fsqrtm_inf = values["Fsqrtm_inf"]
+
+    C1 = values["C1"]
+    C2 = values["C2"]
+
+    gamma = values["gamma"]
+    eta = values["eta"]
+    mu = values["mu"]
+
+    mD_inv = np.linspace(xran[0], xran[1], num=500)
+    m = 1 / mD_inv
+
+    a_beta417 = 197.3269788 / scale["4.17"]
+    a_beta435 = 197.3269788 / scale["4.35"]
+    a_beta447 = 197.3269788 / scale["4.47"]
+
+
+    y = Fsqrtm_inf * (1 + C1 * mD_inv + C2 * mD_inv**2)
+    y1 = y*(1+ eta * m * a_beta417**2 + mu * a_beta417**2+ gamma * (m * a_beta417) ** 2 )
+    y2 = y*(1 + eta * m * a_beta435**2 + mu * a_beta435**2 + gamma * (m * a_beta435) ** 2 )
+    y3 = y*(1+ eta * m * a_beta447**2 + mu * a_beta447**2 + gamma * (m * a_beta447) ** 2 )
+
+    plots = []
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
+    #paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    plabel = "Qaudratic fit"
+
+    plabel = paramstring.replace("$ \eta", "\n $ \eta")
+    if "cutoff" in values.keys():
+        plabel += " $M_\pi < {}$".format(values["cutoff"])
+    plabel = "Continuum and Chiral Limit"
+    addplot(plots, axe, fill, save, x=mD_inv, y=y, params={"label":plabel,  "ls":"--", "lw":2, "color":"k"})
+    addplot(plots, axe, fill, save, x=mD_inv, y=y1, params={"label":"fit $\\beta:4.17$",  "ls":"--", "lw":2, "color":'b'})
+    addplot(plots, axe, fill, save, x=mD_inv, y=y2, params={"label":"fit $\\beta:4.35$",  "ls":"--", "lw":2, "color":'r'})
+    addplot(plots, axe, fill, save, x=mD_inv, y=y3, params={"label":"fit $\\beta:4.47$",  "ls":"--", "lw":2, "color":'m'})
+
+    # mB_inv = 1.0/5279.0
+    # axe.errorbar(mB_inv, y=Fsqrtm_inf*(1 + C1 * mB_inv + C2 * mB_inv**2 ),
+    #              yerr=errors["Fsqrtm_inf"]*(1 + errors["C1"] * mB_inv + errors["C2"] * mB_inv**2 ),
+    #              label="test", color='k', ecolor='k', mec='k', alpha=0.2, **plotsettings)
+
+    return plots
+
+def fdsqrtm_noscale_alphas(axe, xran, values, errors, fill=False, save=False):
+
+    Fsqrtm_inf = values["Fsqrtm_inf"]
+
+    C1 = values["C1"]
+    C2 = values["C2"]
+
+    gamma = values["gamma"]
+    eta = values["eta"]
+    mu = values["mu"]
+
+    mD_inv = np.linspace(xran[0], xran[1], num=500)
+    m = 1 / mD_inv
+
+    a_beta417 = 197.3269788 / scale["4.17"]
+    a_beta435 = 197.3269788 / scale["4.35"]
+    a_beta447 = 197.3269788 / scale["4.47"]
+
+
+    y = Fsqrtm_inf * (1 + C1 * mD_inv + C2 * mD_inv**2)
+    y1 = y*(1+ eta * m * a_beta417**2 + mu * a_beta417**2+ gamma * get_alpha(scale["4.17"])* (m * a_beta417) ** 2 )
+    y2 = y*(1 + eta * m * a_beta435**2 + mu * a_beta435**2 + gamma* get_alpha(scale["4.35"]) * (m * a_beta435) ** 2 )
+    y3 = y*(1+ eta * m * a_beta447**2 + mu * a_beta447**2 + gamma* get_alpha(scale["4.47"]) * (m * a_beta447) ** 2 )
+
+    plots = []
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
+    #paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    plabel = "Qaudratic fit"
+
+    plabel = paramstring.replace("$ \eta", "\n $ \eta")
+    if "cutoff" in values.keys():
+        plabel += " $M_\pi < {}$".format(values["cutoff"])
+    plabel = "Continuum and Chiral Limit alphas"
+    addplot(plots, axe, fill, save, x=mD_inv, y=y, params={"label":plabel,  "ls":"--", "lw":2, "color":"k"})
+    addplot(plots, axe, fill, save, x=mD_inv, y=y1, params={"label":"fit $\\beta:4.17$",  "ls":"--", "lw":2, "color":'b'})
+    addplot(plots, axe, fill, save, x=mD_inv, y=y2, params={"label":"fit $\\beta:4.35$",  "ls":"--", "lw":2, "color":'r'})
+    addplot(plots, axe, fill, save, x=mD_inv, y=y3, params={"label":"fit $\\beta:4.47$",  "ls":"--", "lw":2, "color":'m'})
+
+    # mB_inv = 1.0/5279.0
+    # axe.errorbar(mB_inv, y=Fsqrtm_inf*(1 + C1 * mB_inv + C2 * mB_inv**2 ),
+    #              yerr=errors["Fsqrtm_inf"]*(1 + errors["C1"] * mB_inv + errors["C2"] * mB_inv**2 ),
+    #              label="test", color='k', ecolor='k', mec='k', alpha=0.2, **plotsettings)
+
+    return plots
+
+
+def fdssqrtms_noscale_alphas(axe, xran, values, errors, fill=False, save=False):
+
+    Fssqrtms_inf = values["Fssqrtms_inf"]
+
+    C1 = values["C1"]
+    C2 = values["C2"]
+
+    gamma = values["gamma"]
+    eta = values["eta"]
+    mu = values["mu"]
+
+    mDs_inv = np.linspace(xran[0], xran[1], num=500)
+    m = 1 / mDs_inv
+
+    a_beta417 = 197.3269788 / scale["4.17"]
+    a_beta435 = 197.3269788 / scale["4.35"]
+    a_beta447 = 197.3269788 / scale["4.47"]
+
+
+    y = Fssqrtms_inf * (1.0 + C1 * mDs_inv + C2 * mDs_inv**2)
+
+    y1 = y*(1+ eta * m * a_beta417**2 + mu * a_beta417**2+ gamma * get_alpha(scale["4.17"])* (m * a_beta417) ** 2 )
+    y2 = y*(1 + eta * m * a_beta435**2 + mu * a_beta435**2 + gamma* get_alpha(scale["4.35"]) * (m * a_beta435) ** 2 )
+    y3 = y*(1+ eta * m * a_beta447**2 + mu * a_beta447**2 + gamma* get_alpha(scale["4.47"]) * (m * a_beta447) ** 2 )
+
+    plots = []
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
+    #paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    plabel = "Qaudratic fit"
+
+    plabel = paramstring.replace("$ \eta", "\n $ \eta")
+    if "cutoff" in values.keys():
+        plabel += " $M_\pi < {}$".format(values["cutoff"])
+    plabel = "Continuum and Chiral Limit alphas"
+    addplot(plots, axe, fill, save, x=mDs_inv, y=y, params={"label":plabel,  "ls":"--", "lw":2, "color":"k"})
+    addplot(plots, axe, fill, save, x=mDs_inv, y=y1, params={"label":"fit $\\beta:4.17$",  "ls":"--", "lw":2, "color":'b'})
+    addplot(plots, axe, fill, save, x=mDs_inv, y=y2, params={"label":"fit $\\beta:4.35$",  "ls":"--", "lw":2, "color":'r'})
+    addplot(plots, axe, fill, save, x=mDs_inv, y=y3, params={"label":"fit $\\beta:4.47$",  "ls":"--", "lw":2, "color":'m'})
+
+    # mB_inv = 1.0/5279.0
+    # axe.errorbar(mB_inv, y=Fsqrtm_inf*(1 + C1 * mB_inv + C2 * mB_inv**2 ),
+    #              yerr=errors["Fsqrtm_inf"]*(1 + errors["C1"] * mB_inv + errors["C2"] * mB_inv**2 ),
+    #              label="test", color='k', ecolor='k', mec='k', alpha=0.2, **plotsettings)
+
+    return plots
+
+
+def fdssqrtms_noscale_pade(axe, xran, values, errors, fill=False, save=False):
+
+    Fssqrtms_inf = values["Fssqrtms_inf"]
+
+    C1 = values["C1"]
+    C2 = values["C2"]
+
+    gamma = values["gamma"]
+    eta = values["eta"]
+    mu = values["mu"]
+
+    mDs_inv = np.linspace(xran[0], xran[1], num=500)
+    m = 1 / mDs_inv
+
+    a_beta417 = 197.3269788 / scale["4.17"]
+    a_beta435 = 197.3269788 / scale["4.35"]
+    a_beta447 = 197.3269788 / scale["4.47"]
+
+
+    y = Fssqrtms_inf * (1.0/(1.0 + C1 * mDs_inv + C2 * mDs_inv**2))
+
+    y1 = y*(1+ eta * m * a_beta417**2 + mu * a_beta417**2+ gamma * (m * a_beta417) ** 2 )
+    y2 = y*(1 + eta * m * a_beta435**2 + mu * a_beta435**2 + gamma * (m * a_beta435) ** 2 )
+    y3 = y*(1+ eta * m * a_beta447**2 + mu * a_beta447**2 + gamma * (m * a_beta447) ** 2 )
+
+    plots = []
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
+    #paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    plabel = "Qaudratic fit"
+
+    plabel = paramstring.replace("$ \eta", "\n $ \eta")
+    if "cutoff" in values.keys():
+        plabel += " $M_\pi < {}$".format(values["cutoff"])
+    plabel = "Continuum and Chiral Limit PADE"
+    addplot(plots, axe, fill, save, x=mDs_inv, y=y, params={"label":plabel,  "ls":"--", "lw":2, "color":"k"})
+    addplot(plots, axe, fill, save, x=mDs_inv, y=y1, params={"label":"fit $\\beta:4.17$",  "ls":"--", "lw":2, "color":'b'})
+    addplot(plots, axe, fill, save, x=mDs_inv, y=y2, params={"label":"fit $\\beta:4.35$",  "ls":"--", "lw":2, "color":'r'})
+    addplot(plots, axe, fill, save, x=mDs_inv, y=y3, params={"label":"fit $\\beta:4.47$",  "ls":"--", "lw":2, "color":'m'})
+
+    # mB_inv = 1.0/5279.0
+    # axe.errorbar(mB_inv, y=Fsqrtm_inf*(1 + C1 * mB_inv + C2 * mB_inv**2 ),
+    #              yerr=errors["Fsqrtm_inf"]*(1 + errors["C1"] * mB_inv + errors["C2"] * mB_inv**2 ),
+    #              label="test", color='k', ecolor='k', mec='k', alpha=0.2, **plotsettings)
+
+    return plots
+
+def fdssqrtms_noscale_pade2(axe, xran, values, errors, fill=False, save=False):
+
+    Fssqrtms_inf = values["Fssqrtms_inf"]
+
+    C1 = values["C1"]
+    C2 = values["C2"]
+
+    gamma = values["gamma"]
+    eta = values["eta"]
+    mu = values["mu"]
+
+    mDs_inv = np.linspace(xran[0], xran[1], num=500)
+    m = 1 / mDs_inv
+
+    a_beta417 = 197.3269788 / scale["4.17"]
+    a_beta435 = 197.3269788 / scale["4.35"]
+    a_beta447 = 197.3269788 / scale["4.47"]
+
+
+    y = Fssqrtms_inf * ((1.0+ C1*mDs_inv)/(1.0  + C2*mDs_inv))
+
+    y1 = y*(1+ eta * m * a_beta417**2 + mu * a_beta417**2+ gamma * (m * a_beta417) ** 2 )
+    y2 = y*(1 + eta * m * a_beta435**2 + mu * a_beta435**2 + gamma * (m * a_beta435) ** 2 )
+    y3 = y*(1+ eta * m * a_beta447**2 + mu * a_beta447**2 + gamma * (m * a_beta447) ** 2 )
+
+    plots = []
+    paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
+                           for k, v in sorted(values.iteritems()))
+    #paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
+    plabel = "Qaudratic fit"
+
+    plabel = paramstring.replace("$ \eta", "\n $ \eta")
+    if "cutoff" in values.keys():
+        plabel += " $M_\pi < {}$".format(values["cutoff"])
+    plabel = "Continuum and Chiral Limit PADE2"
+    addplot(plots, axe, fill, save, x=mDs_inv, y=y, params={"label":plabel,  "ls":"--", "lw":2, "color":"k"})
+    addplot(plots, axe, fill, save, x=mDs_inv, y=y1, params={"label":"fit $\\beta:4.17$",  "ls":"--", "lw":2, "color":'b'})
+    addplot(plots, axe, fill, save, x=mDs_inv, y=y2, params={"label":"fit $\\beta:4.35$",  "ls":"--", "lw":2, "color":'r'})
+    addplot(plots, axe, fill, save, x=mDs_inv, y=y3, params={"label":"fit $\\beta:4.47$",  "ls":"--", "lw":2, "color":'m'})
+
+    # mB_inv = 1.0/5279.0
+    # axe.errorbar(mB_inv, y=Fsqrtm_inf*(1 + C1 * mB_inv + C2 * mB_inv**2 ),
+    #              yerr=errors["Fsqrtm_inf"]*(1 + errors["C1"] * mB_inv + errors["C2"] * mB_inv**2 ),
+    #              label="test", color='k', ecolor='k', mec='k', alpha=0.2, **plotsettings)
+
+    return plots
+
 
 
 def fdssqrtms_ratio(axe, xran, values, errors, fill=False, save=False):
@@ -1357,6 +1651,8 @@ def fdssqrtms_mq_ma_ratio(axe, xran, values, errors, fill=False, save=False):
     addplot(plots, axe, fill, save, x=mq_inv, y=y3, params={"label":"fit $\\beta:4.47$",  "ls":"--", "lw":2, "color":'m'})
 
     return plots
+
+
 
 
 def fdsqrtm_ratio(axe, xran, values, errors, fill=False, save=False):
