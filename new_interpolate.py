@@ -17,6 +17,8 @@ from global_fit_model import Model
 
 from misc import all_equal
 
+import progress_bar
+
 import os
 
 
@@ -92,9 +94,16 @@ def interpolate(data, model_str, options):
 
     params.update(mean_m.values)
 
+
+    # return mean_m, {0: mean_m}, np.nan
+    if  (mean_m.fval / dof) > 100.0:
+        logging.error("Chi^2/dof is huge, dont bother with bootstraps")
+        return mean_m, {0: mean_m}, np.nan
+
     bootstrap_m = {}
+    progressb = progress_bar.progress_bar(N)
     for b in range(N):
-        logging.info("fitting bootstrap {}".format(b))
+        progressb.update(b)
         model_obj.set_bootstrap(b)
         bootstrap_m[b] = Minuit(model_fun, errordef=dof, print_level=0, pedantic=True, **params)
         bootstrap_m[b].set_strategy(2)
@@ -103,6 +112,7 @@ def interpolate(data, model_str, options):
         if not bootstrap_m[b].get_fmin().is_valid:
             logging.error("NOT VALID for bootstrap".format(b))
             exit(-1)
+    progressb.done()
 
     logging.info('fitted mean values {}'.format(mean_m.values))
     logging.info('fitted mean errors {}'.format(mean_m.errors))
