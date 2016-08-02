@@ -216,9 +216,21 @@ class ensemble_data(object):
             return self.scale*self.get_mass("heavy-ud", wild=divwild)
         return self.get_mass("heavy-ud", wild=divwild)
 
+    def DA_mass_div(self, scaled=False):
+        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_axial_div_fit_{0}_*/*.boot".format(FITTYPE)
+        if scaled:
+            return self.scale*self.get_mass("heavy-ud", wild=divwild, op="A4")
+        return self.get_mass("heavy-ud", wild=divwild, op="A4")
+
+    def DsA_mass_div(self, scaled=False):
+        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_axial_div_fit_{0}_*/*.boot".format(FITTYPE)
+        if scaled:
+            return self.scale*self.get_mass("heavy-s", wild=divwild, op="A4")
+        return self.get_mass("heavy-s", wild=divwild, op="A4")
+
 
     def D_mass_axial_div(self, scaled=False):
-        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_div_fit_{0}_*/*.boot".format(FITTYPE)
+        divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_axial_div_fit_{0}_*/*.boot".format(FITTYPE)
         if scaled:
             return self.scale*self.get_mass("heavy-ud", wild=divwild, op="A4")
         return self.get_mass("heavy-ud", wild=divwild, op="A4")
@@ -323,7 +335,7 @@ class ensemble_data(object):
         q1 = self.dp.heavyq_mass + residual_mass(self.dp)
         q2 = self.dp.ud_mass + residual_mass(self.dp)
 
-        if renorm:
+        if renorm or div:
             m = self.dp.heavyq_mass + residual_mass(self.dp)
             Q = ((1 + m**2)/(1 - m**2))**2
             W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
@@ -367,7 +379,7 @@ class ensemble_data(object):
         qh2 = self.dp.heavyq_mass_next + residual_mass(self.dp)
         ql = self.dp.ud_mass + residual_mass(self.dp)
 
-        if renorm:
+        if renorm or div:
             m = self.dp.heavyq_mass + residual_mass(self.dp)
             Q = ((1 + m**2)/(1 - m**2))**2
             W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
@@ -425,7 +437,7 @@ class ensemble_data(object):
         qh2 = self.dp.heavyq_mass_next + residual_mass(self.dp)
         ql = self.dp.s_mass + residual_mass(self.dp)
 
-        if renorm:
+        if renorm or div:
             m = self.dp.heavyq_mass + residual_mass(self.dp)
             Q = ((1 + m**2)/(1 - m**2))**2
             W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
@@ -458,7 +470,7 @@ class ensemble_data(object):
         return data
 
 
-    def fDA(self, scaled=False, renorm=False, div=False):
+    def fDA(self, scaled=False, renorm=False, div=False, matched=False):
         if div:
             divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_{0}_*/*.boot".format(FITTYPE)
             amp1data, amp2data = self.get_amps("heavy-ud", op="A4", wild=divwild)
@@ -469,7 +481,7 @@ class ensemble_data(object):
 
         ampfactor = self.dp.volume
 
-        if renorm:
+        if renorm or div:
             m = self.dp.heavyq_mass + residual_mass(self.dp)
             Q = ((1 + m**2)/(1 - m**2))**2
             W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
@@ -481,6 +493,14 @@ class ensemble_data(object):
         data = Zv[self.dp.beta]*np.sqrt(2*(ampdata) / massdata)
         if scaled:
             data = scale[self.dp.beta] * data
+
+
+        if matched:
+            mq1 = self.scale * self.dp.heavyq_mass / Zs[self.dp.beta]
+            C1 = get_Cmu_mbar(mq1)
+            data = data / C1
+
+
         return data
 
     def fDs(self, scaled=False, renorm=False, div=False, matched=False):
@@ -496,7 +516,7 @@ class ensemble_data(object):
         q1 = self.dp.heavyq_mass + residual_mass(self.dp)
         q2 = self.dp.s_mass + residual_mass(self.dp)
 
-        if renorm:
+        if renorm or div:
             m = self.dp.heavyq_mass + residual_mass(self.dp)
             Q = ((1 + m**2)/(1 - m**2))**2
             W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
@@ -517,7 +537,7 @@ class ensemble_data(object):
 
         return data
 
-    def fDsA(self, scaled=False, renorm=False, div=False):
+    def fDsA(self, scaled=False, renorm=False, div=False, matched=False):
         if div:
             divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_{0}_*/*.boot".format(FITTYPE)
             amp1data, amp2data = self.get_amps("heavy-s", op="A4", wild=divwild)
@@ -528,7 +548,7 @@ class ensemble_data(object):
 
         ampfactor = self.dp.volume
 
-        if renorm:
+        if renorm or div:
             m = self.dp.heavyq_mass + residual_mass(self.dp)
             Q = ((1 + m**2)/(1 - m**2))**2
             W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
@@ -540,6 +560,13 @@ class ensemble_data(object):
         data = Zv[self.dp.beta]*np.sqrt(2*(ampdata) / massdata)
         if scaled:
             data = scale[self.dp.beta] * data
+
+        if matched:
+            mq1 = self.scale * self.dp.heavyq_mass / Zs[self.dp.beta]
+            C1 = get_Cmu_mbar(mq1)
+            data = data / C1
+
+
         return data
 
     def fHH(self, scaled=False):
@@ -556,7 +583,7 @@ class ensemble_data(object):
         q1 = self.dp.heavyq_mass + residual_mass(self.dp)
         q2 = self.dp.heavyq_mass + residual_mass(self.dp)
 
-        if renorm:
+        if renorm or div:
             m = self.dp.heavyq_mass + residual_mass(self.dp)
             Q = ((1 + m**2)/(1 - m**2))**2
             W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
