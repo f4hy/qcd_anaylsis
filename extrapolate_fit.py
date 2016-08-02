@@ -11,7 +11,14 @@ def main(options):
 
     functionmap = {
         "fdsqrtm_chiral_dmss_HQET": extrpolate_fdsqrtm,
-        "fdssqrtms_chiral_dmss_HQET": extrpolate_fdssqrtms
+        "fdsqrtm_HQET_matched_nom2": extrpolate_fdsqrtm,
+        "fdssqrtms_chiral_dmss_HQET": extrpolate_fdssqrtms,
+        "fdsqrtm_HQET_matched": extrpolate_fdsqrtm,
+        "fdsqrtm_HQET_matched_alphas": extrpolate_fdsqrtm,
+        "fdssqrtms_HQET_matched_nom2": extrpolate_fdssqrtms,
+        "fdssqrtms_HQET_matched_nom2_alphas": extrpolate_fdssqrtms,
+        "fdssqrtms_HQET_matched_alphas": extrpolate_fdssqrtms,
+        "fdssqrtms_HQET_matched": extrpolate_fdssqrtms
     }
 
     with open(options.file) as f:
@@ -19,8 +26,6 @@ def main(options):
         comment = f.readline().strip("#\n ")
         comments = comment.split(",")
         model, names = comments[0], comments[1:]
-        print functionmap
-        print functionmap[model]
         results = defaultdict(list)
         for b, strap in enumerate(f):
             values = dict(zip(names, map(float, strap.split(","))))
@@ -44,7 +49,7 @@ def extrpolate_fdsqrtm(values, point):
     C1 = values["C1"]
     C2 = values["C2"]
     Fsqrtm_inf = values["Fsqrtm_inf"]
-    inv_md = 1000.0 / point
+    inv_md = 1.0 / point
     logging.debug("inv Md {}".format(inv_md))
     Fsqrtm = (Fsqrtm_inf * (1.0 + C1 * inv_md + C2 * (inv_md**2.0)))
     f = Fsqrtm / np.sqrt(point)
@@ -58,7 +63,7 @@ def extrpolate_fdssqrtms(values, point):
     C1 = values["C1"]
     C2 = values["C2"]
     Fssqrtms_inf = values["Fssqrtms_inf"]
-    inv_mds = 1000.0 / point
+    inv_mds = 1.0 / point
     logging.debug("inv Mds {}".format(inv_mds))
     Fssqrtms = (Fssqrtms_inf * (1.0 + C1 * inv_mds + C2 * (inv_mds**2.0))) # / np.sqrt(point)
     f = Fssqrtms / np.sqrt(point)
