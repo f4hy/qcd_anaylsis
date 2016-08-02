@@ -164,7 +164,7 @@ def plot_decay_constant(options):
             #continue
 
         if options.mhcut and p.heavyq_mass > options.mhcut:
-            alpha = 0.01
+            alpha = 0.2
 
         plotsettings = dict(linestyle="none", c=color, marker=mark,
                             label=label, ms=15, elinewidth=4,
@@ -229,12 +229,27 @@ def plot_decay_constant(options):
         py = float(options.addpoint[2])
         physplot = axe.errorbar(px, py, yerr=0, marker="x",
                                 ecolor="k", color="k", label=options.addpoint[0],
-                                ms=15, elinewidth=3, capsize=1,
+                                ms=15, elinewidth=3, capsize=8,
                                 capthick=2, mec='k', mew=3, mfc='k',
                                 zorder=100)
         symbol = mpl.lines.Line2D([], [], color="k", mec="k", marker="x", markersize=15, mew=3,
                                   linestyle="None", label=options.addpoint[0], mfc="k")
         legend_handles.append(symbol)
+
+    if options.adderrpoint:
+        logging.info("adding point {}".format(options.adderrpoint))
+        px = float(options.adderrpoint[1])
+        py = float(options.adderrpoint[2])
+        pyerr = float(options.adderrpoint[3])
+        physplot = axe.errorbar(px, py, yerr=pyerr, marker="",
+                                ecolor="k", color="k", label=options.adderrpoint[0],
+                                ms=15, elinewidth=3, capsize=8,
+                                capthick=2, mec='k', mew=3, mfc='k',
+                                zorder=100)
+        symbol = mpl.lines.Line2D([], [], color="k", mec="k", marker="x", markersize=15, mew=3,
+                                  linestyle="None", label=options.adderrpoint[0], mfc="k")
+        legend_handles.append(symbol)
+
 
     if options.addpoints:
         logging.info("adding points from {}".format(options.addpoints))
@@ -316,7 +331,7 @@ def plot_decay_constant(options):
 
     if not options.box:
         leg = axe.legend(handles=sorted(legend_handles, key=legsort), loc=options.legendloc,
-                         fontsize=30, numpoints=1)
+                         fontsize=40, numpoints=1)
     if(options.output_stub):
         summaryfilename = options.output_stub + ".txt"
         logging.info("Writting summary to {}".format(summaryfilename))
@@ -373,6 +388,8 @@ if __name__ == "__main__":
     parser.add_argument("-x", "--xrange", type=float, required=False, nargs=2,
                         help="set the xrange of the plot", default=None)
     parser.add_argument("--addpoint", required=False, nargs=3, metavar=("LABEL", "X", "Y"),
+                        help="Add a point", default=None)
+    parser.add_argument("--adderrpoint", required=False, nargs=4, metavar=("LABEL", "X", "Y", "err"),
                         help="Add a point", default=None)
     parser.add_argument("--addpoints", required=False , type=str,
                         help="Add points from file", default=None)
