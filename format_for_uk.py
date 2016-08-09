@@ -63,7 +63,7 @@ def format_for_uk(fname, function, fpath, options):
                          "atempting to create".format(outdir))
             if outdir is not "":
                 os.makedirs(outdir)
-        print data
+        #print data
         print data.mean()
         print data.std()
         logging.info("writeing to {}".format(outpath))
@@ -105,15 +105,20 @@ if __name__ == "__main__":
 
     obs = {}
     obs["mpi"] = ("pion_mass" , "simul_fixed_fit_uncorrelated_ud-ud/simul_fit_uncorrelated_ll_ud-ud_0_1-1_1_PP.boot")
+    obs["mK"] = ("kaon_mass" , "simul_fixed_fit_uncorrelated_ud-ud/simul_fit_uncorrelated_ll_ud-ud_0_1-1_1_PP.boot")
     obs["mD0"] = ("D_mass", "simul_fixed_fit_uncorrelated_heavy-ud/simul_fit_uncorrelated_m0_heavy-ud_0_1-1_1_PP.boot")
-    obs["fD0"] = ("fD", "simul_fixed_fit_uncorrelated_heavy-ud/simul_fit_uncorrelated_m0_heavy-ud_0_1-1_1_PP.boot")
+    obs["mDs0"] = ("Ds_mass", "simul_fixed_fit_uncorrelated_heavy-ud/simul_fit_uncorrelated_m0_heavy-ud_0_1-1_1_PP.boot")
+    obs["fD0"] = ("fDA", "simul_fixed_fit_uncorrelated_heavy-ud/simul_fit_uncorrelated_m0_heavy-ud_0_1-1_1_PP.boot")
 
     obs["mD1"] = ("D_mass", "simul_fixed_fit_uncorrelated_heavy-ud/simul_fit_uncorrelated_m1_heavy-ud_0_1-1_1_PP.boot")
-    obs["fD1"] = ("fD", "simul_fixed_fit_uncorrelated_heavy-ud/simul_fit_uncorrelated_m1_heavy-ud_0_1-1_1_PP.boot")
+    obs["mDs1"] = ("Ds_mass", "simul_fixed_fit_uncorrelated_heavy-ud/simul_fit_uncorrelated_m1_heavy-ud_0_1-1_1_PP.boot")
+    obs["fD1"] = ("fDA", "simul_fixed_fit_uncorrelated_heavy-ud/simul_fit_uncorrelated_m1_heavy-ud_0_1-1_1_PP.boot")
 
     obs["mD2"] = ("D_mass", "simul_fixed_fit_uncorrelated_heavy-ud/simul_fit_uncorrelated_m2_heavy-ud_0_1-1_1_PP.boot")
-    obs["fD2"] = ("fD", "simul_fixed_fit_uncorrelated_heavy-ud/simul_fit_uncorrelated_m2_heavy-ud_0_1-1_1_PP.boot")
+    obs["mDs2"] = ("Ds_mass", "simul_fixed_fit_uncorrelated_heavy-ud/simul_fit_uncorrelated_m2_heavy-ud_0_1-1_1_PP.boot")
+    obs["fD2"] = ("fDA", "simul_fixed_fit_uncorrelated_heavy-ud/simul_fit_uncorrelated_m2_heavy-ud_0_1-1_1_PP.boot")
 
+    obs["metac"] = ("HH_mass", "simul_fixed_fit_uncorrelated_heavy-ud/simul_fit_uncorrelated_m0_heavy-ud_0_1-1_1_PP.boot")
 
     for fname, d in obs.iteritems():
         fun, files = d
