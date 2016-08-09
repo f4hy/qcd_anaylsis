@@ -184,6 +184,7 @@ class data_params(object):
             self.heavymass_next = self.heavymass[0] + str(int(self.heavymass[1])+1)
         else:
             self.heavymass = None
+            self.heavymass_next = None
 
         self.heavyq_mass = get_heavyq_mass(self.beta, self.heavymass)
         self.heavyq_mass_next = get_heavyq_mass(self.beta, self.heavymass_next)
