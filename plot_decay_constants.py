@@ -30,6 +30,7 @@ from itertools import cycle
 
 from plot_helpers import add_mc_lines
 from plot_helpers import add_vert_lines
+from plot_uk_data import add_uk_plot_data
 
 def round5(x):
     return int(5 * np.around(x/5.0))
@@ -210,6 +211,11 @@ def plot_decay_constant(options):
                 physxplot = axe.axvline(scale[i], color=auto_key((i, None, None), check=False)[0], ls="--", lw=2, label=i)
 
 
+    if options.add_uk_data:
+        logging.info("adding ukdata {}".format(options.add_uk_data))
+        handles = add_uk_plot_data(axe, options.add_uk_data[0] , options.add_uk_data[1])
+        legend_handles.extend(handles)
+
     add_mc_lines(axe, options, auto_key)
     add_vert_lines(axe, options)
 
@@ -387,6 +393,8 @@ if __name__ == "__main__":
                         help="set the yrange of the plot", default=None)
     parser.add_argument("-x", "--xrange", type=float, required=False, nargs=2,
                         help="set the xrange of the plot", default=None)
+    parser.add_argument("-uk","--add_uk_data", required=False, nargs=2, metavar=("Xdata", "Ydata"),
+                        help="Add ukdata points", default=None)
     parser.add_argument("--addpoint", required=False, nargs=3, metavar=("LABEL", "X", "Y"),
                         help="Add a point", default=None)
     parser.add_argument("--adderrpoint", required=False, nargs=4, metavar=("LABEL", "X", "Y", "err"),
