@@ -110,7 +110,13 @@ class ensemble_data(object):
         if wild is None:
             wild = self.fit_file_wildcard
 
-        mass_file = self.narrow_wildcard(wild, flavor=flavor, operator=op, nextheavy=nextheavy)
+        try:
+            mass_file = self.narrow_wildcard(wild, flavor=flavor, operator=op, nextheavy=nextheavy)
+        except MissingData as e:
+            if nextheavy:
+                return np.full(self.bootstraps, np.NaN)
+            else:
+                raise e
 
         with open(mass_file) as fitfile:
             df = pd.read_csv(fitfile, comment='#', names=["config", "mass", "amp1", "amp2"])
@@ -121,7 +127,13 @@ class ensemble_data(object):
         if wild is None:
             wild = self.fit_file_wildcard
 
-        amp_file = self.narrow_wildcard(wild, flavor=flavor, operator=op, nextheavy=nextheavy)
+        try:
+            amp_file = self.narrow_wildcard(wild, flavor=flavor, operator=op, nextheavy=nextheavy)
+        except MissingData as e:
+            if nextheavy:
+                return np.full(self.bootstraps, np.NaN), np.full(self.bootstraps, np.NaN)
+            else:
+                raise e
 
         with open(amp_file) as fitfile:
             df = pd.read_csv(fitfile, comment='#', names=["config", "mass", "amp1", "amp2"])
@@ -413,6 +425,12 @@ class ensemble_data(object):
 
         return data
 
+    def fDs_ratio_new(self, scaled=False, renorm=False, div=False, matched=False):
+        top = self.fDs(scaled=False, renorm=False, div=False, matched=False, nextheavy=True)
+        bottom = self.fDs(scaled=False, renorm=False, div=False, matched=False)
+
+        data = top / bottom
+        return data
 
     def fDs_ratio(self, scaled=False, renorm=False, div=False, matched=False):
         try:
@@ -503,21 +521,24 @@ class ensemble_data(object):
 
         return data
 
-    def fDs(self, scaled=False, renorm=False, div=False, matched=False):
+    def fDs(self, scaled=False, renorm=False, div=False, matched=False, nextheavy=False):
         if div:
             divwild = "SymDW_sHtTanh_b2.0_smr3_*/simul_?????_div_fit_{0}_*/*.boot".format(FITTYPE)
-            amp1data, amp2data = self.get_amps("heavy-s", wild=divwild)
-            massdata = self.get_mass("heavy-s", wild=divwild)
+            amp1data, amp2data = self.get_amps("heavy-s", wild=divwild, nextheavy=nextheavy)
+            massdata = self.get_mass("heavy-s", wild=divwild, nextheavy=nextheavy)
         else:
-            amp1data, amp2data = self.get_amps("heavy-s")
-            massdata = self.get_mass("heavy-s")
+            amp1data, amp2data = self.get_amps("heavy-s", nextheavy=nextheavy)
+            massdata = self.get_mass("heavy-s", nextheavy=nextheavy)
 
         ampfactor = self.dp.volume
-        q1 = self.dp.heavyq_mass + residual_mass(self.dp)
+        hqmass = self.dp.heavyq_mass
+        if nextheavy:
+            hqmass = self.dp.heavyq_mass_next
+        q1 = hqmass + residual_mass(self.dp)
         q2 = self.dp.s_mass + residual_mass(self.dp)
 
         if renorm or div:
-            m = self.dp.heavyq_mass + residual_mass(self.dp)
+            m = hqmass + residual_mass(self.dp)
             Q = ((1 + m**2)/(1 - m**2))**2
             W0 = (1 + Q)/2 - np.sqrt(3*Q + Q**2)/2
             T = 1 - W0
@@ -530,7 +551,7 @@ class ensemble_data(object):
             data = scale[self.dp.beta] * data
 
         if matched:
-            mq1 = self.scale * self.dp.heavyq_mass / Zs[self.dp.beta]
+            mq1 = self.scale * hqmass / Zs[self.dp.beta]
             C1 = get_Cmu_mbar(mq1)
             data = data / C1
 
