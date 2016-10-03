@@ -287,17 +287,22 @@ def plot_decay_constant(options):
         else:
             plt.ylim(auto_fit_range(ymin, ymax, buff=0.5))
 
-    if options.chiral_fit_file:
+    if options.legend_clear:
         del legend_handles[:]
+
+    if options.chiral_fit_file:
+        #del legend_handles[:]
         for i in options.chiral_fit_file:
             fit_lines = add_chiral_fit(axe, xran, i, options)
-            legend_handles.extend(fit_lines)
+            if options.legendfits:
+                legend_handles.extend(fit_lines)
 
     if options.boot_fit_file:
-        del legend_handles[:]
+        #del legend_handles[:]
         for i in options.boot_fit_file:
             chiral_line = add_boot_fit(axe, xran, i, options)
-            legend_handles.extend(chiral_line)
+            if options.legendfits:
+                legend_handles.extend(chiral_line)
 
 
     if options.xlabel:
@@ -334,11 +339,11 @@ def plot_decay_constant(options):
         return i.get_label()
 
 
-
-    if not options.box:
+    if not options.nolegend:
         leg = axe.legend(handles=sorted(legend_handles, key=legsort), loc=options.legendloc,
                          fontsize=40, numpoints=1)
     if(options.output_stub):
+        options.output_stub = options.output_stub.replace(".", "_")
         summaryfilename = options.output_stub + ".txt"
         logging.info("Writting summary to {}".format(summaryfilename))
         with open(summaryfilename, 'w') as summaryfile:
@@ -403,6 +408,12 @@ if __name__ == "__main__":
                         help="Add points from file", default=None)
     parser.add_argument("--xaxis", required=False, choices=axis_choices,
                         help="what to set on the xaxis", default="mud")
+    parser.add_argument("--legend_clear", action="store_true", required=False,
+                        help="clear the legend of data points")
+    parser.add_argument("--legendfits", action="store_true", required=False,
+                        help="add fits to legend")
+    parser.add_argument("--nolegend", action="store_true", required=False,
+                        help="do not draw the legend")
     parser.add_argument("--legendloc", type=int, required=False, default=0,
                         help="location of legend")
     parser.add_argument("--legend_mode", required=False, choices=legend_choices,
