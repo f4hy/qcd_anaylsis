@@ -1152,4 +1152,32 @@ def get_data(ed, data_type, options):
         err = 0
         return data, err, "$x=B(m_q + m_q)/(4 \pi F)^2 $", {"", 0}
 
+    if data_type == "fDs_ratio":
+        fdata_ratio = ed.fDs_ratio(scaled=False)
+
+        data = fdata_ratio
+
+        label = "$  \\frac{{f}_{h^{+1}s} }{ {f}_{hs} }$"
+        return np.mean(data), np.std(data), label, {"HQL": 1.0}
+
+    if data_type == "fDs_ratio_new":
+        fdata_ratio = ed.fDs_ratio_new(scaled=False)
+
+        data = fdata_ratio
+
+        label = "$ NEW \\frac{{f}_{h^{+1}s} }{ {f}_{hs} }$"
+        return np.mean(data), np.std(data), label, {"HQL": 1.0}
+
+    if data_type == "fDs_ratio_new2":
+        bot = ed.fDs(scaled=False)
+        top = ed.fDs(scaled=False, nextheavy=True)
+
+        data = top/bot
+
+        label = "$ NEW2 \\frac{{f}_{h^{+1}s} }{ {f}_{hs} }$"
+        return np.mean(data), np.std(data), label, {"HQL": 1.0}
+
+
+
+
     raise RuntimeError("{} not supported as a data type yet".format(data_type))
