@@ -199,23 +199,17 @@ class data_params(ensemble_params):
 
 class bootstrap_data(object):
 
-    def __init__(self, filename):
+    def __init__(self, d, values=None):
 
-        self.filename = filename
-        self.dp = data_params(filename)
-        self.values = self.read_data(filename)
-        # self.mass = self.values.mass
-        # self.amp1 = self.values.amp1
-        # self.amp2 = self.values.amp2
-
-    def __init__(self, dp, values):
-
-        self.filename = dp.filename
-        self.dp = dp
-        self.values = values
-        # self.mass = self.values.mass
-        # self.amp1 = self.values.amp1
-        # self.amp2 = self.values.amp2
+        if values is None:
+            filename = d
+            self.filename = filename
+            self.dp = data_params(filename)
+            self.values = self.read_data(filename)
+        else:
+            self.filename = dp.filename
+            self.dp = dp
+            self.values = values
 
 
     def __getattr__(self, attr):
