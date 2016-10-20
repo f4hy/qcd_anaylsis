@@ -78,7 +78,7 @@ def interpolate_ensemble_pair(ensemble_base, pairs, target, fittype="uncorrelate
 
     with open(output_filename, 'wb') as pdata:
         logging.info("Pickling ensembledata to {}".format(output_filename))
-        pickle.dump(new_data, pdata)
+        pickle.dump(new_data, pdata, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def interpolate_pickle(fittype="uncorrelated"):

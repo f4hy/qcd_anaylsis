@@ -41,7 +41,7 @@ def pickle_ensemble(ensemble, fittype="uncorrelated"):
     output_filename = "{}/{}.pickle".format(ensemble,fittype)
     with open(output_filename, 'wb') as pdata:
         logging.info("Pickling ensembledata to {}".format(output_filename))
-        pickle.dump(data, pdata)
+        pickle.dump(data, pdata, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def rebuild_pickled_db(fittype="uncorrelated"):
