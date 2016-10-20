@@ -109,7 +109,7 @@ class ensemble_data(object):
             return self.data[selected[0]]
         if len(selected) == 0:
             logging.error("No data found for selection!")
-
+            raise MissingData()
         else:
             logging.error("selected more than one data value")
             return {k: self.data[k] for k in selected}

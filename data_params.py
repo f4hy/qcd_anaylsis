@@ -81,7 +81,7 @@ class ensemble_params(object):
 
         self.filename = filename
 
-
+        self.ename = None
         for i in ensemble_names.keys():
             if i in filename:
                 self.ename = ensemble_names[i]
@@ -101,6 +101,12 @@ class ensemble_params(object):
         self.beta = re.search("_b(4\.[0-9]*)_", filename).group(1)
 
         self.latspacing = hbar_c/scale[self.beta]
+
+        self.scale = scale[self.beta]
+
+        if self.ename is None:
+            self.ename = "Ib{}u{}s{}".format(self.beta, self.ud_mass, self.s_mass)
+
 
         try:
             self.latsize = re.search("_([0-9]*x[0-9]*x[0-9]*)_", filename).group(1)
@@ -198,9 +204,30 @@ class bootstrap_data(object):
         self.filename = filename
         self.dp = data_params(filename)
         self.values = self.read_data(filename)
-        self.mass = self.values.mass
-        self.amp1 = self.values.amp1
-        self.amp2 = self.values.amp2
+        # self.mass = self.values.mass
+        # self.amp1 = self.values.amp1
+        # self.amp2 = self.values.amp2
+
+    def __init__(self, dp, values):
+
+        self.filename = dp.filename
+        self.dp = dp
+        self.values = values
+        # self.mass = self.values.mass
+        # self.amp1 = self.values.amp1
+        # self.amp2 = self.values.amp2
+
+
+    def __getattr__(self, attr):
+        if attr == "mass":
+            return self.values.mass
+        if attr == "amp1":
+            return self.values.amp1
+        if attr == "amp2":
+            return self.values.amp2
+        else:
+            raise AttributeError("%r object has no attribute %r" %
+                                  (self.__class__, attr))
 
     def read_data(self, filename):
         with open(filename) as fitfile:

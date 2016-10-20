@@ -62,7 +62,9 @@ def test():
             if "__" in k:
                 print "double _ in key"
                 exit(-1)
-        print data.keys()
+        #print data.keys()
+        for k in data.keys()[0:5]:
+            print d, data[k].filename
 
 if __name__ == "__main__":
 
@@ -84,4 +86,4 @@ if __name__ == "__main__":
 
 
     rebuild_pickled_db(args.fittype)
-    test()
+    #test()

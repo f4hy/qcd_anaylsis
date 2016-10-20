@@ -9,9 +9,50 @@ from residualmasses import residual_mass
 import glob
 from alpha_s import get_Cmu_mbar
 
+
+
 #FITTYPE="singlecorrelated"
 FITTYPE="uncorrelated"
 #FITTYPE="fullcorrelated"
+
+scale = {"4.17": 2492, "4.35": 3660, "4.47": 4600}
+scale = {"4.17": 2473, "4.35": 3618, "4.47": 4600}
+scale = {"4.17": 2453.1, "4.35": 3609.7, "4.47": 4496.1}
+
+# Zv(=Za)<MSbar>
+# beta4.17: Zv = 0.9517(58)(10)(33)
+# beta4.35: Zv = 0.9562(42)(8)(20)
+# beta4.47: Zv = 0.9624(33)(7)(20)
+Zv = {"4.17": 0.9517, "4.35": 0.9562, "4.47": 0.9624}
+
+# Zs(=Zp):<MSbar, 2GeV>
+# beta4.17: Zs = 1.024(15)(84)(6)
+# beta4.35: Zs = 0.922(11)(45)(5)
+# beta4.47: Zs = 0.880(7)(38)(4)
+Zs = {"4.17": 1.024, "4.35": 0.922, "4.47": 0.880}
+
+# # Zs(=Zp):<RGI>  = Zs:<MSbar, 2GeV>*0.75
+# Zs = {"4.17": 1.024*0.75, "4.35": 0.922*0.75, "4.47": 0.880*0.75}
+
+
+
+ensemble_names = {}
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.0035_ms0.0400"] = "KC0"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.007_ms0.030"] = "KC1"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.007_ms0.040"] = "KC2"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.012_ms0.030"] = "KC3"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.012_ms0.040"] = "KC4"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.019_ms0.030"] = "KC5"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.019_ms0.040"] = "KC6"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_48x96x12_b4.17_M1.00_mud0.0035_ms0.040"] = "KC7"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_48x96x08_b4.35_M1.00_mud0.0042_ms0.0180"] = "KM0"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_48x96x08_b4.35_M1.00_mud0.0042_ms0.0250"] = "KM1"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_48x96x08_b4.35_M1.00_mud0.0080_ms0.0180"] = "KM2"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_48x96x08_b4.35_M1.00_mud0.0080_ms0.0250"] = "KM3"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_48x96x08_b4.35_M1.00_mud0.0120_ms0.0180"] = "KM4"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_48x96x08_b4.35_M1.00_mud0.0120_ms0.0250"] = "KM5"
+ensemble_names["SymDW_sHtTanh_b2.0_smr3_64x128x08_b4.47_M1.00_mud0.0030_ms0.0150"] = "Kf0"
+
 
 class MissingData(RuntimeError):
     pass
@@ -23,67 +64,72 @@ class NoStrangeInterp(MissingData):
 
 class ensemble_data(object):
 
-    def __init__(self, ensamble_info,
+    def __init__(self, ensemble,
                  fit_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/simul_?????_fit_{0}_*/*.boot".format(FITTYPE),
+                 smearing="0_1-1_1",
                  interpstrange=False):
 
-        self.dp = ensamble_info
+        default_file = ensemble + "/simul_fixed_fit_uncorrelated_ud-ud/simul_fit_uncorrelated_ll_ud-ud_0_1-1_1_PP.boot"
 
-        self.bootstraps = self.dp.bootstraps
 
-        self.scale = scale[self.dp.beta]
+        self.ep = ensemble_params(default_file)
 
-        self.fit_file_wildcard = fit_file_wildcard
+        self.pion_dp = data_params(default_file) # load the deafult pion as a reference
+
+
+        fwild = "SymDW_sHtTanh_b2.0_smr3_*/*fit_uncorrelated_*/*.boot"
+        # "SymDW_*/fit_{0}_heavy-heavy/fit_{0}_*_heavy-heavy_0_0_PP.boot".format(FITTYPE)
+
+        self.bootstraps = self.pion_dp.bootstraps
+
+        self.default_smearing=smearing
+
+        self.scale = scale[self.ep.beta]
+
+        #self.fit_file_wildcard = fit_file_wildcard
+        self.fit_file_wildcard = fwild
 
         self.interpstrange = interpstrange
 
-    def narrow_wildcard(self, fit_file_wildcard, flavor=None, operator="PP", axial=False, nextheavy=False):
-        dp = self.dp
+    def narrow_wildcard(self, fit_file_wildcard, flavor=None, operator="PP", axial=False, heavy="m0"):
 
-        if flavor is None:
-            flavor_str = dp.flavor_string
-        else:
-            flavor_str = flavor
+        print flavor
 
-        smearing = dp.smearing
+        # if flavor is None:
+        #     flavor_str = dp.flavor_string
+        # else:
+        #     flavor_str = flavor
+        flavor_str = flavor
+
+        smearing = self.default_smearing
         if flavor == "xi":
             smearing = None
-
-        heavyness = dp.heavyness
-        if nextheavy:
-
-            logging.debug("base heavyness {}".format(heavyness))
-            heavyness = heavyness[0] + str(int(heavyness[1]) + 1)
-            logging.debug("new heavyness {}".format(heavyness))
-
-
-        if heavyness == "ll":
-            heavyness = None
-        if heavyness is not None:
-            heavyness = "_"+heavyness
-
         if flavor == "heavy-heavy":
             smearing = "0"
 
+        # heavyness = dp.heavyness
 
+        if "heavy" not in flavor:
+            heavy = None
 
+        ep = self.ep
         prefix = ""
         if self.interpstrange:
             prefix = "interpolated_strange/"
-            if dp.ud_mass < 0.0036 or dp.beta == "4.47":
+            if ep.ud_mass < 0.0036 or ep.beta == "4.47":
                 logging.warn("No strange interpolated data for {}".format(dp))
                 raise NoStrangeInterp("No strange interpolated data for {}".format(dp))
 
         fitdatafiles = glob.glob(prefix+fit_file_wildcard.strip("'\""))
 
         logging.debug(fitdatafiles)
-        search_params = [operator, flavor_str, dp.ud_mass, dp.s_mass, dp.latsize, dp.beta, smearing]
+        search_params = [operator, flavor_str, ep.ud_mass, ep.s_mass, ep.latsize, ep.beta, smearing, heavy]
 
-        if dp.heavyness != "ll":
-            if flavor is None:
-                search_params = [operator, flavor_str, dp.ud_mass, dp.s_mass, dp.latsize, dp.beta, smearing, heavyness]
-            elif "heavy" in flavor:
-                search_params = [operator, flavor_str, dp.ud_mass, dp.s_mass, dp.latsize, dp.beta, smearing, heavyness]
+        # if ep.heavyness != "ll":
+        #     if flavor is None:
+        #         search_params = [operator, flavor_str, ep.ud_mass, ep.s_mass, ep.latsize, ep.beta, smearing, heavy]
+        #     elif "heavy" in flavor:
+        #         search_params = [operator, flavor_str, ep.ud_mass, ep.s_mass, ep.latsize, ep.beta, smearing, heavy]
 
         if self.interpstrange:
             search_params[3] = "interpolated"
@@ -103,43 +149,39 @@ class ensemble_data(object):
             logging.error("found: {}".format(fitdatafiles))
             raise MissingData("Unique fit file not found!")
 
-        logging.debug("narrowed to file {}".format(fitdatafiles[0]))
-        return fitdatafiles[0]
+        foundfile = fitdatafiles[0]
+        logging.debug("narrowed to file {}".format(foundfile))
+        dp = data_params(foundfile)
+        logging.info("file dp {}".format(foundfile))
+        return (dp, foundfile)
 
-    def get_mass(self, flavor, wild=None, op="PP", nextheavy=False):
+    def get_mass(self, flavor, wild=None, op="PP"):
         if wild is None:
             wild = self.fit_file_wildcard
 
         try:
-            mass_file = self.narrow_wildcard(wild, flavor=flavor, operator=op, nextheavy=nextheavy)
+            dp, mass_file = self.narrow_wildcard(wild, flavor=flavor, operator=op)
         except MissingData as e:
-            if nextheavy:
-                return np.full(self.bootstraps, np.NaN)
-            else:
-                raise e
+            return np.full(self.bootstraps, np.NaN)
 
         with open(mass_file) as fitfile:
             df = pd.read_csv(fitfile, comment='#', names=["config", "mass", "amp1", "amp2"])
             assert(self.bootstraps == len(df))
-            return df.mass
+            return (dp, df.mass)
 
-    def get_amps(self, flavor, wild=None, op="PP", nextheavy=False):
+    def get_amps(self, flavor, wild=None, op="PP"):
         if wild is None:
             wild = self.fit_file_wildcard
 
         try:
-            amp_file = self.narrow_wildcard(wild, flavor=flavor, operator=op, nextheavy=nextheavy)
+            dp, amp_file = self.narrow_wildcard(wild, flavor=flavor, operator=op)
         except MissingData as e:
-            if nextheavy:
-                return np.full(self.bootstraps, np.NaN), np.full(self.bootstraps, np.NaN)
-            else:
-                raise e
+            return dp, np.full(self.bootstraps, np.NaN), np.full(self.bootstraps, np.NaN)
 
         with open(amp_file) as fitfile:
             df = pd.read_csv(fitfile, comment='#', names=["config", "mass", "amp1", "amp2"])
             assert(self.bootstraps == len(df))
-            return df.amp1, df.amp2
-
+            return dp, df.amp1, df.amp2
 
 
     def pion_mass(self, scaled=False):
@@ -626,14 +668,34 @@ def test():
     decay_file_wild = "SymDW_sHtTanh_b2.0_smr3_*/simul_fixed_fit_{0}_*/*.boot".format(FITTYPE)
 
     filename = "SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.007_ms0.030/simul_fixed_fit_{0}_ud-ud/simul_fit_{0}_ll_ud-ud_0_1-1_1_PP.boot".format(FITTYPE)
+    filename = "SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.007_ms0.030/simul_fixed_fit_{0}_heavy-ud/simul_fit_{0}_m0_heavy-ud_0_1-1_1_PP.boot".format(FITTYPE)
 
     dp = data_params(filename)
 
-    ed = ensemble_data(dp)
+    ed = ensemble_data("SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.007_ms0.030")
 
-    print ed.get_mass("ud-ud")
-    print ed.get_mass("ud-s")
-    print ed.kaon_mass()
+    print dp.smearing
+
+    print ensemble_params("SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.007_ms0.030")
+
+    pion_dp, pion_results =  ed.get_mass("ud-ud")
+    print pion_dp
+    print np.mean(pion_results)
+
+    bsd = bootstrap_data(filename)
+    print bsd.filename
+    print repr(bsd)
+    exit(-1)
+
+    print np.mean(ed.get_mass("ud-ud"))
+    print np.mean(ed.get_mass("ud-s"))
+    print np.mean(ed.kaon_mass())
+    print"dmss",  np.mean(ed.D_mass())
+
+    print np.mean(ed.get_amps("ud-ud"))
+
+    print np.mean(ed.fpi())
+    # print np.mean(ed.fD())
 
 if __name__ == "__main__":
 
