@@ -18,10 +18,10 @@ from residualmasses import residual_mass
 
 from plot_helpers import print_paren_error
 
-from ensamble_info import flavor_map, scale, data_params, determine_flavor, read_fit_mass
-from ensamble_info import all_same_beta, all_same_heavy, all_same_flavor
-from ensamble_info import phys_pion, phys_kaon, phys_mq, phys_Fpi
-from ensamble_info import Zs, Zv
+from data_params import flavor_map, scale, data_params, determine_flavor, read_fit_mass
+from data_params import all_same_beta, all_same_heavy, all_same_flavor
+from physical_values import phys_pion, phys_kaon, phys_mq, phys_Fpi
+from data_params import Zs, Zv
 
 from auto_key import auto_key
 

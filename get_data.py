@@ -2,13 +2,12 @@ import logging
 import argparse
 import os
 import numpy as np
-from ensamble_info import flavor_map, scale, data_params, determine_flavor, read_fit_mass
-from ensamble_info import all_same_beta, all_same_heavy, all_same_flavor
-from ensamble_info import phys_pion, phys_kaon, phys_mq, phys_Fpi, phys_FD, phys_FDs, phys_D, phys_Ds
-from ensamble_info import phys_FB, phys_FBs, phys_FBsbyFB, phys_MB, phys_MBs
-from ensamble_info import phys_eta, phys_etac, phys_etab, phys_FK, phys_mhq, phys_Jpsi, phys_Upsilon
-from ensamble_info import Zs, Zv
-from ensamble_info import unphys_etas
+from data_params import flavor_map, scale, data_params, determine_flavor, read_fit_mass
+from data_params import all_same_beta, all_same_heavy, all_same_flavor
+from physical_values import phys_pion, phys_kaon, phys_mq, phys_Fpi, phys_FD, phys_FDs, phys_D, phys_Ds
+from physical_values import phys_FB, phys_FBs, phys_FBsbyFB, phys_MB, phys_MBs
+from physical_values import phys_eta, phys_etac, phys_etab, phys_FK, phys_mhq, phys_Jpsi, phys_Upsilon, unphys_etas
+from data_params import Zs, Zv
 import matplotlib.pyplot as plt
 from residualmasses import residual_mass, residual_mass_errors
 

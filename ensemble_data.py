@@ -3,10 +3,10 @@ import logging
 import pandas as pd
 import re
 import numpy as np
-from ensamble_info import flavor_map, scale, data_params, determine_flavor, read_fit_mass
+from data_params import  data_params, ensemble_params, bootstrap_data
+
 from residualmasses import residual_mass
 import glob
-from ensamble_info import Zs, Zv
 from alpha_s import get_Cmu_mbar
 
 #FITTYPE="singlecorrelated"

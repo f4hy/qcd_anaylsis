@@ -6,9 +6,9 @@ from collections import defaultdict
 
 from alpha_s import get_Cmu_mbar
 
-from ensamble_info import phys_D, phys_Ds
-from ensamble_info import phys_MB, phys_MBs
-from ensamble_info import phys_mc_2gev, phys_mb_2gev
+from physical_values import phys_D, phys_Ds
+from physical_values import phys_MB, phys_MBs
+from physical_values import phys_mc_2gev, phys_mb_2gev
 
 mass = {"D": phys_D, "B": phys_MB, "Ds": phys_Ds, "Bs": phys_MBs}
 mq = {"D": phys_mc_2gev, "B": phys_mb_2gev, "Ds": phys_mc_2gev, "Bs": phys_mb_2gev}

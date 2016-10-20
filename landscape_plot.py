@@ -18,9 +18,9 @@ from residualmasses import residual_mass
 
 import plot_helpers
 
-from ensamble_info import flavor_map, scale, data_params, determine_flavor, read_fit_mass
-from ensamble_info import all_same_beta, all_same_heavy, all_same_flavor
-from ensamble_info import phys_pion, phys_kaon
+from data_params import flavor_map, scale, data_params, determine_flavor, read_fit_mass
+from data_params import all_same_beta, all_same_heavy, all_same_flavor
+from physical_values import phys_pion, phys_kaon
 from auto_key import auto_key
 
 

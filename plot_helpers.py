@@ -3,9 +3,9 @@ from scipy import stats
 import numpy as np
 import math
 
-from ensamble_info import phys_pion, phys_kaon, phys_mq, phys_Fpi, phys_FD, phys_FDs, phys_D, phys_Ds
-from ensamble_info import phys_eta, phys_etac, phys_FK, phys_mhq
-from ensamble_info import Zs, Zv
+from physical_values import phys_pion, phys_kaon, phys_mq, phys_Fpi, phys_FD, phys_FDs, phys_D, phys_Ds
+from physical_values import phys_eta, phys_etac, phys_FK, phys_mhq
+from data_params import Zs, Zv
 
 
 def error(x):

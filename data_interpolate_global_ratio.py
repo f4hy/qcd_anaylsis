@@ -9,9 +9,9 @@ from iminuit import Minuit
 
 from residualmasses import residual_mass, residual_mass_errors
 
-from ensamble_info import data_params, read_fit_mass, scale, phys_pion, phys_kaon, phys_Fpi
-from ensamble_info import Zs, Zv
-from ensamble_info import phys_pionplus
+from data_params import data_params, read_fit_mass, scale, phys_pion, phys_kaon, phys_Fpi
+from data_params import Zs, Zv
+from physical_values import phys_pionplus
 
 from ensemble_data import ensemble_data, MissingData
 

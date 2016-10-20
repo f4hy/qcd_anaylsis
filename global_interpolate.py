@@ -9,8 +9,8 @@ from iminuit import Minuit
 
 from residualmasses import residual_mass
 
-from ensamble_info import data_params, read_fit_mass, scale, phys_pion, phys_kaon
-from ensamble_info import Zs, Zv
+from data_params import data_params, read_fit_mass, scale, phys_pion, phys_kaon
+from data_params import Zs, Zv
 
 import inspect
 

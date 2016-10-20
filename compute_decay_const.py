@@ -8,9 +8,9 @@ import readinput
 import os
 
 from residualmasses import residual_mass
-from ensamble_info import  data_params
+from data_params import  data_params
 
-from ensamble_info import Zs, Zv
+from data_params import Zs, Zv
 
 
 def lines_without_comments(filename, comment="#"):

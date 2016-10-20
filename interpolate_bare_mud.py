@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 from scipy.optimize import leastsq
 import plot_helpers
 
-from ensamble_info import scale, data_params, read_fit_mass
-from ensamble_info import phys_pion, phys_kaon
+from data_params import scale, data_params, read_fit_mass
+from physical_values import phys_pion, phys_kaon
 
 colors = ['b', 'r', 'k', 'm', 'c', 'y', 'b', 'r', 'k', 'm', 'c', 'y']
 

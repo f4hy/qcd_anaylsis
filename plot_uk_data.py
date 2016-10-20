@@ -8,7 +8,7 @@ import logging
 import pandas as pd
 import re
 import numpy as np
-from ensamble_info import flavor_map, scale, data_params, determine_flavor, read_fit_mass
+from data_params import flavor_map, scale, data_params, determine_flavor, read_fit_mass
 from residualmasses import residual_mass
 import glob
 import os.path

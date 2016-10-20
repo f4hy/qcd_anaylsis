@@ -9,8 +9,8 @@ from iminuit import Minuit
 
 from residualmasses import residual_mass
 
-from ensamble_info import data_params, read_fit_mass
-from ensamble_info import phys_pion, phys_kaon
+from data_params import data_params, read_fit_mass
+from physical_values import phys_pion, phys_kaon
 
 colors = ['b', 'k', 'c', 'y', 'm', 'b']
 
