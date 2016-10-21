@@ -49,13 +49,21 @@ def get_data(ed, data_type, options):
         return plot_data(data.mean(), data.std(),
                          label, {"PDG": phys_pion})
 
-    if data_type == "asqr":
+    if data_type == "asqr_fm":
         data = ed.ep.latspacing**2
 
-        label = "$a$"
-        return plot_data(data, 0,
-                         label)
+        label = "$a^2$"
+        if ed.scale != 1.0:
+            label += " [fm^2]"
+        return plot_data(data, 0, label, {"Continuum": 0})
 
+    if data_type == "asqr":
+        data = 1/(ed.ep.scale**2)
+
+        label = "$a^2$"
+        if ed.scale != 1.0:
+            label += " [1/MeV^2]"
+        return plot_data(data, 0, label, {"Continuum": 0})
 
     if data_type == "mpisqr":
         pdata = ed.pion_mass()
