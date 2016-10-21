@@ -149,11 +149,8 @@ class data_params(ensemble_params):
                 logging.warn("No smearing found for file")
                 pass
 
-
         self.flavor_string = determine_flavor(filename)
         self.flavor = flavor_map[self.flavor_string]
-
-
 
         try:
             self.heavyness = re.search("_([a-z][a-z0-9])_", filename).group(1)
@@ -207,8 +204,8 @@ class bootstrap_data(object):
             self.dp = data_params(filename)
             self.values = self.read_data(filename)
         else:
-            self.filename = dp.filename
-            self.dp = dp
+            self.filename = d.filename
+            self.dp = d
             self.values = values
 
 
