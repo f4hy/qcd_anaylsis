@@ -161,9 +161,14 @@ def plot_ensemble_data(options):
             plotdata = [(x, ydata) for m, x in xdata.iteritems()]
         else:
             logging.info("many of both data types")
-            if set(xdata.keys()) == set(ydata.keys()):
-                logging.info("both lists match!")
-            exit(-1)
+            keys = set(xdata.keys()).intersection(ydata.keys())
+            print keys
+            plotdata = [(xdata[k], ydata[k]) for k in keys]
+            if len(keys) < 1:
+                logging.error("Data types have no matching keys")
+                print xdata
+                print ydata
+                exit(-1)
 
         print plot_data
         for x,y in plotdata:

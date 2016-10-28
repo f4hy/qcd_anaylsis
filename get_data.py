@@ -26,34 +26,6 @@ def get_data(ed, data_type, options):
 
 
 
-    if data_type == "index":
-        data = dataindex()
-        err = 0
-        label = "index"
-        return data, err, label, {"": 0}
-
-    if data_type == "fDsqrtmD":
-        fdata = ed.fD(scaled=options.scale)
-        mdata = ed.D_mass(scaled=options.scale)
-
-        data = fdata*np.sqrt(mdata)
-
-        label = "$f_{hl}\, \sqrt{m_{hl}}$"
-        if options.scale:
-            label += " [MeV^(3/2)]"
-        return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
-
-    if data_type == "fDsqrtmD_ratio":
-        fdata_ratio = ed.fD_ratio(scaled=options.scale)
-        mdata_ratio = ed.D_mass_ratio(scaled=options.scale)
-
-        data = fdata_ratio*np.sqrt(mdata_ratio)
-
-        label = "$\\frac{f_{h^{+1}l}\, \sqrt{m_{h^{+1}l}}}{f_{hl}\, \sqrt{m_{hl}}}$"
-        # if options.scale:
-        #     label += " [MeV^(3/2)]"
-        return data.mean(), data.std(), label, {"HQL": 1.0}
-
     if data_type == "fDssqrtmDs_ratio":
         fdata_ratio = ed.fDs_ratio(scaled=options.scale)
         mdata_ratio = ed.Ds_mass_ratio(scaled=options.scale)
@@ -1092,43 +1064,7 @@ def get_data(ed, data_type, options):
 
         return data.mean(), data.std(), label, {"PDG": phys_pion**2 / phys_mq}
 
-    if data_type == "mud":
-        data = ed.dp.ud_mass + residual_mass(ed.dp)
-        err = residual_mass_errors(ed.dp)
-        label = "$m_{ud}$"
-        if options.scale:
-            data = scale[ed.dp.beta]*data
-            label += " [MeV]"
-        return data, err, label, {"PDG": phys_mq}
 
-    if data_type == "mheavyq":
-        data = ed.dp.heavyq_mass / Zs[ed.dp.beta]
-        print ed.dp.latspacing
-        err = 0.0
-        label = "$m_{q_h}$"
-        if options.scale:
-            data = scale[ed.dp.beta]*data
-            label += " [MeV]"
-        return data, err, label, {"PDG": phys_mhq}
-
-    if data_type == "mheavyq_bare":
-        data = ed.dp.heavyq_mass
-        err = 0.0
-        label = "$m_{q_h}^{bare}$"
-        if options.scale:
-            data = scale[ed.dp.beta]*data
-            label += " [MeV]"
-        return data, err, label, {"PDG": phys_mhq}
-
-
-    if data_type == "1/mheavyq":
-        data = 1.0/(ed.dp.heavyq_mass / Zs[ed.dp.beta])
-        err = 0.0
-        label = "$1/\\bar{m}_{q_h}$"
-        if options.scale:
-            data = data / scale[ed.dp.beta]
-            label += " [1/MeV]"
-        return data, err, label, {"PDG": phys_mhq}
 
 
     if data_type == "xi":

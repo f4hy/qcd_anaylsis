@@ -127,6 +127,15 @@ class ensemble_params(object):
         self.Zv = Zv[self.beta]
         self.Zs = Zs[self.beta]
 
+        if self.beta == "4.17":
+            self.heavies = {"m0": 0.44037, "m1": 0.55046, "m2": 0.68808, "m3": 0.86001}
+
+        if self.beta == "4.35":
+            self.heavies = {"m0": 0.27287, "m1": 0.34109, "m2": 0.42636, "m3": 0.53295, "m4": 0.66619, "m5": 0.83273}
+
+        if self.beta == "4.47":
+            self.heavies = {"m0": 0.210476, "m1": 0.263095, "m2": 0.328869, "m3": 0.4110859, "m4": 0.5138574, "m5": 0.642}
+
     def __repr__(self):
         rstr = "{}_{}_{}_{}_{}".format(self.ename, self.beta, self.latsize, self.ud_mass, self.s_mass)
         return rstr
