@@ -79,7 +79,7 @@ class ensemble_params(object):
         self.filename = filename
 
         self.ename = None
-        for i in ensemble_names.keys():
+        for i in ensemble_names:
             if i in filename:
                 self.ename = ensemble_names[i]
 
@@ -95,11 +95,14 @@ class ensemble_params(object):
         except ValueError:
             logging.warning("Found strange mass to be {}".format(strange_mass))
             self.s_mass = strange_mass
-        self.beta = re.search("_b(4\.[0-9]*)_", filename).group(1)
-
+        self.beta = re.search("_b([0-9]\.[0-9][0-9])_", filename).group(1)
+        if self.beta == "0.00":
+            self.beta = "4.47"
         self.latspacing = hbar_c/scale[self.beta]
 
         self.scale = scale[self.beta]
+
+        self.a_gev = 1000.0/(self.scale)
 
         if self.ename is None:
             self.ename = "Ib{}u{}s{}".format(self.beta, self.ud_mass, self.s_mass)
