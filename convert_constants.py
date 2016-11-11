@@ -52,7 +52,7 @@ def convert_constants(chiral_fit_file, options):
 
 
     print values
-    # if "c3" in values.keys():
+    # if "c3" in values:
 
     #     print values["c3"] / phys_Fpi
     #     print (8*np.pi**2 * phys_Fpi**2) / (np.exp(values["c3"] / phys_Fpi))

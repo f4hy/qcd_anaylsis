@@ -160,8 +160,8 @@ class ensemble_data(object):
         for i in range(len(hl_data) - 1):
             num = "m{}".format(i + 1)
             dem = "m{}".format(i)
-            num_k = next(k for k in hl_data.keys() if num in k)
-            dem_k = next(k for k in hl_data.keys() if dem in k)
+            num_k = next(k for k in hl_data if num in k)
+            dem_k = next(k for k in hl_data if dem in k)
             num_m = hl_data[num_k].mass
             dem_m = hl_data[dem_k].mass
             if corrected:
@@ -177,8 +177,8 @@ class ensemble_data(object):
         for i in range(len(hs_data) - 1):
             num = "m{}".format(i + 1)
             dem = "m{}".format(i)
-            num_k = next(k for k in hs_data.keys() if num in k)
-            dem_k = next(k for k in hs_data.keys() if dem in k)
+            num_k = next(k for k in hs_data if num in k)
+            dem_k = next(k for k in hs_data if dem in k)
             num_m = hs_data[num_k].mass
             dem_m = hs_data[dem_k].mass
             if corrected:

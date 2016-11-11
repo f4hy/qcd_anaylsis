@@ -72,7 +72,7 @@ class filewriter:
             if args.offset_condition in fromfile:
                 shift += args.offset
 
-        if (fromfile,shift) not in self.data.keys():
+        if (fromfile,shift) not in self.data:
             self.data[(fromfile,shift)] = []
 
         time = int(line.strip().split()[0])
@@ -125,7 +125,7 @@ class filewriter:
         logging.info("writing data")
 
         for key,data in self.averaged_data.iteritems():
-            for i in range(max(data.keys())+1):
+            for i in range(max(data)+1):
                 ofile.write("{0}, {1:.16e}\n".format(i, data[i]))
 
 def split_data(args):

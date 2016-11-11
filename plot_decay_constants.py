@@ -183,12 +183,12 @@ def plot_decay_constant(options):
 
     if options.physical:
         logging.info("plotting physical {} {}".format(xphysical, yphysical))
-        matchingkeys = set(xphysical.keys()) & set(yphysical.keys())
+        matchingkeys = set(xphysical) & set(yphysical)
 
         if len(matchingkeys) > 1:
             physiter = [(k, xphysical[k], yphysical[k]) for k in matchingkeys ]
         else:
-            physiter = [(k, xp, yphysical[k]) for k in yphysical.keys() for xl, xp in xphysical.iteritems()]
+            physiter = [(k, xp, yphysical[k]) for k in yphysical for xl, xp in xphysical.iteritems()]
         for yl, xp, yp in physiter:
             pmark = phys_marks.next()
             physplot = axe.errorbar(xp, yp, yerr=0, marker=pmark,
@@ -204,10 +204,10 @@ def plot_decay_constant(options):
 
     if options.scalelines:
         if options.xdata.startswith("1/"):
-            for i in scale.keys():
+            for i in scale:
                 physxplot = axe.axvline(1.0/scale[i], color=auto_key((i, None, None), check=False)[0], ls="--", lw=2, label=i)
         else:
-            for i in scale.keys():
+            for i in scale:
                 physxplot = axe.axvline(scale[i], color=auto_key((i, None, None), check=False)[0], ls="--", lw=2, label=i)
 
 

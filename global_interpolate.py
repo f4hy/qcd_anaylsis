@@ -389,7 +389,7 @@ def write_data(fit_parameters, output_stub, suffix, model):
     with open(outfilename, "w") as ofile:
         ofile.write("#{} chisqr {}, dof {}, chisqr/dof {}\n".format(model, fit_parameters.fval, fit_parameters.errordef, fit_parameters.fval/fit_parameters.errordef))
 
-        for name in fit_parameters.values.keys():
+        for name in fit_parameters.values:
             ofile.write("{}, {} +/- {}\n".format(name, fit_parameters.values[name], fit_parameters.errors[name]))
 
 

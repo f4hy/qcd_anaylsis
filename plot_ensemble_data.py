@@ -139,11 +139,6 @@ def plot_ensemble_data(options):
 
     for es in options.ensembles:
 
-        # print es
-        # print es.ep
-        # for i in es.data.keys()[0:5]:
-        #     print es.data[i].filename
-        # exit(-1)
         try:
             ydata = get_data(es, options.ydata, options)
             xdata = get_data(es, options.xdata, options)
@@ -212,7 +207,7 @@ def plot_ensemble_data(options):
 
     if options.physical:
         logging.info("plotting physical {} {}".format(xphysical, yphysical))
-        matchingkeys = set(xphysical.keys()) & set(yphysical.keys())
+        matchingkeys = set(xphysical) & set(yphysical)
 
         if len(matchingkeys) > 1:
             physiter = [(k, xphysical[k], yphysical[k]) for k in matchingkeys ]

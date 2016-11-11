@@ -32,8 +32,6 @@ def add_uk_plot_data(axe, xdatatype, ydatatype, scaled=True):
 
     scale = 1
 
-    print xdata.keys()
-    print ydata.keys()
     for xlabel,xd in xdata.iteritems():
         # if scaled:
         #     xd = xd * scales[xlabel.split("_")[0]]*1000

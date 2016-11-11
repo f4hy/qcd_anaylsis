@@ -141,7 +141,7 @@ def write_data(fit_parameters, output_stub, suffix, model):
                                                                     fit_parameters.errordef,
                                                                     chisqrbydof))
 
-        for name in fit_parameters.values.keys():
+        for name in fit_parameters.values:
             ofile.write("{}, {} +/- {}\n".format(name, fit_parameters.values[name],
                                                  fit_parameters.errors[name]))
 
@@ -158,7 +158,7 @@ def write_bootstrap_data(fit_parameters, boot_fval, output_stub, suffix, model):
         chisqrbydof = fval / dof
         ofile.write("#{} chisqr {}, dof {}, chisqr/dof {}\n".format(model, fval, dof, chisqrbydof))
 
-        for name in fit_parameters[0].values.keys():
+        for name in fit_parameters[0].values:
             values = [b.values[name] for b in fit_parameters.values()]
             value = np.mean(values)
             error = np.std(values)

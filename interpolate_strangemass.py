@@ -191,7 +191,7 @@ def interpolate_strangemass(options):
 
         plot_fitline(data, fitline, "$m_s={}$".format(strangeness))
 
-    y1, y2 = (fitted_s[i] for i in sorted(fitted_s.keys()))
+    y1, y2 = (fitted_s[i] for i in sorted(fitted_s))
     weight = (physical_s - y2) / (y1-y2)
     weights = (weight, 1-weight)
 

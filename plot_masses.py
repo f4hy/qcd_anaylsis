@@ -98,7 +98,7 @@ def colors_and_legend(data_properties, legend_mode="beta"):
 
     p = data_properties
 
-    if p.s_mass not in s_mass_marks.keys():
+    if p.s_mass not in s_mass_marks:
         s_mass_marks[p.s_mass] = markers.pop()
         mark = s_mass_marks[p.s_mass]
         smass_leg = mlines.Line2D([], [], color='black', marker=s_mass_marks[p.s_mass], mfc='white', mew=3, lw=0,

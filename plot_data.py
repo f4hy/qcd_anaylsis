@@ -58,15 +58,13 @@ def get_data(ed, data_type, options):
     for m in modules_with_plot_fucntions:
         function_map.update(dict(inspect.getmembers(sys.modules[m], inspect.isfunction)))
 
-    print sorted(function_map.keys())
-
     def dataindex():
         num = 0
         while num < 100:
             yield num
             num += 1
 
-    if data_type in function_map.keys():
+    if data_type in function_map:
         result = function_map[data_type](ed, options)
         # result will either be tuple and we make it a plot_data
         # or a dictionary where we make each element a plot_data

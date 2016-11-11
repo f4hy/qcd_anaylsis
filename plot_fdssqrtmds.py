@@ -37,8 +37,8 @@ def fhssqrtmhs(ed, options):
     mdata = ed.get_mass("heavy-s")
 
     data = {}
-    for m in fdata.keys():
-        mkey = [k for k in mdata.keys() if m in k][0]
+    for m in fdata:
+        mkey = [k for k in mdata if m in k][0]
         data[m] = fdata[m]*np.sqrt(mdata[mkey])
 
     label = "$f_{hs}\, \sqrt{m_{hs}}$"
@@ -53,16 +53,14 @@ def fhssqrtmhs(ed, options):
 def fDssqrtmDs_ratio(ed, options):
     fdata = ed.fhs()
     mdata = ed.get_mass("heavy-s")
-    print fdata.keys()
-    print mdata.keys()
 
     data = {}
-    for m in fdata.keys():
-        mkey = [k for k in mdata.keys() if m in k][0]
+    for m in fdata:
+        mkey = [k for k in mdata if m in k][0]
         data[m] = fdata[m]*np.sqrt(mdata[mkey])
 
     ratiodata = {}
-    for i in range(1, len(fdata.keys())):
+    for i in range(1, len(fdata)):
         m = "m{}".format(i)
         mm = "m{}".format(i-1)
         ratiodata[m] = data[m] / data[mm]

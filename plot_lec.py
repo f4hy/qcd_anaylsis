@@ -70,17 +70,17 @@ def plot_constants(axe, chiral_fit_file, options):
 
 
     print values
-    # if "c3" in values.keys():
+    # if "c3" in values:
 
     #     print values["c3"] / phys_Fpi
     #     print (8*np.pi**2 * phys_Fpi**2) / (np.exp(values["c3"] / phys_Fpi))
     #     print "LAMBDA3",  np.sqrt((8*np.pi**2 * phys_Fpi**2) / (np.exp(values["c3"] / phys_Fpi)))
 
-    if "F_0" in values.keys():
+    if "F_0" in values:
         F_0 = values["F_0"]/np.sqrt(2)
         F_0_err = errors["F_0"]/np.sqrt(2)
 
-    if "c3" in values.keys():
+    if "c3" in values:
 
         B = values["B"]
 
@@ -102,7 +102,7 @@ def plot_constants(axe, chiral_fit_file, options):
         logging.info("l3: {}, {}%\n".format(l3string, l3percent ))
 
 
-    if "c4" in values.keys():
+    if "c4" in values:
 
         f = values["F_0"]
 
@@ -124,7 +124,7 @@ def plot_constants(axe, chiral_fit_file, options):
         logging.info("l4: {}, {}%\n".format(l4string, l4percent ))
 
 
-    if "Lambda4" in values.keys():
+    if "Lambda4" in values:
 
         LAMBDA4, LAMBDA4_err = values["Lambda4"], errors["Lambda4"]
         c4 = phys_Fpi * np.log((8*np.pi**2 * phys_Fpi**2)/(values["Lambda4"]**2))
@@ -144,7 +144,7 @@ def plot_constants(axe, chiral_fit_file, options):
         logging.info("c4: {}, {}%".format(c4string, c4percent ))
         logging.info("l4: {}, {}%\n".format(l4string, l4percent ))
 
-    if "Lambda3" in values.keys():
+    if "Lambda3" in values:
 
         B = values["B"]
 
@@ -166,7 +166,7 @@ def plot_constants(axe, chiral_fit_file, options):
         logging.info("c3: {}, {}%".format(c3string, c3percent ))
         logging.info("l3: {}, {}%\n".format(l3string, l3percent ))
 
-    if "B" in values.keys():
+    if "B" in values:
 
         B, B_err = values["B"], errors["B"]
         SIGMA = (B*phys_Fpi**2)/2.0

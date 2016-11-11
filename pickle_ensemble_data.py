@@ -64,7 +64,6 @@ def test():
             if "__" in k:
                 print "double _ in key"
                 exit(-1)
-        #print data.keys()
         for k in data.keys()[0:5]:
             print d, data[k].filename
 

@@ -88,16 +88,14 @@ def fDsqrtmD_m5(ed, options):
 def fDsqrtmD_ratio(ed, options):
     fdata = ed.fhl()
     mdata = ed.get_mass("heavy-ud")
-    print fdata.keys()
-    print mdata.keys()
 
     data = {}
-    for m in fdata.keys():
-        mkey = [k for k in mdata.keys() if m in k][0]
+    for m in fdata:
+        mkey = next(k for k in mdata if m in k)
         data[m] = fdata[m]*np.sqrt(mdata[mkey])
 
     ratiodata = {}
-    for i in range(1, len(fdata.keys())):
+    for i in range(1, len(fdata)):
         m = "m{}".format(i)
         mm = "m{}".format(i-1)
         ratiodata[m] = data[m] / data[mm]
@@ -111,16 +109,14 @@ def fDsqrtmD_ratio(ed, options):
 def fDsqrtmD_ratio_div(ed, options):
     fdata = ed.fhl(div=True)
     mdata = ed.get_mass("heavy-ud",div=True)
-    print fdata.keys()
-    print mdata.keys()
 
     data = {}
-    for m in fdata.keys():
-        mkey = [k for k in mdata.keys() if m in k][0]
+    for m in fdata:
+        mkey = [k for k in mdata if m in k][0]
         data[m] = fdata[m]*np.sqrt(mdata[mkey])
 
     ratiodata = {}
-    for i in range(1, len(fdata.keys())):
+    for i in range(1, len(fdata)):
         m = "m{}".format(i)
         mm = "m{}".format(i-1)
         ratiodata[m] = data[m] / data[mm]

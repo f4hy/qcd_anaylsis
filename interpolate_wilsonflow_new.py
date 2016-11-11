@@ -244,7 +244,7 @@ def interpolate_wilsonflow(options):
 
     legend_handles = []
 
-    betas = sorted(set(i.beta for i in alldata.keys()))
+    betas = sorted(set(i.beta for i in alldata))
 
     groups = [{k: v for k, v in alldata.iteritems() if k.beta == b} for b in betas]
 

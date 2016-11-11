@@ -216,7 +216,7 @@ def interpolate_wilsonflow(options):
     logging.info("Attempting to extrapolate to {}={}".format(options.xaxis, phys_x))
 
 
-    stranges = set(i.s_mass for i in alldata.keys())
+    stranges = set(i.s_mass for i in alldata)
 
     if options.seperate_strange:
         logging.info("fitting strangeses seperately")

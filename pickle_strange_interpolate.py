@@ -52,14 +52,14 @@ def interpolate_ensemble_pair(ensemble_base, pairs, target, fittype="uncorrelate
     print target
     new_bare_smass = ep1.s_mass*x + ep2.s_mass*(1-x)
 
-    keys2 = [k.replace(str(ep1.s_mass), str(ep2.s_mass)).replace(ep1.ename, ep2.ename) for k in ed1.keys()]
+    keys2 = [k.replace(str(ep1.s_mass), str(ep2.s_mass)).replace(ep1.ename, ep2.ename) for k in ed1]
 
     for k in keys2:
-        if k not in ed2.keys():
+        if k not in ed2:
             print "key2 not found", k
 
     new_data = {}
-    for k in ed1.keys():
+    for k in ed1:
         k2 = k.replace(str(ep1.s_mass), str(ep2.s_mass)).replace(ep1.ename, ep2.ename)
         interpolated = (ed1[k].values)*x + (ed2[k2].values)*(1-x)
         newkey = k.replace(str(ep1.s_mass), str(new_bare_smass)).replace(ep1.ename, ep1.ename+"s")
@@ -100,14 +100,13 @@ def test():
     dirs = glob.glob("SymDW_sHtTanh_b2.0_smr3_*")
     for d in dirs:
         data = read_pickle(d)
-        for k in data.keys():
+        for k in data:
             if "None" in k:
                 print "None in key"
                 exit(-1)
             if "__" in k:
                 print "double _ in key"
                 exit(-1)
-        #print data.keys()
         for k in data.keys()[0:5]:
             print d, data[k].filename
 
