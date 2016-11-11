@@ -200,7 +200,7 @@ class poly_fDssqrtmDs_a(Model):
 
     def sqr_diff(self, a, b, c, gamma_p):
 
-        x = self.params["a"]**2
+        x = self.consts["a"]**2
         M = self.m(x,a,b,c, gamma_p)
         data = self.bstrapdata("fDs")*np.sqrt(self.bstrapdata("mDs"))
         var = (self.data["fDs"]*np.sqrt(self.data["mDs"])).var(1)
@@ -230,7 +230,7 @@ class poly_fhssqrtmhs_a(Model):
 
     def sqr_diff(self, a, b, c, gamma_p):
 
-        x = self.params["a"]**2
+        x = self.consts["a"]**2
         M = self.m(x,a,b,c, gamma_p)
         data = self.bstrapdata("fhs")*np.sqrt(self.bstrapdata("mhs"))
         var = (self.data["fhs"]*np.sqrt(self.data["mhs"])).var(1)
