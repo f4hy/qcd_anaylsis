@@ -19,6 +19,15 @@ def asqr(ed, options):
         label += " [1/MeV^2]"
     return (data, 0, label, {"Continuum": 0})
 
+def a_gev_sqr(ed, options):
+    data = ed.ep.a_gev**2
+
+    label = "$a^2$"
+    if ed.scale != 1.0:
+        label += " [1/GeV^2]"
+    return (data, 0, label, {"Continuum": 0})
+
+
 def mud(ed, options):
     data = ed.ep.ud_mass + ed.ep.residual_mass
     err = ed.ep.residual_mass_error

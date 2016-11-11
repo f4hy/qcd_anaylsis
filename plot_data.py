@@ -22,6 +22,7 @@ import plot_heavy_decays
 import plot_heavy_masses
 import plot_fdsqrtmd
 import plot_fdssqrtmds
+import plot_interpolated_fsqrtm
 
 # function_list = inspect.getmembers(sys.modules["fitfunctions"], inspect.isclass)
 # functions = {name: f for name, f in function_list}
@@ -51,7 +52,7 @@ def get_data(ed, data_type, options):
     modules_with_plot_fucntions = ("plot_latparams", # List of modules with the plot files
                                    "plot_light_masses",
                                    "plot_heavy_decays", "plot_heavy_masses",
-                                   "plot_fdsqrtmd", "plot_fdssqrtmds")
+                                   "plot_fdsqrtmd", "plot_fdssqrtmds", "plot_interpolated_fsqrtm")
 
     function_map = {}
     for m in modules_with_plot_fucntions:
