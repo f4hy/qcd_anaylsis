@@ -24,6 +24,8 @@ from auto_key import auto_key
 
 from add_chiral_fits import add_chiral_fit, add_boot_fit
 
+from add_model_fit import add_model_fit
+
 from plot_data import get_data, plot_data
 
 from itertools import cycle
@@ -324,6 +326,11 @@ def plot_ensemble_data(options):
             if options.legendfits:
                 legend_handles.extend(fit_lines)
 
+    if options.model_fit_file:
+        for i in options.model_fit_file:
+            add_model_fit(axe, xran, i, options)
+
+
     if options.boot_fit_file:
         #del legend_handles[:]
         for i in options.boot_fit_file:
@@ -473,6 +480,8 @@ if __name__ == "__main__":
                         action='append', help="add chiral interpolated lines")
     parser.add_argument("--boot_fit_file", type=argparse.FileType('r'), required=False,
                         action='append', help="add bootstrap fit lines")
+    parser.add_argument("--model_fit_file", type=argparse.FileType('r'), required=False,
+                        action='append', help="add bootstrap fit lines")
     parser.add_argument("--mpisqrbymq", action="store_true",
                         help="compute mpisqr divided by mq, strange edge case")
     parser.add_argument("--ydata", required=False, type=str,
@@ -496,11 +505,15 @@ if __name__ == "__main__":
 
     ensembles = []
     for es in args.ensembles:
-        try:
-            ed = ensemble_data(es)
-            ensembles.append(ed)
-        except:
-            raise argparse.ArgumentTypeError("Argument {} does not have valid ensemble data".format(es))
+        ed = ensemble_data(es, fittype=args.fittype)
+        ensembles.append(ed)
+        # try:
+        #     ed = ensemble_data(es)
+        #     ensembles.append(ed)
+        # except Exception as e:
+        #     raise e
+        #     print e
+        #     raise argparse.ArgumentTypeError("Argument {} does not have valid ensemble data".format(es))
 
 
     logging.info("Ploting data for: {}".format("\n".join(args.ensembles)))
