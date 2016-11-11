@@ -42,11 +42,7 @@ ensemble_names["SymDW_sHtTanh_b2.0_smr3_64x128x08_b4.47_M1.00_mud0.0030_ms0.0150
 
 
 def determine_flavor(f):
-    flavors = flavor_map.keys()
-    for flavor in flavors:
-        if flavor in f:
-            return flavor
-    raise RuntimeError("Flavor not found")
+    return next(flavor for flavor in flavor_map if flavor in f)
 
 def get_heavyq_mass(beta, heavytype):
     if heavytype is None:
