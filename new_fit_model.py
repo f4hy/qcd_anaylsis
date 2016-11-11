@@ -221,7 +221,7 @@ class poly_fhssqrtmhs_a(Model):
         self.update_paramdict("a", 10600, 100.0)
         self.update_paramdict("b", 8000, 7000)
         self.update_paramdict("c", -30000.0, -30000.0)
-        self.update_paramdict("gamma_p", 1.38340202243e-07, 0.02, fix=True)
+        self.update_paramdict("gamma_p", 1.38340202243e-07, 0.02)
         self.contlim_args = ["a", "b", "c"]
 
     def m(self, x, a, b, c, gamma_p=0.0):
@@ -236,6 +236,10 @@ class poly_fhssqrtmhs_a(Model):
         var = (self.data["fhs"]*np.sqrt(self.data["mhs"])).var(1)
         sqr_diff = (data - M)**2
         return np.sum(sqr_diff/var)
+
+class poly_fhssqrtmhs_a_m0(poly_fhssqrtmhs_a):
+    def __init__(self, ensemble_datas, options):
+        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m0")
 
 class poly_fhssqrtmhs_a_m1(poly_fhssqrtmhs_a):
     def __init__(self, ensemble_datas, options):
