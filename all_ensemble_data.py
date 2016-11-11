@@ -65,20 +65,22 @@ class ensemble_data(object):
 
     def __init__(self, ensemble,
                  smearing="0_1-1_1",
-                 interpstrange=False, scale_values=True, def_op="PP"):
+                 interpstrange=False, scale_values=True, def_op="PP", fittype="uncorrelated"):
 
+        logging.debug("creating ensembledata for {}".format(ensemble))
         self.ep = ensemble_params(ensemble)
+        logging.debug("created ensembledata with params {}".format(self.ep))
 
         self.default_smearing = smearing
         self.default_operator = def_op
 
-        self.scale = scale[self.ep.beta]
+        self.scale = self.ep.scale
         if scale_values is False:
             self.scale = 1.0
 
         self.interpstrange = interpstrange
 
-        self.data = read_pickle(ensemble)
+        self.data = read_pickle(ensemble, fittype=fittype)
 
     def select_data(self, flavor, operator=None, heavy=None, smearing=None, axial=False, div=False):
 
@@ -93,13 +95,15 @@ class ensemble_data(object):
                 smearing = "0_0"
             else:
                 smearing = self.default_smearing
-
         selected = [d for d in self.data if smearing in d and flavor in d and operator in d]
+        logging.debug("selected {}".format(selected))
 
         selected = [d for d in selected if div == ("div" in d)]
+        logging.debug("selected {}".format(selected))
 
         if heavy is not None:
             selected = [d for d in selected if heavy in d]
+            logging.debug("selected {}".format(selected))
 
         for s in selected:
             logging.debug("selected file {}".format(self.data[s].filename))
@@ -139,11 +143,15 @@ class ensemble_data(object):
     def eta_mass(self):
         return self.get_mass("s-s")
 
-    def D_mass(self):
-        return self.get_mass("heavy-ud", heavy="m0")
+    def D_mass(self, **args):
+        if "heavy" not in args:
+            args["heavy"] = "m0"
+        return self.get_mass("heavy-ud", **args)
 
-    def Ds_mass(self):
-        return self.get_mass("heavy-s", heavy="m0")
+    def Ds_mass(self, **args):
+        if "heavy" not in args:
+            args["heavy"] = "m0"
+        return self.get_mass("heavy-s", **args)
 
     def hl_mass_ratio(self, corrected=False, **args):
 
