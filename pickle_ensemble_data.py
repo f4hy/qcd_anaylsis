@@ -70,7 +70,7 @@ def test():
 
 if __name__ == "__main__":
 
-    fittypes = ["uncorrelated", "fullcorrelated", "singlecorrelated"]
+    fittypes = ["uncorrelated", "fullcorrelated", "singlecorrelated", "interpolated"]
 
     parser = argparse.ArgumentParser(description="pickle all the fit data")
 
