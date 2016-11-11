@@ -272,7 +272,7 @@ def choose_fit(axe, xran, fittype, values, errors, fill=False, save=False):
     logging.error("{} not supported".format(fittype))
     exit(-1)
 
-    if "OMEGA_F" in values.keys():
+    if "OMEGA_F" in values:
         return add_NNLO_chiral_fit(axe, xran, values, errors, fill=fill, save=save)
     else:
         return add_NLO_chiral_fit(axe, xran, values, errors, fill=fill, save=save)
@@ -370,7 +370,7 @@ def add_mpisqrbymq_const_fit(axe, xran, values, errors, fill=False, save=False):
                            for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<450$ MeV"
     plabel = "const fit: {}".format(paramstring)
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=x, y=y, params={"label":plabel,  "ls":"--", "lw":4})
 
@@ -393,7 +393,7 @@ def add_mpisqrbymq_xi_NLO_fit(axe, xran, values, errors, fill=False, save=False)
     paramstring = "$ M_\pi<450$ MeV"
     plabel = "NLO {}".format(paramstring)
     plabel = "NLO $ M_\pi<450$ MeV"
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=xi, y=y, params={"label":plabel,  "ls":"--", "lw":4})
 
@@ -425,7 +425,7 @@ def add_mpisqrbymq_xi_NNLO_fit(axe, xran, values, errors, fill=False, save=False
     paramstring = "$ M_\pi<450$ MeV"
     plabel = "NNLO {}".format(paramstring)
     plabel = "NNLO"
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=xi, y=y, params={"label":plabel,  "ls":"--", "lw":4})
 
@@ -452,7 +452,7 @@ def add_mpisqrbymq_x_NLO_fit(axe, xran, values, errors, fill=False, save=False):
     paramstring = "$ M_\pi<450$ MeV"
     plabel = "NLO {}".format(paramstring)
     plabel = "NLO $M_\pi < 450$ MeV"
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=x, y=y, params={"label":plabel,  "ls":"--", "lw":4})
 
@@ -486,7 +486,7 @@ def add_mpisqrbymq_x_NLO_all_fit(axe, xran, values, errors, fill=False, save=Fal
     plabel = "NLO $Mss=0$ $a \\to 0$ fit: {}".format(paramstring)
     plabel = "NLO $ M_\pi<450$ MeV"
 
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=x, y=y, params={"label":plabel,  "ls":"--", "lw":4})
 
@@ -512,7 +512,7 @@ def add_X_NLO_fit(axe, xran, values, errors, fill=False, save=False):
     paramstring = "$ M_\pi<450$ MeV"
     plabel = "NLO {}".format(paramstring)
     plabel = "NLO $M_\pi < 450$ MeV"
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=x, y=y, params={"label":plabel,  "ls":"--", "lw":4})
 
@@ -543,7 +543,7 @@ def add_X_NLO_all_fit(axe, xran, values, errors, fill=False, save=False):
     paramstring = "$ M_\pi<450$ MeV"
     plabel = "NLO $\Delta Mss=0$ fit: {}".format(paramstring)
     plabel = "NLO $ M_\pi<450$ MeV"
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=x, y=y, params={"label":plabel,  "ls":"--", "lw":4})
 
@@ -637,7 +637,7 @@ def add_X_NNLO_fit(axe, xran, values, errors, fill=False, save=False):
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "NNLO {}".format(paramstring)
     plabel = "NNLO"
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=x, y=y, params={"label":plabel,  "ls":"--", "lw":4})
 
@@ -688,7 +688,7 @@ def add_X_NNLO_all_fit(axe, xran, values, errors, fill=False, save=False):
     plabel = "NNLO $a\\to 0$ $\Delta Mss=0$ "
     plabel = "NNLO"
 
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=x, y=y, params={"label":plabel,  "ls":"--", "lw":4})
 
@@ -739,7 +739,7 @@ def add_X_NNLO_fixa0_fit(axe, xran, values, errors, fill=False, save=False):
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "NNLO Mss=0 fit: {}".format(paramstring)
     plabel = "NNLO"
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=x, y=y, params={"label":plabel,  "ls":"--", "lw":4})
 
@@ -785,7 +785,7 @@ def add_mpisqrbymq_x_NNLO_fit(axe, xran, values, errors, fill=False, save=False)
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "NNLO {}".format(paramstring)
     plabel = "NNLO"
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=x, y=y, params={"label":plabel,  "ls":"--", "lw":4})
 
@@ -832,7 +832,7 @@ def add_mpisqrbymq_x_NNLO_all_fit(axe, xran, values, errors, fill=False, save=Fa
     plabel = "NNLO Mss=0 $a \\to 0$ fit: {}".format(paramstring)
     plabel = "NNLO $a\\to 0$ $\Delta Mss=0$ "
     plabel = "NNLO"
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=x, y=y, params={"label":plabel,  "ls":"--", "lw":4})
 
@@ -920,7 +920,7 @@ def add_fD_chiral(axe, xran, values, errors, fill=False, save=False):
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "NLO {}".format(paramstring)
     plabel = "NLO $M_\pi <450$ MeV"
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=mpisqr, y=y, params={"label":plabel,  "ls":"--", "lw":4})
 
@@ -947,7 +947,7 @@ def add_fDsbyfD_chiral(axe, xran, values, errors, fill=False, save=False):
                            for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "NLO {}".format(paramstring)
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=mpisqr, y=y, params={"label":plabel,  "ls":"--", "lw":4})
 
@@ -973,7 +973,7 @@ def add_MD_linear_mpisqr(axe, xran, values, errors, fill=False, save=False):
                            for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "Linear fit"
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=mpisqr, y=y, params={"label":plabel,  "ls":"--", "lw":4})
     addplot(plots, axe, fill, save, x=mpisqr, y=y1, params={"label":"Linear fit $\\beta:4.17$", "ls":":", "lw":4})
@@ -1001,7 +1001,7 @@ def add_MDs_linear_mpisqr(axe, xran, values, errors, fill=False, save=False):
                            for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "Linear fit"
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=mpisqr, y=y, params={"label":plabel,  "ls":"--", "lw":4})
     addplot(plots, axe, fill, save, x=mpisqr, y=y1, params={"label":"Linear fit $\\beta:4.17$", "ls":":", "lw":4})
@@ -1029,7 +1029,7 @@ def add_FD_linear_mpisqr(axe, xran, values, errors, fill=False, save=False):
                            for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "Linear fit in continuum limit"
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=mpisqr, y=y, params={"label":plabel,  "ls":"--", "lw":4, "c":'k'})
     addplot(plots, axe, fill, save, x=mpisqr, y=y1, params={"label":"Linear fit $\\beta:4.17$", "ls":":", "lw":4})
@@ -1057,7 +1057,7 @@ def add_FDs_linear_mpisqr(axe, xran, values, errors, fill=False, save=False):
                            for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "Linear fit in continuum limit"
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=mpisqr, y=y, params={"label":plabel,  "ls":"--", "lw":4, "c":'k'})
     addplot(plots, axe, fill, save, x=mpisqr, y=y1, params={"label":"Linear fit $\\beta:4.17$", "ls":":", "lw":4})
@@ -1085,7 +1085,7 @@ def add_FDsbyFD_linear_mpisqr(axe, xran, values, errors, fill=False, save=False)
                            for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "Linear fit"
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=mpisqr, y=y, params={"label":plabel,  "ls":"--", "lw":4})
     addplot(plots, axe, fill, save, x=mpisqr, y=y1, params={"label":"Linear fit $\\beta:4.17$", "ls":":", "lw":4})
@@ -1113,7 +1113,7 @@ def add_Mhs_minus_Mhh(axe, xran, values, errors, fill=False, save=False):
                            for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "Linear fit"
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=mHH_inv, y=y, params={"label":plabel,  "ls":"--", "lw":4})
     addplot(plots, axe, fill, save, x=mHH_inv, y=y1, params={"label":"Linear fit $\\beta:4.17$", "ls":":", "lw":4})
@@ -1148,7 +1148,7 @@ def add_quad_Mhs_minus_Mhh(axe, xran, values, errors, fill=False, save=False):
                            for k, v in sorted(values.iteritems()))
     paramstring = "$ M_\pi<{}$".format(values[" M_\pi<"])
     plabel = "Qaudratic fit"
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     addplot(plots, axe, fill, save, x=mHH_inv, y=y, params={"label":plabel,  "ls":"--", "lw":4})
     addplot(plots, axe, fill, save, x=mHH_inv, y=y1, params={"label":"Quadratic fit $\\beta:4.17$", "ls":":", "lw":4})
@@ -1197,7 +1197,7 @@ def fdsqrtm(axe, xran, values, errors, fill=False, save=False):
     plabel = "Qaudratic fit"
 
     plabel = paramstring.replace("$ \eta", "\n $ \eta")
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plabel = "Continuum and Chiral Limit"
     addplot(plots, axe, fill, save, x=mD_inv, y=y, params={"label":plabel,  "ls":"--", "lw":4, "color":"k"})
@@ -1258,7 +1258,7 @@ def fdssqrtms(axe, xran, values, errors, fill=False, save=False):
     plabel = "Qaudratic fit"
 
     plabel = paramstring.replace("$ \eta", "\n $ \eta")
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plabel = "Continuum and Chiral Limit"
     addplot(plots, axe, fill, save, x=mDs_inv, y=y, params={"label":plabel,  "ls":"--", "lw":4, "color":"k"})
@@ -1304,7 +1304,7 @@ def fdssqrtms_noscale(axe, xran, values, errors, fill=False, save=False):
     plabel = "Qaudratic fit"
 
     plabel = paramstring.replace("$ \eta", "\n $ \eta")
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plabel = "Continuum and Chiral Limit"
     addplot(plots, axe, fill, save, x=mDs_inv, y=y, params={"label":plabel,  "ls":"--", "lw":4, "color":"k"})
@@ -1350,7 +1350,7 @@ def fdsqrtm_noscale(axe, xran, values, errors, fill=False, save=False):
     plabel = "Qaudratic fit"
 
     plabel = paramstring.replace("$ \eta", "\n $ \eta")
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plabel = "Continuum and Chiral Limit"
     addplot(plots, axe, fill, save, x=mD_inv, y=y, params={"label":plabel,  "ls":"--", "lw":4, "color":"k"})
@@ -1396,7 +1396,7 @@ def fdsqrtm_noscale_alphas(axe, xran, values, errors, fill=False, save=False):
     plabel = "Qaudratic fit"
 
     plabel = paramstring.replace("$ \eta", "\n $ \eta")
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plabel = "Continuum and Chiral Limit"
     addplot(plots, axe, fill, save, x=mD_inv, y=y, params={"label":plabel,  "ls":"--", "lw":4, "color":"k"})
@@ -1444,7 +1444,7 @@ def fdssqrtms_noscale_alphas(axe, xran, values, errors, fill=False, save=False):
     plabel = "Qaudratic fit"
 
     plabel = paramstring.replace("$ \eta", "\n $ \eta")
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plabel = "Continuum and Chiral Limit"
     addplot(plots, axe, fill, save, x=mDs_inv, y=y, params={"label":plabel,  "ls":"--", "lw":4, "color":"k"})
@@ -1492,7 +1492,7 @@ def fdssqrtms_noscale_pade(axe, xran, values, errors, fill=False, save=False):
     plabel = "Qaudratic fit"
 
     plabel = paramstring.replace("$ \eta", "\n $ \eta")
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plabel = "Continuum and Chiral Limit PADE"
     addplot(plots, axe, fill, save, x=mDs_inv, y=y, params={"label":plabel,  "ls":"--", "lw":4, "color":"k"})
@@ -1539,7 +1539,7 @@ def fdssqrtms_noscale_pade2(axe, xran, values, errors, fill=False, save=False):
     plabel = "Qaudratic fit"
 
     plabel = paramstring.replace("$ \eta", "\n $ \eta")
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plabel = "Continuum and Chiral Limit PADE2"
     addplot(plots, axe, fill, save, x=mDs_inv, y=y, params={"label":plabel,  "ls":"--", "lw":4, "color":"k"})
@@ -1578,7 +1578,7 @@ def fdssqrtms_ratio(axe, xran, values, errors, fill=False, save=False):
     plabel = "fit"
 
     plabel = paramstring.replace("$ \eta", "\n $ \eta")
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plabel = "Continuum and Chiral Limit"
     addplot(plots, axe, fill, save, x=mDs_inv, y=y, params={"label":plabel,  "ls":"--", "lw":4, "color":"k"})
@@ -1610,7 +1610,7 @@ def fdssqrtms_mq_ratio(axe, xran, values, errors, fill=False, save=False):
     plabel = "fit"
 
     plabel = paramstring.replace("$ \eta", "\n $ \eta")
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plabel = "Continuum and Chiral Limit"
     addplot(plots, axe, fill, save, x=mq_inv, y=y, params={"label":plabel,  "ls":"--", "lw":4, "color":"k"})
@@ -1654,7 +1654,7 @@ def fdssqrtms_mq_ma_ratio(axe, xran, values, errors, fill=False, save=False):
     plabel = "fit"
 
     plabel = paramstring.replace("$ \eta", "\n $ \eta")
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
     plabel = "Continuum and Chiral Limit"
     addplot(plots, axe, fill, save, x=mq_inv, y=y, params={"label":plabel,  "ls":"--", "lw":4, "color":"k"})
@@ -1690,7 +1690,7 @@ def fdsqrtm_ratio(axe, xran, values, errors, fill=False, save=False):
     plabel = "fit"
 
     plabel = paramstring.replace("$ \eta", "\n $ \eta")
-    if "cutoff" in values.keys():
+    if "cutoff" in values:
         plabel += " $M_\pi < {}$".format(values["cutoff"])
         plabel = "Continuum and Chiral Limit"
         addplot(plots, axe, fill, save, x=mDs_inv, y=y, params={"label":plabel,  "ls":"--", "lw":4, "color":"k"})

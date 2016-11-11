@@ -27,7 +27,7 @@ def pickle_ensemble(ensemble, fittype="uncorrelated"):
     for i in fitdatafiles:
         bsd = bootstrap_data(i)
         key = repr(bsd.dp)
-        if key in data.keys():
+        if key in data:
             logging.error("Found duplicate data key")
             exit(-1)
         data[key] = bsd
@@ -53,9 +53,11 @@ def rebuild_pickled_db(fittype="uncorrelated"):
 def test():
     #fitdatafiles = glob.glob("SymDW_sHtTanh_b2.0_smr3_*/*fit_uncorrelated_*/*.boot")
     dirs = glob.glob("SymDW_sHtTanh_b2.0_smr3_*")
+    print dirs
     for d in dirs:
         data = read_pickle(d)
-        for k in data.keys():
+        print data
+        for k in data:
             if "None" in k:
                 print "None in key"
                 exit(-1)

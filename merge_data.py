@@ -98,8 +98,8 @@ class filewriter:
 
     def average_sources(self):
         logging.info("Averaging sources")
-        sourcezeros = [i for i in self.shifted_data.keys() if i[-4:] == "src0"]
-        config_groups = list(set(tuple(i for i in self.shifted_data.keys() if i[:-4] == z[:-4]) for z in sourcezeros))
+        sourcezeros = [i for i in self.shifted_data if i[-4:] == "src0"]
+        config_groups = list(set(tuple(i for i in self.shifted_data if i[:-4] == z[:-4]) for z in sourcezeros))
         #assert allEqual([len(i) for i in config_groups])
         numberofsources = len(config_groups[0])
         logging.info("found {} configs with {} times each".format(len(config_groups), numberofsources))

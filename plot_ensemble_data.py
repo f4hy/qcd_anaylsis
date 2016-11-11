@@ -161,8 +161,7 @@ def plot_ensemble_data(options):
             plotdata = [(x, ydata) for m, x in xdata.iteritems()]
         else:
             logging.info("many of both data types")
-            keys = set(xdata.keys()).intersection(ydata.keys())
-            print keys
+            keys = set(xdata).intersection(ydata)
             plotdata = [(xdata[k], ydata[k]) for k in keys]
             if len(keys) < 1:
                 logging.error("Data types have no matching keys")
@@ -216,7 +215,7 @@ def plot_ensemble_data(options):
         if len(matchingkeys) > 1:
             physiter = [(k, xphysical[k], yphysical[k]) for k in matchingkeys ]
         else:
-            physiter = [(k, xp, yphysical[k]) for k in yphysical.keys() for xl, xp in xphysical.iteritems()]
+            physiter = [(k, xp, yphysical[k]) for k in yphysical for xl, xp in xphysical.iteritems()]
         for yl, xp, yp in physiter:
             pmark = phys_marks.next()
             physplot = axe.errorbar(xp, yp, yerr=0, marker=pmark,
@@ -232,10 +231,10 @@ def plot_ensemble_data(options):
 
     if options.scalelines:
         if options.xdata.startswith("1/"):
-            for i in scale.keys():
+            for i in scale:
                 physxplot = axe.axvline(1.0/scale[i], color=auto_key((i, None, None), check=False)[0], ls="--", lw=2, label=i)
         else:
-            for i in scale.keys():
+            for i in scale:
                 physxplot = axe.axvline(scale[i], color=auto_key((i, None, None), check=False)[0], ls="--", lw=2, label=i)
 
 

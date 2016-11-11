@@ -60,10 +60,7 @@ def get_heavyq_mass(beta, heavytype):
     if beta == "4.47":
         #0.210476 0.263095 0.328869 0.4110859 0.5138574 0.6423218
         heavymap = {"m0": 0.210476, "m1": 0.263095, "m2": 0.328869, "m3": 0.4110859, "m4": 0.5138574, "m5": 0.6423218}
-    try:
-        return heavymap[heavytype]
-    except:
-        return 0.0
+    return heavymap.get(heavytype, 0.0)
 
 def get_heavy_m1_m2(m):
     Q = ((1 + m**2)/(1 - m**2))**2
@@ -124,9 +121,10 @@ class ensemble_params(object):
         self.residual_mass = residual_mass(self)
         self.residual_mass_error = residual_mass_errors(self)
 
-        self.Zv = Zv[self.beta]
-        self.Zs = Zs[self.beta]
+        self.Zv = Zv.get(self.beta, 0.0)
+        self.Zs = Zs.get(self.beta, 0.0)
 
+        self.heavies = {}
         if self.beta == "4.17":
             self.heavies = {"m0": 0.44037, "m1": 0.55046, "m2": 0.68808, "m3": 0.86001}
 
@@ -187,10 +185,12 @@ class data_params(ensemble_params):
         self.axial = "axial" in filename
         self.div = "_div_" in filename
 
-        self.operator = None
-        for i in ["PP", "A4P", "PA4", "A4A4", "vectorave", "decayconst"]:
-            if i in filename:
-                self.operator = i
+        # self.operator = None
+        # for i in ["PP", "A4P", "PA4", "A4A4", "vectorave", "decayconst", "interpolated"]:
+        #     if i in filename:
+        #         self.operator = i
+        operator_choices = ("PP", "A4P", "PA4", "A4A4", "vectorave", "decayconst", "interpolated")
+        self.operator = next((i for i  in operator_choices if i in filename), None)
 
 
     def __repr__(self):
