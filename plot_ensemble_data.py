@@ -396,6 +396,10 @@ def plot_ensemble_data(options):
         filename = options.output_stub + file_extension
         logging.info("Saving plot to {}".format(filename))
         plt.savefig(filename)
+        if options.open_image:
+            if file_extension == ".png":
+                from subprocess import Popen
+                Popen(["feh", filename])
         return
 
     logging.info("".join(summary_lines))
@@ -494,6 +498,10 @@ if __name__ == "__main__":
                         help="use interpoalted strange masses", default=None)
     parser.add_argument("--mhcut", type=float, default=None, required=False,
                         help="cut of mh to fade")
+    parser.add_argument("--open_image", action="store_true",
+                        help="open the created image")
+    parser.add_argument("--fittype", required=False, type=str,
+                        help="what fittype files to read", default="uncorrelated")
 
     args = parser.parse_args()
 
