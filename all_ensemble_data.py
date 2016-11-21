@@ -82,7 +82,7 @@ class ensemble_data(object):
 
         self.data = read_pickle(ensemble, fittype=fittype)
 
-    def select_data(self, flavor, operator=None, heavy=None, smearing=None, axial=False, div=False):
+    def select_data(self, flavor, operator=None, heavy=None, smearing=None, axial=False, div=False, **args):
 
         if operator is None:
             if axial:
@@ -194,7 +194,7 @@ class ensemble_data(object):
         return xi
 
     def fpi(self, **args):
-        if "axial" in args:
+        if args.get("axial", False):
             logging.error("fpi called with axial, using fpiA")
             return self.fpiA(**args)
         d = self.select_data("ud-ud", **args)
@@ -213,7 +213,7 @@ class ensemble_data(object):
         return self.scale * data
 
     def fK(self, **args):
-        if "axial" in args:
+        if args.get("axial", False):
             logging.error("fK called with axial, using fKA")
             return self.fpiA(**args)
         d = self.select_data("ud-s", **args)
@@ -231,12 +231,12 @@ class ensemble_data(object):
         data = self.ep.Zv * np.sqrt(2 * (ampdata) / d.mass)
         return self.scale * data
 
-    def fD(self, renorm=False, matched=False, **args):
-        if "axial" in args:
+    def fD(self, **args):
+        if args.get("axial", False):
             logging.error("fD called with axial, using fDA")
-            return self.fDA(renorm=renorm, matched=matched, **args)
-        if "div" in args:
-            renorm = True
+            return self.fDA(**args)
+        if args.get("div", False):
+            args["renorm"] = True
 
         if "heavy" not in args:
             args["heavy"] = "m0"
@@ -246,7 +246,7 @@ class ensemble_data(object):
         q1 = d.dp.heavyq_mass + self.ep.residual_mass
         q2 = self.ep.ud_mass + self.ep.residual_mass
 
-        if renorm:
+        if args.get("renorm", False):
             m = d.dp.heavyq_mass + self.ep.residual_mass
             Q = ((1 + m**2) / (1 - m**2))**2
             W0 = (1 + Q) / 2 - np.sqrt(3 * Q + Q**2) / 2
@@ -258,16 +258,16 @@ class ensemble_data(object):
         data = (q1 + q2) * np.sqrt(2 * (ampdata) / d.mass**3)
 
         data = self.scale * data
-        if matched:
+        if args.get("matched", False):
             mq1 = self.scale * self.dp.heavyq_mass / self.dp.Zs
             C1 = get_Cmu_mbar(mq1)
             data = data / C1
 
         return data
 
-    def fDA(self, renorm=False, matched=False, **args):
-        if "div" in args:
-            renorm = True
+    def fDA(self, **args):
+        if args.get("div", False):
+            args["renorm"] = True
 
         if "heavy" not in args:
             args["heavy"] = "m0"
@@ -275,7 +275,7 @@ class ensemble_data(object):
         d = self.select_data("heavy-ud", axial=True, **args)
         ampfactor = self.ep.volume
 
-        if renorm:
+        if args.get("renorm", False):
             m = d.dp.heavyq_mass + residual_mass(self.dp)
             Q = ((1 + m**2) / (1 - m**2))**2
             W0 = (1 + Q) / 2 - np.sqrt(3 * Q + Q**2) / 2
@@ -287,28 +287,30 @@ class ensemble_data(object):
         data = self.ep.Zv * np.sqrt(2 * (ampdata) / d.mass)
 
         data = self.scale * data
-        if matched:
+        if args.get("matched", False):
             mq1 = self.scale * d.dp.heavyq_mass / self.ep.Zs
             C1 = get_Cmu_mbar(mq1)
             data = data / C1
 
         return data
 
-    def fhl(self, renorm=False, matched=False, **args):
+    def fhl(self, **args):
         N = len(self.select_data("heavy-ud"))
         data = {}
         for i in range(N):
             m = "m{}".format(i)
             args["heavy"] = m
-            data[m] = self.fD(renorm=renorm, matched=matched, **args)
+            data[m] = self.fD(**args)
         return data
 
-    def fDs(self, renorm=False, matched=False, **args):
-        if "axial" in args:
+    def fDs(self, **args):
+        logging.debug("fds called with {}".format(args))
+        if args.get("axial", False):
             logging.error("fDs called with axial, using fDsA")
-            return self.fDsA(renorm=renorm, matched=matched, **args)
-        if "div" in args:
-            renorm = True
+            return self.fDsA(**args)
+        if args.get("div", False):
+            logging.debug("div is active, setting renorm")
+            args["renorm"] = True
 
         if "heavy" not in args:
             args["heavy"] = "m0"
@@ -318,7 +320,7 @@ class ensemble_data(object):
         q1 = d.dp.heavyq_mass + self.ep.residual_mass
         q2 = self.ep.s_mass + self.ep.residual_mass
 
-        if renorm:
+        if args.get("renorm", False):
             m = d.dp.heavyq_mass + self.ep.residual_mass
             Q = ((1 + m**2) / (1 - m**2))**2
             W0 = (1 + Q) / 2 - np.sqrt(3 * Q + Q**2) / 2
@@ -330,16 +332,16 @@ class ensemble_data(object):
         data = (q1 + q2) * np.sqrt(2 * (ampdata) / d.mass**3)
 
         data = self.scale * data
-        if matched:
+        if args.get("matched", False):
             mq1 = self.scale * self.dp.heavyq_mass / self.dp.Zs
             C1 = get_Cmu_mbar(mq1)
             data = data / C1
 
         return data
 
-    def fDsA(self, renorm=False, matched=False, **args):
-        if "div" in args:
-            renorm = True
+    def fDsA(self, **args):
+        if args.get("div", False):
+            args["renorm"] = True
 
         if "heavy" not in args:
             args["heavy"] = "m0"
@@ -347,7 +349,7 @@ class ensemble_data(object):
         d = self.select_data("heavy-s", **args)
         ampfactor = self.ep.volume
 
-        if renorm:
+        if args.get("renorm", False):
             m = d.dp.heavyq_mass + residual_mass(self.dp)
             Q = ((1 + m**2) / (1 - m**2))**2
             W0 = (1 + Q) / 2 - np.sqrt(3 * Q + Q**2) / 2
@@ -359,28 +361,28 @@ class ensemble_data(object):
         data = self.ep.Zv * np.sqrt(2 * (ampdata) / d.mass)
 
         data = self.scale * data
-        if matched:
+        if args.get("matched", False):
             mq1 = self.scale * d.dp.heavyq_mass / self.ep.Zs
             C1 = get_Cmu_mbar(mq1)
             data = data / C1
 
         return data
 
-    def fhs(self, renorm=False, matched=False, **args):
+    def fhs(self, **args):
         N = len(self.select_data("heavy-s"))
         data = {}
         for i in range(N):
             m = "m{}".format(i)
             args["heavy"] = m
-            data[m] = self.fDs(renorm=renorm, matched=matched, **args)
+            data[m] = self.fDs(**args)
         return data
 
-    def fHH(self, renorm=False, **args):
-        if "axial" in args:
+    def fHH(self, **args):
+        if args.get("axial", False):
             logging.error("fDs called with axial, using fDsA")
-            return self.fDsA(renorm=renorm, **args)
-        if "div" in args:
-            renorm = True
+            return self.fDsA(**args)
+        if args.get("div", False):
+            args["renorm"] = True
 
         if "heavy" not in args:
             args["heavy"] = "m0"
@@ -390,7 +392,7 @@ class ensemble_data(object):
         q1 = d.dp.heavyq_mass + self.ep.residual_mass
         q2 = d.dp.heavyq_mass + self.ep.residual_mass
 
-        if renorm:
+        if args.get("renorm", False):
             m = d.dp.heavyq_mass + self.ep.residual_mass
             Q = ((1 + m**2) / (1 - m**2))**2
             W0 = (1 + Q) / 2 - np.sqrt(3 * Q + Q**2) / 2
