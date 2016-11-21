@@ -188,7 +188,7 @@ class data_params(ensemble_params):
         # for i in ["PP", "A4P", "PA4", "A4A4", "vectorave", "decayconst", "interpolated"]:
         #     if i in filename:
         #         self.operator = i
-        operator_choices = ("PP", "A4P", "PA4", "A4A4", "vectorave", "decayconst", "interpolated")
+        operator_choices = ("PP", "A4P", "PA4", "A4A4", "vectorave", "decayconst", "fsqrtm_linearhqet_continuum", "fsqrtm_hqet_continuum", "fsqrtm_continuum")
         self.operator = next((i for i  in operator_choices if i in filename), None)
 
 
