@@ -59,7 +59,7 @@ class Model(object):
         logging.info("Data read")
 
     def make_array(self, fun_name, **args):
-        logging.info("making array for {}".format(fun_name))
+        logging.info("making array for {} with {}".format(fun_name, args))
         def choose_fun(ed):
             d = dict(inspect.getmembers(ed,inspect.ismethod))
             return d[fun_name]
@@ -189,8 +189,8 @@ class poly_fDssqrtmDs_a(Model):
 
         # logging.info(self.bstrapdata("fDs")*np.sqrt(self.bstrapdata("mDs")))
         self.update_paramdict("a", 10600, 100.0)
-        self.update_paramdict("b", 8000, 7000)
-        self.update_paramdict("c", -30000.0, -30000.0)
+        self.update_paramdict("b", -8000, 7000)
+        self.update_paramdict("c", -30000.0, 30000.0)
         self.update_paramdict("gamma_p", 0.001, 0.02)
         self.contlim_args = ["a", "b", "c"]
 
@@ -210,14 +210,14 @@ class poly_fDssqrtmDs_a(Model):
 
 class poly_fhssqrtmhs_a(Model):
 
-    def __init__(self, ensemble_datas, options, heavy="m0"):
+    def __init__(self, ensemble_datas, options, heavy="m0", hqet=False):
 
         Model.__init__(self, ensemble_datas, options)
-        self.data["fhs"] = self.make_array("fDs", heavy=heavy)
-        self.data["mhs"] = self.make_array("Ds_mass", heavy=heavy)
+        self.data["fhs"] = self.make_array("fDs", heavy=heavy, div=hqet)
+        self.data["mhs"] = self.make_array("Ds_mass", heavy=heavy, div=hqet)
         self.data["mpi"] = self.make_array("pion_mass")
 
-        # logging.info(self.bstrapdata("fDs")*np.sqrt(self.bstrapdata("mDs")))
+        logging.info(self.bstrapdata("fhs")*np.sqrt(self.bstrapdata("mhs")))
         self.update_paramdict("a", 10600, 100.0)
         self.update_paramdict("b", 8000, 7000)
         self.update_paramdict("c", -30000.0, -30000.0)
@@ -260,3 +260,80 @@ class poly_fhssqrtmhs_a_m4(poly_fhssqrtmhs_a):
 class poly_fhssqrtmhs_a_m5(poly_fhssqrtmhs_a):
     def __init__(self, ensemble_datas, options):
         poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m5")
+
+class poly_fhssqrtmhs_hqet_a_m0(poly_fhssqrtmhs_a):
+    def __init__(self, ensemble_datas, options):
+        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m0", hqet=True)
+
+class poly_fhssqrtmhs_hqet_a_m1(poly_fhssqrtmhs_a):
+    def __init__(self, ensemble_datas, options):
+        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m1", hqet=True)
+
+class poly_fhssqrtmhs_hqet_a_m2(poly_fhssqrtmhs_a):
+    def __init__(self, ensemble_datas, options):
+        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m2", hqet=True)
+
+class poly_fhssqrtmhs_hqet_a_m3(poly_fhssqrtmhs_a):
+    def __init__(self, ensemble_datas, options):
+        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m3", hqet=True)
+
+class poly_fhssqrtmhs_hqet_a_m4(poly_fhssqrtmhs_a):
+    def __init__(self, ensemble_datas, options):
+        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m4", hqet=True)
+
+class poly_fhssqrtmhs_hqet_a_m5(poly_fhssqrtmhs_a):
+    def __init__(self, ensemble_datas, options):
+        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m5", hqet=True)
+
+
+class linear_fhssqrtmhs_a(Model):
+
+    def __init__(self, ensemble_datas, options, heavy="m0", hqet=False):
+
+        Model.__init__(self, ensemble_datas, options)
+        self.data["fhs"] = self.make_array("fDs", heavy=heavy, div=hqet)
+        self.data["mhs"] = self.make_array("Ds_mass", heavy=heavy, div=hqet)
+        self.data["mpi"] = self.make_array("pion_mass")
+
+        logging.info(self.bstrapdata("fhs")*np.sqrt(self.bstrapdata("mhs")))
+        self.update_paramdict("a", 10600, 100.0)
+        self.update_paramdict("b", 8000, 7000)
+        self.update_paramdict("gamma_p", 1.38340202243e-07, 0.02)
+        self.contlim_args = ["a", "b"]
+
+    def m(self, x, a, b, gamma_p=0.0):
+        delta_mpisqr = (self.bstrapdata("mpi")**2)-(pv.phys_pion**2)
+        return (1.0+gamma_p*delta_mpisqr)*(a + b*(x) )
+
+    def sqr_diff(self, a, b, gamma_p):
+
+        x = self.consts["a"]**2
+        M = self.m(x,a,b, gamma_p)
+        data = self.bstrapdata("fhs")*np.sqrt(self.bstrapdata("mhs"))
+        var = (self.data["fhs"]*np.sqrt(self.data["mhs"])).var(1)
+        sqr_diff = (data - M)**2
+        return np.sum(sqr_diff/var)
+
+class linear_fhssqrtmhs_hqet_a_m0(linear_fhssqrtmhs_a):
+    def __init__(self, ensemble_datas, options):
+        linear_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m0", hqet=True)
+
+class linear_fhssqrtmhs_hqet_a_m1(linear_fhssqrtmhs_a):
+    def __init__(self, ensemble_datas, options):
+        linear_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m1", hqet=True)
+
+class linear_fhssqrtmhs_hqet_a_m2(linear_fhssqrtmhs_a):
+    def __init__(self, ensemble_datas, options):
+        linear_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m2", hqet=True)
+
+class linear_fhssqrtmhs_hqet_a_m3(linear_fhssqrtmhs_a):
+    def __init__(self, ensemble_datas, options):
+        linear_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m3", hqet=True)
+
+class linear_fhssqrtmhs_hqet_a_m4(linear_fhssqrtmhs_a):
+    def __init__(self, ensemble_datas, options):
+        linear_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m4", hqet=True)
+
+class linear_fhssqrtmhs_hqet_a_m5(linear_fhssqrtmhs_a):
+    def __init__(self, ensemble_datas, options):
+        linear_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m5", hqet=True)
