@@ -73,6 +73,8 @@ def get_data(ed, data_type, options):
         else:
             return {k: plot_data(*v) for k,v in result.iteritems()}
     else:
+        logging.error("{} not supported as a data type yet".format(data_type))
+        logging.error("supported_types: {}".format(sorted(function_map)))
         raise RuntimeError("{} not supported as a data type yet".format(data_type))
 
 

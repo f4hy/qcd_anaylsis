@@ -28,7 +28,7 @@ def pickle_ensemble(ensemble, fittype="uncorrelated"):
         bsd = bootstrap_data(i)
         key = repr(bsd.dp)
         if key in data:
-            logging.error("Found duplicate data key")
+            logging.error("Found duplicate data key {}".format(key))
             exit(-1)
         data[key] = bsd
 
