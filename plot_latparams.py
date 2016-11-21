@@ -1,6 +1,7 @@
 from physical_values import phys_pion, phys_kaon, phys_mq, phys_Fpi, phys_FD, phys_FDs, phys_D, phys_Ds
 from physical_values import phys_FB, phys_FBs, phys_FBsbyFB, phys_MB, phys_MBs, unphys_etas
 from physical_values import phys_eta, phys_etac, phys_etab, phys_FK, phys_mhq, phys_Jpsi, phys_Upsilon
+from physical_values import phys_mb_2gev, phys_mc_2gev
 
 
 def asqr_fm(ed, options):
@@ -78,5 +79,6 @@ def inv_mheavyq(ed, options):
     label = "$1/\\bar{m}_{q_h}$"
     if ed.scale != 1.0:
         label += " [1/MeV]"
-    return {m: (1/(ed.scale*(q + ed.ep.residual_mass)/ed.ep.Zs) , err, label)
+    phys = {"Charm": 1/phys_mc_2gev, "Bottom": 1/phys_mb_2gev}
+    return {m: (1/(ed.scale*(q + ed.ep.residual_mass)/ed.ep.Zs) , err, label, phys)
             for m,q in ed.ep.heavies.iteritems()}
