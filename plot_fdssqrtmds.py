@@ -49,6 +49,52 @@ def fhssqrtmhs(ed, options):
     phys = {"Charm": phys_FDs*np.sqrt(phys_Ds), "Bottom": phys_FBs*np.sqrt(phys_MBs)}
     return {m: (d.mean(), d.std(), label, phys ) for m,d in data.iteritems()}
 
+def fDssqrtmDs_hqet(ed, options, heavy="m0"):
+    fdata = ed.fDs(heavy=heavy, div=True)
+    mdata = ed.get_mass("heavy-s", heavy=heavy, div=True)
+
+    data = fdata*np.sqrt(mdata)
+
+    label = "$\hat{f}^{"+heavy+"}_{hs}\, \sqrt{\hat{m}^{"+heavy+"}_{hs}}$"
+
+    if ed.scale != 1.0:
+
+        label += " [MeV^(3/2)]"
+    return (data.mean(), data.std(), label,
+            {"Charm": phys_FDs*np.sqrt(phys_Ds), "Bottom": phys_FBs*np.sqrt(phys_MBs)})
+
+
+def fDssqrtmDs_hqet_m0(ed, options):
+    return fDssqrtmDs_hqet(ed, options, heavy="m0")
+def fDssqrtmDs_hqet_m1(ed, options):
+    return fDssqrtmDs_hqet(ed, options, heavy="m1")
+def fDssqrtmDs_hqet_m2(ed, options):
+    return fDssqrtmDs_hqet(ed, options, heavy="m2")
+def fDssqrtmDs_hqet_m3(ed, options):
+    return fDssqrtmDs_hqet(ed, options, heavy="m3")
+def fDssqrtmDs_hqet_m4(ed, options):
+    return fDssqrtmDs_hqet(ed, options, heavy="m4")
+def fDssqrtmDs_hqet_m5(ed, options):
+    return fDssqrtmDs_hqet(ed, options, heavy="m5")
+
+def fhssqrtmhs_hqet(ed, options):
+    fdata = ed.fhs(div=True)
+    mdata = ed.get_mass("heavy-s", div=True)
+
+    data = {}
+    for m in fdata:
+        mkey = [k for k in mdata if m in k][0]
+        data[m] = fdata[m]*np.sqrt(mdata[mkey])
+
+    label = "$\hat{f}_{hs}\, \sqrt{\hat{m}_{hs}}$"
+
+    if ed.scale != 1.0:
+        label += " [MeV^(3/2)]"
+
+    phys = {"Charm": phys_FDs*np.sqrt(phys_Ds), "Bottom": phys_FBs*np.sqrt(phys_MBs)}
+    return {m: (d.mean(), d.std(), label, phys ) for m,d in data.iteritems()}
+
+
 
 def fDssqrtmDs_ratio(ed, options):
     fdata = ed.fhs()
