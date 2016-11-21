@@ -28,7 +28,7 @@ from add_model_fit import add_model_fit
 
 from plot_data import get_data, plot_data
 
-from itertools import cycle
+from itertools import cycle, count
 
 from plot_helpers import add_mc_lines
 from plot_helpers import add_vert_lines
@@ -49,6 +49,14 @@ def round(x, y):
         return round5(np.floor(x*scale))/scale, round5(np.ceil(y*scale))/scale
     return x, y
 
+def count_pm():
+    num = 0
+    yield 0
+    for i in count(1):
+        yield i
+        yield -i
+
+offsets = count_pm()
 
 def auto_fit_range(minval, maxval, zero=False, buff=0.5):
     spread = maxval - minval
@@ -68,7 +76,7 @@ summary_lines = []
 
 phys_marks = cycle('x+s')
 
-def colors_and_legend(data_properties, legend_mode="betaLs"):
+def colors_and_legend(data_properties, legend_mode="betaLs", ylabel=None):
 
     p = data_properties
 
@@ -116,6 +124,11 @@ def colors_and_legend(data_properties, legend_mode="betaLs"):
         color, mark, mfc = auto_key(p.flavor)
         legend_label = r'$smearing={}$'.format(p.flavor)
 
+    if legend_mode == "operator":
+        color, mark, mfc = auto_key(len(ylabel))
+        legend_label = r'{}'.format(ylabel)
+
+
     symbol = mpl.lines.Line2D([], [], color=color, mec=color, marker=mark, markersize=15,
                               linestyle="None", label=legend_label, mfc=mfc)
     #legend_handles.append(mpatches.Patch(color=beta_colors[p.beta], label=mylabel))
@@ -137,77 +150,81 @@ def plot_ensemble_data(options):
 
     fig, axe = plt.subplots(1)
 
+
     for es in options.ensembles:
-
-        try:
-            ydata = get_data(es, options.ydata, options)
-            xdata = get_data(es, options.xdata, options)
-        except NoStrangeInterp as interperror:
-            logging.warn("for {} found error {}".format(f, interperror))
-            continue
-        except MissingData:
-            logging.warn("for {} data is missing".format(es))
-            continue
-
-        if isinstance(xdata, plot_data) and isinstance(ydata, plot_data):
-            plotdata = [(xdata, ydata)]
-        elif isinstance(xdata, plot_data):
-            logging.info("one x data but many y")
-            plotdata = [(xdata, y) for m, y in ydata.iteritems()]
-        elif isinstance(ydata, plot_data):
-            plotdata = [(x, ydata) for m, x in xdata.iteritems()]
-        else:
-            logging.info("many of both data types")
-            keys = set(xdata).intersection(ydata)
-            plotdata = [(xdata[k], ydata[k]) for k in keys]
-            if len(keys) < 1:
-                logging.error("Data types have no matching keys")
-                print xdata
-                print ydata
-                exit(-1)
-
-        print plot_data
-        for x,y in plotdata:
-            xlabel = x.label
-            ylabel = y.label
-            xphysical = x.physical
-            yphysical = y.physical
-            # p = y.dp
-            label = ""
-            # label = "$f_{}$ s{}".format(y.dp.flavor, y.dp.s_mass)
-
-            color, mark, mfc = colors_and_legend(es.ep, options.legend_mode)
-
-            summary_lines.append("{}, {}, {}\n".format(es.ep, y.value, y.error))
-
-            alpha = 1.0
-            if "32x64" in repr(es.ep) and es.ep.ud_mass < 0.004:
-                alpha = 0.6
-                color = "#9999FF"
-                #continue
-
-            if options.mhcut and p.heavyq_mass > options.mhcut:
-                alpha = 0.2
-
-            plotsettings = dict(linestyle="none", c=color, marker=mark,
-                                label=label, ms=15, elinewidth=4,
-                                capsize=8, capthick=2, mec=color, mew=2,
-                                aa=True, mfc=mfc, fmt='o', ecolor=color,
-                                alpha=alpha)
-            logging.info("plotting {} {} {}".format(x.value, y.value, y.error))
-
-            if options.xerror is False:
-                xerr = 0.0
+        for yd in options.ydata:
+            if options.offset:
+                offset = next(offsets)*options.offset
             else:
-                xerr = x.error
-            axe.errorbar(x.value, y.value, yerr=y.error, xerr=xerr, zorder=0, **plotsettings)
-            ymax = max(ymax, y.value)
-            ymin = min(ymin, y.value)
-            xmax = max(xmax, x.value)
+                offset = 0
+            try:
+                ydata = get_data(es, yd, options)
+                xdata = get_data(es, options.xdata, options)
+            except NoStrangeInterp as interperror:
+                logging.warn("for {} found error {}".format(f, interperror))
+                continue
+            except MissingData:
+                logging.warn("for {} data is missing data {} {}".format(es.ep, options.xdata, yd))
+                continue
+
+            if isinstance(xdata, plot_data) and isinstance(ydata, plot_data):
+                plotdata = [(xdata, ydata)]
+            elif isinstance(xdata, plot_data):
+                logging.info("one x data but many y")
+                plotdata = [(xdata, y) for m, y in ydata.iteritems()]
+            elif isinstance(ydata, plot_data):
+                plotdata = [(x, ydata) for m, x in xdata.iteritems()]
+            else:
+                logging.info("many of both data types")
+                keys = set(xdata).intersection(ydata)
+                plotdata = [(xdata[k], ydata[k]) for k in keys]
+                if len(keys) < 1:
+                    logging.error("Data types have no matching keys")
+                    logging.error("xdata {}".format(xdata))
+                    logging.error("ydata {}".format(ydata))
+                    exit(-1)
+
+            for x,y in plotdata:
+                xlabel = x.label
+                ylabel = y.label
+                xphysical = x.physical
+                yphysical = y.physical
+                # p = y.dp
+                label = ""
+                # label = "$f_{}$ s{}".format(y.dp.flavor, y.dp.s_mass)
+
+                color, mark, mfc = colors_and_legend(es.ep, options.legend_mode, ylabel)
+
+                summary_lines.append("{}, {}, {}\n".format(es.ep, y.value, y.error))
+
+                alpha = 1.0
+                if "32x64" in repr(es.ep) and es.ep.ud_mass < 0.004:
+                    alpha = 0.6
+                    color = "#9999FF"
+                    #continue
+
+                if options.mhcut and p.heavyq_mass > options.mhcut:
+                    alpha = 0.2
+
+                plotsettings = dict(linestyle="none", c=color, marker=mark,
+                                    label=label, ms=15, elinewidth=4,
+                                    capsize=8, capthick=2, mec=color, mew=2,
+                                    aa=True, mfc=mfc, fmt='o', ecolor=color,
+                                    alpha=alpha)
+                logging.info("plotting {} {} {}".format(x.value, y.value, y.error))
+
+                if options.xerror is False:
+                    xerr = 0.0
+                else:
+                    xerr = x.error
+                axe.errorbar(x.value + offset , y.value, yerr=y.error, xerr=xerr, zorder=0, **plotsettings)
+                ymax = max(ymax, y.value)
+                ymin = min(ymin, y.value)
+                xmax = max(xmax, x.value)
 
     if options.physical:
         logging.info("plotting physical {} {}".format(xphysical, yphysical))
-        matchingkeys = set(xphysical) & set(yphysical)
+        matchingkeys = set(xphysical).intersection(set(yphysical))
 
         if len(matchingkeys) > 1:
             physiter = [(k, xphysical[k], yphysical[k]) for k in matchingkeys ]
@@ -370,7 +387,7 @@ def plot_ensemble_data(options):
 
     if not options.nolegend:
         leg = axe.legend(handles=sorted(legend_handles, key=legsort), loc=options.legendloc,
-                         fontsize=40, numpoints=1)
+                         fontsize=40, numpoints=1, fancybox=True, framealpha=0.5)
     if(options.output_stub):
         options.output_stub = options.output_stub.replace(".", "_")
         summaryfilename = options.output_stub + ".txt"
@@ -404,7 +421,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="average data files")
 
     axis_choices = ["mud", "mud_s", "mpi", "mpisqr", "2mksqr-mpisqr", "mpisqr/mq", "xi", "mq"]
-    legend_choices = ["betaLs", "betaL", "heavy", "smearing", "flavor", "strange", "betaheavy", "custom"]
+    legend_choices = ["betaLs", "betaL", "heavy", "smearing", "flavor", "strange", "betaheavy", "custom", "operator"]
 
     extention_group = parser.add_mutually_exclusive_group()
     extention_group.add_argument("--png", action="store_true", default=True,
@@ -483,8 +500,8 @@ if __name__ == "__main__":
                         action='append', help="add bootstrap fit lines")
     parser.add_argument("--mpisqrbymq", action="store_true",
                         help="compute mpisqr divided by mq, strange edge case")
-    parser.add_argument("--ydata", required=False, type=str,
-                        help="which data to plot on the yaxis", default="mpi")
+    parser.add_argument("--ydata", required=False, type=str, action='append',
+                        help="which data to plot on the yaxis", default=[])
     parser.add_argument("--xdata", required=False, type=str,
                         help="what to use as the xaxis", default="mud")
     parser.add_argument("--aspect", type=float, default=1.0, required=False,
@@ -497,6 +514,8 @@ if __name__ == "__main__":
                         help="open the created image")
     parser.add_argument("--fittype", required=False, type=str,
                         help="what fittype files to read", default="uncorrelated")
+    parser.add_argument("--offset", required=False, type=float, default=0.0,
+                        help="offset differnt plots from each other")
 
     args = parser.parse_args()
 
@@ -510,13 +529,6 @@ if __name__ == "__main__":
     for es in args.ensembles:
         ed = ensemble_data(es, fittype=args.fittype)
         ensembles.append(ed)
-        # try:
-        #     ed = ensemble_data(es)
-        #     ensembles.append(ed)
-        # except Exception as e:
-        #     raise e
-        #     print e
-        #     raise argparse.ArgumentTypeError("Argument {} does not have valid ensemble data".format(es))
 
 
     logging.info("Ploting data for: {}".format("\n".join(args.ensembles)))
