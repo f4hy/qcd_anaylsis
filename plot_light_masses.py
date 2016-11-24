@@ -9,9 +9,10 @@ def mpi(ed, options):
     label = "$m_\pi$"
     if ed.scale != 1.0:
         label += " [MeV]"
-    print data
+
     return (data.mean(), data.std(),
             label, {"PDG": phys_pion})
+
 
 def mK(ed, options):
     data = ed.kaon_mass()
@@ -19,21 +20,20 @@ def mK(ed, options):
     label = "$m_K$"
     if ed.scale != 1.0:
         label += " [MeV]"
-    print data
     return (data.mean(), data.std(),
             label, {"PDG": phys_kaon})
-
 
 
 def twomksqr_mpisqr(ed, options):
     kdata = ed.kaon_mass()
     pdata = ed.pion_mass()
-    data = 2.0*(kdata**2) - (pdata**2)
+    data = 2.0 * (kdata**2) - (pdata**2)
     label = "$2m_K^2 - m_\pi^2 $"
     if ed.scale != 1.0:
         label += " [MeV^2]"
     return (data.mean(), data.std(),
-            label, {"PDG": 2.0*phys_kaon**2 - phys_pion**2})
+            label, {"PDG": 2.0 * phys_kaon**2 - phys_pion**2})
+
 
 def mpisqr(ed, options):
     pdata = ed.pion_mass()
@@ -42,4 +42,4 @@ def mpisqr(ed, options):
     if ed.scale != 1.0:
         label += " [MeV^2]"
     return (data.mean(), data.std(),
-                     label, {"PDG": phys_pion**2})
+            label, {"PDG": phys_pion**2})

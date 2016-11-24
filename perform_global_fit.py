@@ -4,9 +4,6 @@ import argparse
 import numpy as np
 from iminuit import Minuit
 
-
-from ensemble_data import ensemble_data, MissingData
-
 import inspect
 import collections
 
@@ -22,36 +19,10 @@ from all_ensemble_data import ensemble_data, MissingData, NoStrangeInterp
 
 import new_fit_model
 
-def read_files(files, fitdata, cutoff=None, hqm_cutoff=None):
-    data = collections.OrderedDict()
-
-    for f in files:
-        logging.info("reading file {}".format(f))
-        if "32x64x12" in f and "0.0035" in f:
-            logging.warn("skipping file {}".format(f))
-            continue
-
-        dp = data_params(f)
-
-        ed = ensemble_data(dp)
-
-        if cutoff:
-            if np.mean(ed.pion_mass(scaled=True).mean()) > (cutoff):
-                continue
-        if hqm_cutoff:
-            if dp.heavyq_mass > hqm_cutoff:
-                logging.info("dp {} has hqm {} > {}".format(dp, dp.heavyq_mass, hqm_cutoff))
-                continue
-
-        data[dp] = ed
-
-    return data
-
 
 def interpolate(data, model_str, options):
 
     logging.info("Fitting data")
-
 
     model_obj = getattr(new_fit_model, model_str)(data, options)
     # exit(-1)
@@ -99,9 +70,8 @@ def interpolate(data, model_str, options):
 
     params.update(mean_m.values)
 
-
     # return mean_m, {0: mean_m}, np.nan
-    if  (mean_m.fval / dof) > 100.0:
+    if (mean_m.fval / dof) > 100.0:
         logging.error("Chi^2/dof is huge, dont bother with bootstraps")
         return mean_m, {0: mean_m}, np.nan
 
@@ -172,8 +142,8 @@ def write_bootstrap_data(fit_parameters, boot_fval, output_stub, suffix, model):
     logging.info("writing bootstraps of fit to {}".format(bootstraps_filename))
     with open(bootstraps_filename, "w") as ofile:
         names = fit_parameters[0].values.keys()
-        ofile.write("# " + model + ","+ ",".join(names) + "\n")
-        for b,d in fit_parameters.iteritems():
+        ofile.write("# " + model + "," + ",".join(names) + "\n")
+        for b, d in fit_parameters.iteritems():
             line = ",".join(["{}".format(d.values[n]) for n in names])
             ofile.write("{}\n".format(line))
 
@@ -189,10 +159,6 @@ def global_fit(options):
             ensembles.append(ed)
         except:
             raise argparse.ArgumentTypeError("Argument {} does not have valid ensemble data".format(es))
-
-    # alldata = read_files(options.files, options.fitdata, cutoff=options.cutoff, hqm_cutoff=options.hqm_cutoff)
-
-
 
     mean_fit_parameters, bootstrap_fit_parameters, boot_fval = interpolate(ensembles, options.model, options)
 
