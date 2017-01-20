@@ -5,85 +5,51 @@ from physical_values import phys_eta, phys_etac, phys_etab, phys_FK, phys_mhq, p
 
 import numpy as np
 
-def fDsqrtmD_m0(ed, options):
-    fdata = ed.fD(heavy="m0")
-    mdata = ed.get_mass("heavy-ud", heavy="m0")
+def fDsqrtmD(ed, options, heavy="m0"):
+    fdata = ed.fD(heavy=heavy)
+    mdata = ed.get_mass("heavy-ud", heavy=heavy)
 
     data = fdata*np.sqrt(mdata)
+
+    label = "$f^{"+heavy+"}_{hl}\, \sqrt{m^{"+heavy+"}_{hl}}$"
+
+    if ed.scale != 1.0:
+
+        label += " [MeV^(3/2)]"
+    return (data.mean(), data.std(), label,
+            {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)})
+
+def fDsqrtmD_m0(ed, options):
+    return fDsqrtmD(ed, options, heavy="m0")
+def fDsqrtmD_m1(ed, options):
+    return fDsqrtmD(ed, options, heavy="m1")
+def fDsqrtmD_m2(ed, options):
+    return fDsqrtmD(ed, options, heavy="m2")
+def fDsqrtmD_m3(ed, options):
+    return fDsqrtmD(ed, options, heavy="m3")
+def fDsqrtmD_m4(ed, options):
+    return fDsqrtmD(ed, options, heavy="m4")
+def fDsqrtmD_m5(ed, options):
+    return fDsqrtmD(ed, options, heavy="m5")
+
+def fhlsqrtmhl(ed, options):
+    fdata = ed.fhl()
+    mdata = ed.get_mass("heavy-ud")
+
+    data = {}
+    for m in fdata:
+        mkey = [k for k in mdata if m in k][0]
+        data[m] = fdata[m]*np.sqrt(mdata[mkey])
 
     label = "$f_{hl}\, \sqrt{m_{hl}}$"
 
-    if options.scale:
+    if ed.scale != 1.0:
         label += " [MeV^(3/2)]"
-    return (data.mean(), data.std(), label,
-            {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)})
+
+    phys = {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
+    return {m: (d.mean(), d.std(), label, phys ) for m,d in data.iteritems()}
 
 
-def fDsqrtmD_m1(ed, options):
-    fdata = ed.fD(heavy="m1")
-    mdata = ed.get_mass("heavy-ud", heavy="m1")
-
-    data = fdata*np.sqrt(mdata)
-
-    label = "$f^{m1}_{hl}\, \sqrt{m^{m1}_{hl}}$"
-
-    if options.scale:
-        label += " [MeV^(3/2)]"
-    return (data.mean(), data.std(), label,
-            {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)})
-
-
-def fDsqrtmD_m2(ed, options):
-    fdata = ed.fD(heavy="m2")
-    mdata = ed.get_mass("heavy-ud", heavy="m2")
-
-    data = fdata*np.sqrt(mdata)
-
-    label = "$f^{m2}_{hl}\, \sqrt{m^{m2}_{hl}}$"
-
-    if options.scale:
-        label += " [MeV^(3/2)]"
-    return (data.mean(), data.std(), label,
-            {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)})
-
-def fDsqrtmD_m3(ed, options):
-    fdata = ed.fD(heavy="m3")
-    mdata = ed.get_mass("heavy-ud", heavy="m3")
-
-    data = fdata*np.sqrt(mdata)
-
-    label = "$f^{m3}_{hl}\, \sqrt{m^{m3}_{hl}}$"
-
-    if options.scale:
-        label += " [MeV^(3/2)]"
-    return (data.mean(), data.std(), label,
-            {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)})
-
-def fDsqrtmD_m4(ed, options):
-    fdata = ed.fD(heavy="m4")
-    mdata = ed.get_mass("heavy-ud", heavy="m4")
-
-    data = fdata*np.sqrt(mdata)
-
-    label = "$f^{m4}_{hl}\, \sqrt{m^{m4}_{hl}}$"
-
-    if options.scale:
-        label += " [MeV^(3/2)]"
-    return (data.mean(), data.std(), label,
-            {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)})
-
-def fDsqrtmD_m5(ed, options):
-    fdata = ed.fD(heavy="m5")
-    mdata = ed.get_mass("heavy-ud", heavy="m5")
-
-    data = fdata*np.sqrt(mdata)
-
-    label = "$f^{m5}_{hl}\, \sqrt{m^{m5}_{hl}}$"
-
-    if options.scale:
-        label += " [MeV^(3/2)]"
-    return plot_data(data.mean(), data.std(), label,
-                     {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)})
 
 def fDsqrtmD_ratio(ed, options):
     fdata = ed.fhl()
