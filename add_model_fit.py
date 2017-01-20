@@ -14,6 +14,7 @@ import numpy as np
 import re
 
 from residualmasses import residual_mass
+from physical_values import hbar_c
 
 from plot_helpers import print_paren_error
 
@@ -65,17 +66,48 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
     means = df.mean()
     params = [means[i] for i in m.contlim_args]
 
+
     logging.info("plotting line with params {}".format(params))
     y = m.m(x, *params)
-    p = axe.plot(x,y)
+    plot_handles = axe.plot(x,y, color='k', lw=2, label=m.label)
 
     ys = []
+    modelpoints = []
     for i,row in df.iterrows():
         p = [row[n] for n in m.contlim_args]
         ys.append(m.m(x,*p))
+        if options.model_fit_point:
+            modelpoints.append(m.m(options.model_fit_point,*p))
 
     ponesigma = np.percentile(ys, 84.1, axis=0)
     monesigma = np.percentile(ys, 15.9, axis=0)
-    axe.fill_between(x, ponesigma, monesigma, alpha=0.1)
+    # axe.fill_between(x, ponesigma, monesigma, alpha=0.1, color="k")
 
-    return p
+
+    if options.model_fit_point:
+        point_x = options.model_fit_point
+        point_y = m.m(point_x, *params)
+        py_upper = np.percentile(modelpoints, 84.1, axis=0) - point_y
+        py_lower = point_y- np.percentile(modelpoints, 15.9, axis=0)
+
+        logging.info("At model point specified, value is {} + {} - {}".format(point_y, py_upper, py_lower))
+        axe.errorbar(point_x,point_y, yerr=[[py_lower],[py_upper]], color='k', ms=15, elinewidth=4, mew=2, capthick=2, capsize=8)
+        # exit(-1)
+
+    try:
+        finite_beta_handles = []
+        scale = {"4.17": 2453.1, "4.35": 3609.7, "4.47": 4496.1}
+        colors = {"4.17":"b", "4.35":"r", "4.47":"m"}
+        for beta in options.model_finite_fits:
+        # for beta in ["4.17"]:
+            a_gev = 1000.0/(scale[beta])
+            m.consts["a"] = a_gev
+            m.consts["lat"] = hbar_c/scale[beta]
+            m.consts["alphas"] = get_alpha(scale[beta])
+            finbeta_params = [means[i] for i in m.finbeta_args]
+            ybeta = m.m(x, *finbeta_params)
+            h = axe.plot(x,ybeta, color=colors[beta], lw=2, label="fit at $\\beta$={}".format(beta))
+            plot_handles.extend(h)
+    except AttributeError as e:
+        logging.warn("This model doesn't support plotting at finite beta")
+    return plot_handles
