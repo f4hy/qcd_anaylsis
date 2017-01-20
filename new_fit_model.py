@@ -1,4 +1,4 @@
-w#!/usr/bin/env python2
+#!/usr/bin/env python2
 import logging
 import numpy as np
 
@@ -17,13 +17,20 @@ class Model(object):
 
         self.eds = ensemble_datas
         self.bstrap_data = {}
-        self.consts = {"a": np.array([ed.ep.a_gev for ed in self.eds])}
+        if len(self.eds) > 1:
+            self.consts = {"a": np.array([ed.ep.a_gev for ed in self.eds]),
+                           "lat": np.array([ed.ep.latspacing for ed in self.eds])}
+        else:
+            self.consts = {"a": 0.0, "lat": 0.0, "alphas": 1.0}
+
         self.data = {}
         self.options = options
 
         self.bootstrap = None
 
         self.params = {}
+
+        self.label = ""
 
         logging.info("Data read")
 
@@ -32,12 +39,14 @@ class Model(object):
 
         def choose_fun(ed):
             d = dict(inspect.getmembers(ed, inspect.ismethod))
+
             return d[fun_name]
 
         ls = []
         added = []
         must_be_removed = []
         for ed in self.eds:
+            logging.debug("searching {}".format(ed))
             try:
                 data = choose_fun(ed)(**args)
                 ls.append(data)
@@ -319,3 +328,300 @@ class linear_fhssqrtmhs_hqet_a_m4(linear_fhssqrtmhs_a):
 class linear_fhssqrtmhs_hqet_a_m5(linear_fhssqrtmhs_a):
     def __init__(self, ensemble_datas, options):
         linear_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m5", hqet=True)
+
+
+class linear_fD_mpi(Model):
+
+    def __init__(self, ensemble_datas, options, heavy="m0", hqet=False):
+
+        Model.__init__(self, ensemble_datas, options)
+        self.data["fhl"] = self.make_array("fD", heavy=heavy, div=hqet)
+        self.data["mhl"] = self.make_array("D_mass", heavy=heavy, div=hqet)
+        self.data["mpi"] = self.make_array("pion_mass")
+        self.data["mK"] = self.make_array("kaon_mass")
+
+        self.label = "Linear continuum fit"
+
+        logging.info(self.bstrapdata("fhl") * np.sqrt(self.bstrapdata("mhl")))
+        self.update_paramdict("FDphys", 200.0, 1.0)
+        self.update_paramdict("b", 0.1, 0.1)
+        self.update_paramdict("gamma_1", -4.0, 0.1)
+        self.update_paramdict("gamma_s1", 0.01, 0.1)
+        self.contlim_args = ["FDphys", "b"]
+        self.finbeta_args = ["FDphys", "b", "gamma_1"]
+
+    def m(self, x, FDphys, b, gamma_1=0.0, gamma_s1=0.0):
+        delta_mpisqr = (x) - (pv.phys_pion**2)
+        Mss = (2.0 * self.bstrapdata("mK")**2 - x)
+        phys_Mss = (2.0 * (pv.phys_kaon**2)) - (pv.phys_pion**2)
+        delta_Mss = Mss - phys_Mss
+
+        asqr = (self.consts["a"]**2)
+        linear = FDphys * (1.0 + b * delta_mpisqr)
+        deltas = (1.0 + gamma_1 * asqr + gamma_s1 * delta_Mss)
+        M = deltas * linear
+        return M
+
+    def sqr_diff(self, FDphys, b, gamma_1, gamma_s1):
+
+        x = self.bstrapdata("mpi")**2
+        M = self.m(x, FDphys, b, gamma_1, gamma_s1)
+        data = self.bstrapdata("fhl")
+        var = (self.data["fhl"]).var(1)
+        sqr_diff = (data - M)**2
+        return np.sum(sqr_diff / var)
+
+
+class linear_fDs_mpi(Model):
+
+    def __init__(self, ensemble_datas, options, heavy="m0", hqet=False):
+
+        Model.__init__(self, ensemble_datas, options)
+        self.data["fhs"] = self.make_array("fDs", heavy=heavy, div=hqet)
+        self.data["mhs"] = self.make_array("Ds_mass", heavy=heavy, div=hqet)
+        self.data["mpi"] = self.make_array("pion_mass")
+        self.data["mK"] = self.make_array("kaon_mass")
+
+        self.label = "Linear continuum fit"
+
+        self.update_paramdict("FDsphys", 200.0, 20.0)
+        self.update_paramdict("b", 0.0, 0.1)
+        self.update_paramdict("gamma_1", 0.0, 0.01)
+        self.update_paramdict("gamma_s1", 0.0, 0.01)
+        self.contlim_args = ["FDsphys", "b"]
+        self.finbeta_args = ["FDsphys", "b", "gamma_1"]
+
+    def m(self, x, FDsphys, b, gamma_1=0.0, gamma_s1=0.0):
+        delta_mpisqr = (x) - (pv.phys_pion**2)
+        Mss = (2.0*self.bstrapdata("mK")**2 - x)
+        phys_Mss = (2.0*(pv.phys_kaon**2)) - (pv.phys_pion**2)
+        delta_Mss = Mss - phys_Mss
+        asqr = (self.consts["a"]**2)
+        linear = FDsphys*(1.0+b*delta_mpisqr)
+        deltas = (1.0 + gamma_1 * asqr + gamma_s1 * delta_Mss)
+        M =  deltas*linear
+        return M
+
+    def sqr_diff(self, FDsphys, b, gamma_1, gamma_s1):
+
+        x = self.bstrapdata("mpi")**2
+        M = self.m(x, FDsphys, b, gamma_1, gamma_s1)
+        data = self.bstrapdata("fhs")
+        var = (self.data["fhs"]).var(1)
+        sqr_diff = (data - M)**2
+        return np.sum(sqr_diff / var)
+
+class fdsqrtm_chiral_dmss(Model):
+
+    def __init__(self, ensemble_datas, options, hqet=False):
+
+        Model.__init__(self, ensemble_datas, options)
+        self.data["fhs"] = self.make_array("fhl", div=hqet)
+        self.data["mhl"] = self.make_array("get_mass", flavor="heavy-ud", div=hqet)
+        self.data["mpi"] = self.make_array("pion_mass")
+        self.data["mK"] = self.make_array("kaon_mass")
+
+        self.label = "Continuum fit"
+
+        self.update_paramdict("C1", -100.0, 20.0)
+        self.update_paramdict("C2", 100000.0, 10000.0)
+        self.update_paramdict("gamma", 0.0, 0.01)
+        self.update_paramdict("eta", 0.0, 0.01)
+        self.update_paramdict("mu", 0.0, 0.01)
+        self.update_paramdict("b", 0.0, 0.01)
+        self.update_paramdict("delta_S", 0.0, 0.01)
+        self.update_paramdict("Fsqrtm_inf", 0.0, 0.01)
+
+        self.contlim_args = ["Fsqrtm_inf", "C1", "C2"]
+        self.finbeta_args = ["Fsqrtm_inf", "C1", "C2", "mu", "eta", "gamma"]
+
+
+    def m(self, x, Fsqrtm_inf, C1, C2, mu=0, eta=0, gamma=0,   b=0, delta_S=0):
+        x = x
+        delta_mpisqr = self.bstrapdata("mpi") - (pv.phys_pion**2)
+        Mss = (2.0*self.bstrapdata("mK")**2 - self.bstrapdata("mpi"))
+        phys_Mss = (2.0*(pv.phys_kaon**2)) - (pv.phys_pion**2)
+
+        delta_mpisqr = (self.bstrapdata("mpi")**2) - (pv.phys_pion**2)
+
+        delta_Mss = Mss - phys_Mss
+        asqr = (self.consts["a"]**2)
+        asqr = (self.consts["lat"]**2)
+        deltas = (1.0  + delta_S * delta_Mss +  b* delta_mpisqr + mu * asqr + eta*asqr/x + gamma*(asqr)/(x**2) )
+        # deltas = 1
+        poly = Fsqrtm_inf * (1.0 + C1 * x + C2 * x**2 )
+        M =  deltas*poly
+        return M
+
+    def sqr_diff(self, FDsphys, b, gamma_1, gamma_s1):
+
+        x = self.bstrapdata("mpi")**2
+        M = self.m(x, FDsphys, b, gamma_1, gamma_s1)
+        data = self.bstrapdata("fhl")
+        var = (self.data["fhl"]).var(1)
+        sqr_diff = (data - M)**2
+        return np.sum(sqr_diff / var)
+
+fdsqrtm_chiral_dmss_HQET = fdsqrtm_chiral_dmss
+fdsqrtm_HQET_matched = fdsqrtm_chiral_dmss
+
+class fdsqrtm_HQET_matched_alphas(Model):
+
+    def __init__(self, ensemble_datas, options, hqet=False):
+
+        Model.__init__(self, ensemble_datas, options)
+        self.data["fhs"] = self.make_array("fhl", div=hqet)
+        self.data["mhl"] = self.make_array("get_mass", flavor="heavy-ud", div=hqet)
+        self.data["mpi"] = self.make_array("pion_mass")
+        self.data["mK"] = self.make_array("kaon_mass")
+
+        self.label = "Continuum fit"
+
+        self.update_paramdict("C1", -100.0, 20.0)
+        self.update_paramdict("C2", 100000.0, 10000.0)
+        self.update_paramdict("gamma", 0.0, 0.01)
+        self.update_paramdict("eta", 0.0, 0.01)
+        self.update_paramdict("mu", 0.0, 0.01)
+        self.update_paramdict("b", 0.0, 0.01)
+        self.update_paramdict("delta_S", 0.0, 0.01)
+        self.update_paramdict("Fsqrtm_inf", 0.0, 0.01)
+
+        self.contlim_args = ["Fsqrtm_inf", "C1", "C2"]
+        self.finbeta_args = ["Fsqrtm_inf", "C1", "C2", "mu", "eta", "gamma"]
+
+
+    def m(self, x, Fsqrtm_inf, C1, C2, mu=0, eta=0, gamma=0,   b=0, delta_S=0):
+        x = x
+        delta_mpisqr = self.bstrapdata("mpi") - (pv.phys_pion**2)
+        Mss = (2.0*self.bstrapdata("mK")**2 - self.bstrapdata("mpi"))
+        phys_Mss = (2.0*(pv.phys_kaon**2)) - (pv.phys_pion**2)
+
+        delta_mpisqr = (self.bstrapdata("mpi")**2) - (pv.phys_pion**2)
+
+        delta_Mss = Mss - phys_Mss
+        asqr = (self.consts["a"]**2)
+        asqr = (self.consts["lat"]**2)
+        alphas = self.consts["alphas"]
+        deltas = (1.0  + delta_S * delta_Mss +  b* delta_mpisqr + mu * asqr + eta*asqr/x + gamma*alphas*(asqr)/(x**2) )
+        # deltas = 1
+        poly = Fsqrtm_inf * (1.0 + C1 * x + C2 * x**2 )
+        M =  deltas*poly
+        return M
+
+    def sqr_diff(self, FDsphys, b, gamma_1, gamma_s1):
+
+        x = self.bstrapdata("mpi")**2
+        M = self.m(x, FDsphys, b, gamma_1, gamma_s1)
+        data = self.bstrapdata("fhl")
+        var = (self.data["fhl"]).var(1)
+        sqr_diff = (data - M)**2
+        return np.sum(sqr_diff / var)
+
+
+class fdssqrtms_chiral_dmss(Model):
+
+    def __init__(self, ensemble_datas, options, hqet=False):
+
+        Model.__init__(self, ensemble_datas, options)
+        self.data["fhs"] = self.make_array("fhs", div=hqet)
+        self.data["mhs"] = self.make_array("get_mass", flavor="heavy-s", div=hqet)
+        self.data["mpi"] = self.make_array("pion_mass")
+        self.data["mK"] = self.make_array("kaon_mass")
+
+        self.label = "Continuum fit"
+
+        self.update_paramdict("C1", -100.0, 20.0)
+        self.update_paramdict("C2", 100000.0, 10000.0)
+        self.update_paramdict("gamma", 0.0, 0.01)
+        self.update_paramdict("eta", 0.0, 0.01)
+        self.update_paramdict("mu", 0.0, 0.01)
+        self.update_paramdict("b", 0.0, 0.01)
+        self.update_paramdict("delta_S", 0.0, 0.01)
+        self.update_paramdict("Fssqrtms_inf", 0.0, 0.01)
+
+        self.contlim_args = ["Fssqrtms_inf", "C1", "C2"]
+        self.finbeta_args = ["Fssqrtms_inf", "C1", "C2", "mu", "eta", "gamma"]
+
+
+    def m(self, x, Fssqrtms_inf, C1, C2, mu=0, eta=0, gamma=0,   b=0, delta_S=0):
+        x = x
+        delta_mpisqr = self.bstrapdata("mpi") - (pv.phys_pion**2)
+        Mss = (2.0*self.bstrapdata("mK")**2 - self.bstrapdata("mpi"))
+        phys_Mss = (2.0*(pv.phys_kaon**2)) - (pv.phys_pion**2)
+
+        delta_mpisqr = (self.bstrapdata("mpi")**2) - (pv.phys_pion**2)
+
+        delta_Mss = Mss - phys_Mss
+        asqr = (self.consts["a"]**2)
+        asqr = (self.consts["lat"]**2)
+        deltas = (1.0  + delta_S * delta_Mss +  b* delta_mpisqr + mu * asqr + eta*asqr/x + gamma*(asqr)/(x**2) )
+        # deltas = 1
+        poly = Fssqrtms_inf * (1.0 + C1 * x + C2 * x**2 )
+        M =  deltas*poly
+        return M
+
+    def sqr_diff(self, FDsphys, b, gamma_1, gamma_s1):
+
+        x = self.bstrapdata("mpi")**2
+        M = self.m(x, FDsphys, b, gamma_1, gamma_s1)
+        data = self.bstrapdata("fhs")
+        var = (self.data["fhs"]).var(1)
+        sqr_diff = (data - M)**2
+        return np.sum(sqr_diff / var)
+
+
+fdssqrtms_HQET_matched = fdssqrtms_chiral_dmss
+fdssqrtms_HQET_matched_alphas = fdssqrtms_chiral_dmss
+
+
+class fdssqrtms_HQET_matched_alphas(Model):
+
+    def __init__(self, ensemble_datas, options, hqet=False):
+
+        Model.__init__(self, ensemble_datas, options)
+        self.data["fhs"] = self.make_array("fhs", div=hqet)
+        self.data["mhs"] = self.make_array("get_mass", flavor="heavy-s", div=hqet)
+        self.data["mpi"] = self.make_array("pion_mass")
+        self.data["mK"] = self.make_array("kaon_mass")
+
+        self.label = "Continuum fit"
+
+        self.update_paramdict("C1", -100.0, 20.0)
+        self.update_paramdict("C2", 100000.0, 10000.0)
+        self.update_paramdict("gamma", 0.0, 0.01)
+        self.update_paramdict("eta", 0.0, 0.01)
+        self.update_paramdict("mu", 0.0, 0.01)
+        self.update_paramdict("b", 0.0, 0.01)
+        self.update_paramdict("delta_S", 0.0, 0.01)
+        self.update_paramdict("Fssqrtms_inf", 0.0, 0.01)
+
+        self.contlim_args = ["Fssqrtms_inf", "C1", "C2"]
+        self.finbeta_args = ["Fssqrtms_inf", "C1", "C2", "mu", "eta", "gamma"]
+
+
+    def m(self, x, Fssqrtms_inf, C1, C2, mu=0, eta=0, gamma=0,   b=0, delta_S=0):
+        x = x
+        delta_mpisqr = self.bstrapdata("mpi") - (pv.phys_pion**2)
+        Mss = (2.0*self.bstrapdata("mK")**2 - self.bstrapdata("mpi"))
+        phys_Mss = (2.0*(pv.phys_kaon**2)) - (pv.phys_pion**2)
+
+        delta_mpisqr = (self.bstrapdata("mpi")**2) - (pv.phys_pion**2)
+
+        delta_Mss = Mss - phys_Mss
+        asqr = (self.consts["a"]**2)
+        asqr = (self.consts["lat"]**2)
+        alphas = self.consts["alphas"]
+        deltas = (1.0  + delta_S * delta_Mss +  b* delta_mpisqr + mu * asqr + eta*asqr/x + gamma*alphas*(asqr)/(x**2) )
+        # deltas = 1
+        poly = Fssqrtms_inf * (1.0 + C1 * x + C2 * x**2 )
+        M =  deltas*poly
+        return M
+
+    def sqr_diff(self, FDsphys, b, gamma_1, gamma_s1):
+
+        x = self.bstrapdata("mpi")**2
+        M = self.m(x, FDsphys, b, gamma_1, gamma_s1)
+        data = self.bstrapdata("fhs")
+        var = (self.data["fhs"]).var(1)
+        sqr_diff = (data - M)**2
+        return np.sum(sqr_diff / var)
