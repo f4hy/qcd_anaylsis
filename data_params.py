@@ -133,6 +133,9 @@ class ensemble_params(object):
         if self.beta == "4.47":
             self.heavies = {"m0": 0.210476, "m1": 0.263095, "m2": 0.328869, "m3": 0.4110859, "m4": 0.5138574, "m5": 0.642}
 
+
+        self.m12s = { k: get_heavy_m1_m2(m) for k,m  in self.heavies.iteritems()}
+
     def __repr__(self):
         rstr = "{}_{}_{}_{}_{}".format(self.ename, self.beta, self.latsize, self.ud_mass, self.s_mass)
         return rstr

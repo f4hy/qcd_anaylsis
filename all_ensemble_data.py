@@ -259,7 +259,7 @@ class ensemble_data(object):
 
         data = self.scale * data
         if args.get("matched", False):
-            mq1 = self.scale * self.dp.heavyq_mass / self.dp.Zs
+            mq1 = self.scale * d.dp.heavyq_mass / self.ep.Zs
             C1 = get_Cmu_mbar(mq1)
             data = data / C1
 
@@ -331,12 +331,15 @@ class ensemble_data(object):
         ampdata = (d.amp1**2 / d.amp2) / ampfactor
         data = (q1 + q2) * np.sqrt(2 * (ampdata) / d.mass**3)
 
+        print args
         data = self.scale * data
         if args.get("matched", False):
-            mq1 = self.scale * self.dp.heavyq_mass / self.dp.Zs
+            mq1 = self.scale * d.dp.heavyq_mass / self.ep.Zs
             C1 = get_Cmu_mbar(mq1)
+            print "C1", C1
             data = data / C1
 
+        print args
         return data
 
     def fDsA(self, **args):

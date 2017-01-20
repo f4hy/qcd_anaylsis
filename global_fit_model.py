@@ -4,7 +4,7 @@ import numpy as np
 
 from residualmasses import residual_mass, residual_mass_errors
 
-from data_params import data_params, read_fit_mass, scale, phys_pion, phys_kaon, phys_Fpi
+from physical_values import phys_pion, phys_kaon, phys_Fpi
 from data_params import Zs, Zv
 from physical_values import phys_pionplus
 
