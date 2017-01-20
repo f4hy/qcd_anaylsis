@@ -167,6 +167,9 @@ def plot_ensemble_data(options):
                 logging.warn("for {} data is missing data {} {}".format(es.ep, options.xdata, yd))
                 continue
 
+            if options.mhcut:
+                ydata = {k:v for k,v in ydata.iteritems() if es.ep.heavies[k] < options.mhcut}
+
             if isinstance(xdata, plot_data) and isinstance(ydata, plot_data):
                 plotdata = [(xdata, ydata)]
             elif isinstance(xdata, plot_data):
@@ -199,12 +202,10 @@ def plot_ensemble_data(options):
 
                 alpha = 1.0
                 if "32x64" in repr(es.ep) and es.ep.ud_mass < 0.004:
-                    alpha = 0.6
+                    alpha = 0.0
                     color = "#9999FF"
                     #continue
 
-                if options.mhcut and p.heavyq_mass > options.mhcut:
-                    alpha = 0.2
 
                 plotsettings = dict(linestyle="none", c=color, marker=mark,
                                     label=label, ms=15, elinewidth=4,
@@ -339,9 +340,11 @@ def plot_ensemble_data(options):
                 legend_handles.extend(fit_lines)
 
     if options.model_fit_file:
+        print options.model_fit_file
         for i in options.model_fit_file:
-            add_model_fit(axe, xran, i, options)
-
+            fithandles = add_model_fit(axe, xran, i, options)
+            if options.legendfits:
+                legend_handles.extend(fithandles)
 
     if options.boot_fit_file:
         #del legend_handles[:]
@@ -374,8 +377,20 @@ def plot_ensemble_data(options):
             axe.set_ylabel("{}".format(options.ylabel), labelpad=10, **fontsettings)
     else:
         axe.set_ylabel("{}".format(ylabel), labelpad=10, **fontsettings)
+        if "MeV^(3/2)" in ylabel:
+            import matplotlib.ticker as ticker
+            ticks = ticker.FuncFormatter(lambda x, pos: '{0:.6g}'.format(x/(1000**(3.0/2.0))))
+            start, end = axe.get_ylim()
+            first,second = axe.yaxis.get_ticklocs()[0:2]
+            bot = np.floor(10*start/(1000**(3.0/2.0)))/10*(1000**(3.0/2.0))
+            top = np.ceil(100*end/(1000**(3.0/2.0)))/100*(1000**(3.0/2.0))
+            axe.yaxis.set_ticks(np.arange(bot, top, (0.1*1000**(3.0/2.0) ) ))
+            axe.yaxis.set_major_formatter(ticks)
+            axe.set_ylabel(ylabel.replace("MeV^(3/2)","GeV^(3/2)"), **fontsettings)
+            plt.ylim(bot, top)
 
-    axe.tick_params(axis='both', which='major', labelsize=30)
+
+    axe.tick_params(axis='both', which='major', labelsize=35)
 
     if options.title:
         fig.suptitle(options.title.replace("_", " "), **fontsettings)
@@ -396,7 +411,7 @@ def plot_ensemble_data(options):
             for i in summary_lines:
                 summaryfile.write(i)
 
-        width = 20.0
+        width = 17.0
         fig.set_size_inches(width, width*options.aspect)
         fig.tight_layout()
         #fig.set_size_inches(28.5, 20.5)
@@ -498,6 +513,10 @@ if __name__ == "__main__":
                         action='append', help="add bootstrap fit lines")
     parser.add_argument("--model_fit_file", type=argparse.FileType('r'), required=False,
                         action='append', help="add bootstrap fit lines")
+    parser.add_argument("--model_fit_point", required=False, default=None, type=float,
+                        help="add a point on the model fit")
+    parser.add_argument("--model_finite_fits", type=str, required=False, default=["4.17"],
+                        action='append', help="add fit lines for finite beta")
     parser.add_argument("--mpisqrbymq", action="store_true",
                         help="compute mpisqr divided by mq, strange edge case")
     parser.add_argument("--ydata", required=False, type=str, action='append',
