@@ -126,3 +126,20 @@ def fDsqrtmD_ratio_div(ed, options):
     #     label += " [MeV^(3/2)]"
     phys =  {"HQL": 1.0}
     return {m: (d.mean(), d.std(), label, phys) for m,d in ratiodata.iteritems()}
+
+def fhlsqrtmhl_hqet(ed, options):
+    fdata = ed.fhl(div=True, matched=True)
+    mdata = ed.get_mass("heavy-ud", div=True)
+
+    data = {}
+    for m in fdata:
+        mkey = [k for k in mdata if m in k][0]
+        data[m] = fdata[m]*np.sqrt(mdata[mkey])
+
+    label = "$\hat{f}_{hl}\, \sqrt{\hat{m}_{hl}} / C(\mu)$"
+
+    if ed.scale != 1.0:
+        label += " [MeV^(3/2)]"
+
+    phys = {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
+    return {m: (d.mean(), d.std(), label, phys ) for m,d in data.iteritems()}

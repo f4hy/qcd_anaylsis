@@ -78,15 +78,14 @@ def fDssqrtmDs_hqet_m5(ed, options):
     return fDssqrtmDs_hqet(ed, options, heavy="m5")
 
 def fhssqrtmhs_hqet(ed, options):
-    fdata = ed.fhs(div=True)
+    fdata = ed.fhs(div=True, matched=True)
     mdata = ed.get_mass("heavy-s", div=True)
-
     data = {}
     for m in fdata:
         mkey = [k for k in mdata if m in k][0]
         data[m] = fdata[m]*np.sqrt(mdata[mkey])
 
-    label = "$\hat{f}_{hs}\, \sqrt{\hat{m}_{hs}}$"
+    label = "$\hat{f}_{hs}\, \sqrt{\hat{m}_{hs}} / C(\mu)$"
 
     if ed.scale != 1.0:
         label += " [MeV^(3/2)]"
