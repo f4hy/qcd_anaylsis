@@ -6,6 +6,8 @@ from residualmasses import residual_mass, residual_mass_errors
 
 from physical_values import hbar_c
 
+from collections import OrderedDict
+
 flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "heavy-s": "Hs", "heavy-heavy": "HH", "KPratio": "KPratio", "2k-pi": "2m_K-m_\pi", "Omega": "\Omega", 't0': 't_0', 'w0': "w_0", "fds_fd_ratio": "fds/fd" , "fk_fpi_ratio": "fk/fpi"}
 
 scale = {"4.17": 2453.1, "4.35": 3609.7, "4.47": 4496.1}
@@ -123,16 +125,16 @@ class ensemble_params(object):
         self.Zv = Zv.get(self.beta, 0.0)
         self.Zs = Zs.get(self.beta, 0.0)
 
-        self.heavies = {}
+        self.heavies = OrderedDict()
         if self.beta == "4.17":
-            self.heavies = {"m0": 0.44037, "m1": 0.55046, "m2": 0.68808, "m3": 0.86001}
+            self.heavies = OrderedDict((("m0", 0.44037), ("m1", 0.55046), ("m2", 0.68808), ("m3", 0.86001)))
 
         if self.beta == "4.35":
-            self.heavies = {"m0": 0.27287, "m1": 0.34109, "m2": 0.42636, "m3": 0.53295, "m4": 0.66619, "m5": 0.83273}
-
+            self.heavies = OrderedDict((("m0", 0.27287), ("m1", 0.34109), ("m2", 0.42636), ("m3", 0.53295),
+                                       ("m4", 0.66619), ("m5", 0.83273)))
         if self.beta == "4.47":
-            self.heavies = {"m0": 0.210476, "m1": 0.263095, "m2": 0.328869, "m3": 0.4110859, "m4": 0.5138574, "m5": 0.642}
-
+            self.heavies = OrderedDict((("m0", 0.210476), ("m1", 0.263095), ("m2", 0.328869), ("m3", 0.4110859),
+                                       ("m4", 0.5138574), ("m5", 0.642) ))
 
         self.m12s = { k: get_heavy_m1_m2(m) for k,m  in self.heavies.iteritems()}
 

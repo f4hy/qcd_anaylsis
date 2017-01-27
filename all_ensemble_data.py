@@ -11,6 +11,9 @@ from alpha_s import get_Cmu_mbar
 
 from pickle_ensemble_data import read_pickle
 
+from collections import OrderedDict
+
+
 # FITTYPE="singlecorrelated"
 FITTYPE = "uncorrelated"
 # FITTYPE="fullcorrelated"
@@ -116,14 +119,14 @@ class ensemble_data(object):
             raise MissingData()
         else:
             logging.error("selected more than one data value")
-            return {k: self.data[k] for k in selected}
+            return OrderedDict([(k, self.data[k]) for k in sorted(selected)])
 
     def get_mass(self, flavor, **args):
         data = self.select_data(flavor, **args)
         if isinstance(data, bootstrap_data):
             return self.scale * data.mass
         else:
-            mass_data = {k: self.scale * v.mass for k, v in data.iteritems()}
+            mass_data = OrderedDict([(k, self.scale * v.mass) for k, v in data.iteritems()])
             return mass_data
 
     def get_amps(self, flavor, **args):
@@ -131,7 +134,7 @@ class ensemble_data(object):
         if isinstance(data, bootstrap_data):
             return data.amp1, data.amp2
         else:
-            amp_data = {k: (v.amp1, v.amp2) for k, v in data.iteritems()}
+            amp_data = OrderedDict([(k, (v.amp1, v.amp2)) for k, v in data.iteritems()])
             return amp_data
 
     def pion_mass(self):
@@ -155,7 +158,7 @@ class ensemble_data(object):
 
     def hl_mass_ratio(self, corrected=False, **args):
 
-        ratios = {}
+        ratios = OrderedDict()
         hl_data = self.select_data("heavy-ud", **args)
         for i in range(len(hl_data) - 1):
             num = "m{}".format(i + 1)
@@ -172,7 +175,7 @@ class ensemble_data(object):
 
     def hs_mass_ratio(self, corrected=False, **args):
 
-        ratios = {}
+        ratios = OrderedDict()
         hs_data = self.select_data("heavy-s", **args)
         for i in range(len(hs_data) - 1):
             num = "m{}".format(i + 1)
@@ -296,7 +299,7 @@ class ensemble_data(object):
 
     def fhl(self, **args):
         N = len(self.select_data("heavy-ud"))
-        data = {}
+        data = OrderedDict()
         for i in range(N):
             m = "m{}".format(i)
             args["heavy"] = m
@@ -373,7 +376,7 @@ class ensemble_data(object):
 
     def fhs(self, **args):
         N = len(self.select_data("heavy-s"))
-        data = {}
+        data = OrderedDict()
         for i in range(N):
             m = "m{}".format(i)
             args["heavy"] = m

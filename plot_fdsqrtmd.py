@@ -5,6 +5,9 @@ from physical_values import phys_eta, phys_etac, phys_etab, phys_FK, phys_mhq, p
 
 import numpy as np
 
+from collections import OrderedDict
+
+
 def fDsqrtmD(ed, options, heavy="m0"):
     fdata = ed.fD(heavy=heavy)
     mdata = ed.get_mass("heavy-ud", heavy=heavy)
@@ -36,7 +39,7 @@ def fhlsqrtmhl(ed, options):
     fdata = ed.fhl()
     mdata = ed.get_mass("heavy-ud")
 
-    data = {}
+    data = OrderedDict()
     for m in fdata:
         mkey = [k for k in mdata if m in k][0]
         data[m] = fdata[m]*np.sqrt(mdata[mkey])
@@ -55,12 +58,12 @@ def fDsqrtmD_ratio(ed, options):
     fdata = ed.fhl()
     mdata = ed.get_mass("heavy-ud")
 
-    data = {}
+    data = OrderedDict()
     for m in fdata:
         mkey = next(k for k in mdata if m in k)
         data[m] = fdata[m]*np.sqrt(mdata[mkey])
 
-    ratiodata = {}
+    ratiodata = OrderedDict()
     for i in range(1, len(fdata)):
         m = "m{}".format(i)
         mm = "m{}".format(i-1)
@@ -76,12 +79,12 @@ def fDsqrtmD_ratio_div(ed, options):
     fdata = ed.fhl(div=True)
     mdata = ed.get_mass("heavy-ud",div=True)
 
-    data = {}
+    data = OrderedDict()
     for m in fdata:
         mkey = [k for k in mdata if m in k][0]
         data[m] = fdata[m]*np.sqrt(mdata[mkey])
 
-    ratiodata = {}
+    ratiodata = OrderedDict()
     for i in range(1, len(fdata)):
         m = "m{}".format(i)
         mm = "m{}".format(i-1)
@@ -97,7 +100,7 @@ def fhlsqrtmhl_hqet(ed, options):
     fdata = ed.fhl(div=True, matched=True)
     mdata = ed.get_mass("heavy-ud", div=True)
 
-    data = {}
+    data = OrderedDict()
     for m in fdata:
         mkey = [k for k in mdata if m in k][0]
         data[m] = fdata[m]*np.sqrt(mdata[mkey])
