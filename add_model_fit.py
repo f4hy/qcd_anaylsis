@@ -61,7 +61,7 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
     df = pd.read_csv(boot_fit_file, sep=",", delimiter=",", names=columns)
 
     model = dict(inspect.getmembers(new_fit_model,inspect.isclass))[name]
-    m = model([], {})
+    m = model([], options)
     x = np.linspace(xran[0], xran[1], num=100)
     means = df.mean()
     params = [means[i] for i in m.contlim_args]
@@ -100,6 +100,7 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
         colors = {"4.17":"b", "4.35":"r", "4.47":"m"}
         for beta in options.model_finite_fits:
         # for beta in ["4.17"]:
+            logging.info("adding {}".format(beta))
             a_gev = 1000.0/(scale[beta])
             m.consts["a"] = a_gev
             m.consts["lat"] = hbar_c/scale[beta]

@@ -34,23 +34,26 @@ def interpolate(data, model_str, options):
     ARGS = inspect.getargspec(model_fun).args[1:]
     logging.info("Params {}".format(params))
 
+    bootstraps = [d.shape[1] for d in model_obj.data.values()]
+    assert(all_equal(bootstraps))
+    N = bootstraps[0]
+    datapoints = [d.shape[0] for d in model_obj.data.values()]
+    assert(all_equal(datapoints))
+    ndata = datapoints[0]
+
+
     fixed_parms = [p for p in params if "fix" in p and params[p]]
     Nfree_params = len(ARGS) - len(fixed_parms)
     if model_str.startswith("combined"):
-        dof = float(len(data) * 2 - Nfree_params)
+        dof = float(ndata * 2 - Nfree_params)
     else:
-        dof = float(len(data) - Nfree_params)
-    # if "all" in model_str:
-    #     dof = dof + 4
+        dof = float(ndata - Nfree_params)
 
     logging.info("DOF {}, data {}, free {}".format(dof, len(data), Nfree_params))
 
     if dof < 1.0:
         raise RuntimeError("dof < 1")
 
-    bootstraps = [d.shape[1] for d in model_obj.data.values()]
-    assert(all_equal(bootstraps))
-    N = bootstraps[0]
 
     logging.info("fitting mean")
     model_obj.boostrap = "mean"
@@ -157,7 +160,9 @@ def global_fit(options):
         try:
             ed = ensemble_data(es)
             ensembles.append(ed)
-        except:
+        except Exception as e:
+            print "EXCPETOIN", e
+            raise e
             raise argparse.ArgumentTypeError("Argument {} does not have valid ensemble data".format(es))
 
     mean_fit_parameters, bootstrap_fit_parameters, boot_fval = interpolate(ensembles, options.model, options)
@@ -183,7 +188,7 @@ if __name__ == "__main__":
                         help="folder for fitdata when needed")
     parser.add_argument("--cutoff", required=False, type=float,
                         help="cutoff value")
-    parser.add_argument("--hqm_cutoff", required=False, type=float,
+    parser.add_argument("--hqm_cutoff", required=False, type=float, default=100000.0,
                         help="cutoff value")
     parser.add_argument("-m", "--model", required=False, type=str, default="linear_FD_in_mpi",
                         help="which model to use")
