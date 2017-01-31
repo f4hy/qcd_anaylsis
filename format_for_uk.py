@@ -124,7 +124,7 @@ if __name__ == "__main__":
 
     obs["metac0"] = ("HH_mass", "simul_fixed_fit_uncorrelated_heavy-ud/simul_fit_uncorrelated_m0_heavy-ud_0_1-1_1_PP.boot")
     obs["metac1"] = ("HH_mass", "simul_fixed_fit_uncorrelated_heavy-ud/simul_fit_uncorrelated_m1_heavy-ud_0_1-1_1_PP.boot")
-    obs["metac2"] = ("HH_mass", "simul_fixed_fit_uncorrelated_heavy-ud/simul_fit_uncorrelated_m1_heavy-ud_0_1-1_1_PP.boot")
+    obs["metac2"] = ("HH_mass", "simul_fixed_fit_uncorrelated_heavy-ud/simul_fit_uncorrelated_m2_heavy-ud_0_1-1_1_PP.boot")
 
     for fname, d in obs.iteritems():
         fun, files = d
