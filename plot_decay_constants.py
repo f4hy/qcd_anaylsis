@@ -24,7 +24,7 @@ from commonplotlib.auto_key import auto_key
 
 from add_chiral_fits import add_chiral_fit, add_boot_fit
 
-from get_data import get_data
+from plotter1_0.get_data import get_data
 
 from itertools import cycle
 

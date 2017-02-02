@@ -7,7 +7,6 @@ import argparse
 import os
 import glob
 import pandas as pd
-from get_data import get_data
 
 import numpy as np
 
@@ -24,8 +23,6 @@ from ensemble_data import ensemble_data, NoStrangeInterp
 from commonplotlib.auto_key import auto_key
 
 from add_chiral_fits import add_chiral_fit
-
-from get_data import get_data
 
 from itertools import cycle
 

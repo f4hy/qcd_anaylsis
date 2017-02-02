@@ -18,7 +18,7 @@ from ensemble_data import ensemble_data, MissingData
 import inspect
 import collections
 
-from get_data import get_data
+from plotter1_0.get_data import get_data
 
 
 def interpolate_from_global_fit(fitfile, Lambda, outstub):
