@@ -27,8 +27,6 @@ class ensemble_data(object):
                  fit_file_wildcard="SymDW_sHtTanh_b2.0_smr3_*/simul_?????_fit_{0}_*/*.boot".format(FITTYPE),
                  interpstrange=False):
 
-        logging.warn("DEPRICATION WARNING: USING OLD ENESEMBLE_DATA TRY all_ensemble_data")
-
         self.dp = ensamble_info
 
         self.bootstraps = self.dp.bootstraps

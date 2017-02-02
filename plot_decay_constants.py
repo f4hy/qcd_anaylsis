@@ -18,7 +18,7 @@ from physical_values import phys_pion, phys_kaon, phys_mq, phys_Fpi, phys_FD, ph
 from physical_values import phys_eta, phys_etac, phys_FK, phys_mhq
 from data_params import Zs, Zv
 
-from ensemble_data import ensemble_data, NoStrangeInterp
+from ensemble_data1_0.ensemble_data import ensemble_data, NoStrangeInterp
 
 from commonplotlib.auto_key import auto_key
 

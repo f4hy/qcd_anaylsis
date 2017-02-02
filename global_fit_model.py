@@ -8,7 +8,7 @@ from physical_values import phys_pion, phys_kaon, phys_Fpi
 from data_params import Zs, Zv
 from physical_values import phys_pionplus
 
-from ensemble_data import ensemble_data, MissingData
+from ensemble_data1_0.ensemble_data import ensemble_data, MissingData
 
 from msbar_convert import get_matm
 

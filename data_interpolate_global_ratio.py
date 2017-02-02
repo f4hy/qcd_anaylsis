@@ -13,7 +13,7 @@ from data_params import data_params, read_fit_mass, scale, phys_pion, phys_kaon,
 from data_params import Zs, Zv
 from physical_values import phys_pionplus
 
-from ensemble_data import ensemble_data, MissingData
+from ensemble_data1_0.ensemble_data import ensemble_data, MissingData
 
 import inspect
 import collections
