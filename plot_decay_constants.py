@@ -28,8 +28,8 @@ from get_data import get_data
 
 from itertools import cycle
 
-from plot_helpers import add_mc_lines
-from plot_helpers import add_vert_lines
+from commonplotlib.plot_helpers import add_mc_lines
+from commonplotlib.plot_helpers import add_vert_lines
 from plot_uk_data import add_uk_plot_data
 
 def round5(x):

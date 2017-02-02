@@ -14,7 +14,7 @@ from commonplotlib.plot_helpers import add_vert_lines
 
 from add_chiral_fits import add_chiral_fit, add_boot_fit
 from add_model_fit import add_model_fit
-from plot_data import get_data, plot_data
+from plotter2_0.plot_data import get_data, plot_data
 from itertools import cycle, count
 
 from data_params import scale
@@ -276,7 +276,7 @@ def plot_ensemble_data(options):
         px = float(options.adderrpoint[1])
         py = float(options.adderrpoint[2])
         pyerr = float(options.adderrpoint[3])
-        physplot = axe.errorbar(px, py, yerr=pyerr, marker="",
+        physplot = axe.errorbar(px, py, yerr=pyerr, marker="", # noqa
                                 ecolor="k", color="k", label=options.adderrpoint[0],
                                 ms=15, elinewidth=3, capsize=8,
                                 capthick=2, mec='k', mew=3, mfc='k',

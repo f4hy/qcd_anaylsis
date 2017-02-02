@@ -15,7 +15,7 @@ import re
 
 from residualmasses import residual_mass
 
-from plot_helpers import print_paren_error
+from commonplotlib.plot_helpers import print_paren_error
 
 from data_params import flavor_map, scale, data_params, determine_flavor, read_fit_mass
 from data_params import all_same_beta, all_same_heavy, all_same_flavor

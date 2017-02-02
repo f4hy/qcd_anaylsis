@@ -6,7 +6,7 @@ import pandas as pd
 import re
 import matplotlib.pyplot as plt
 from scipy.optimize import leastsq
-import plot_helpers
+import commonplotlib.plot_helpers
 
 from data_params import scale, data_params, read_fit_mass
 from physical_values import phys_pion, phys_kaon

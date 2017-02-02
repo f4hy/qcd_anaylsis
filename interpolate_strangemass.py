@@ -6,7 +6,7 @@ import pandas as pd
 import re
 import matplotlib.pyplot as plt
 from scipy.optimize import leastsq
-import plot_helpers
+import commonplotlib.plot_helpers
 
 from data_params import scale, data_params, read_fit_mass, phys_pion, phys_kaon
 
@@ -108,7 +108,7 @@ def plot_fitline(data, fitline, label):
     color = colors.pop()
 
     for heavymass, mesonmass in data.iteritems():
-        errs = plot_helpers.error(mesonmass.values)
+        errs = commonplotlib.plot_helpers.error(mesonmass.values)
         plt.errorbar(heavymass, mesonmass.mean(), yerr=errs, ms=8, c=color)
         miny = min(miny, mesonmass.mean().values)
         maxy = max(maxy, mesonmass.mean().values)
