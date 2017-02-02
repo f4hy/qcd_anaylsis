@@ -17,7 +17,7 @@ from global_fit_model import Model
 
 from misc import all_equal
 
-import progress_bar
+import commonplotlib.progress_bar
 
 import os
 

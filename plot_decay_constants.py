@@ -20,7 +20,7 @@ from data_params import Zs, Zv
 
 from ensemble_data import ensemble_data, NoStrangeInterp
 
-from auto_key import auto_key
+from commonplotlib.auto_key import auto_key
 
 from add_chiral_fits import add_chiral_fit, add_boot_fit
 
