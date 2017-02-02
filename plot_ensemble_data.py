@@ -21,7 +21,7 @@ from data_params import scale
 
 from plot_uk_data import add_uk_plot_data
 
-from all_ensemble_data import ensemble_data, MissingData, NoStrangeInterp
+from ensemble_data2_0.all_ensemble_data import ensemble_data, MissingData, NoStrangeInterp
 
 
 def round5(x):

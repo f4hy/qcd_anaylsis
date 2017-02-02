@@ -8,7 +8,7 @@ import inspect
 
 from misc import all_equal
 from commonplotlib.progress_bar import progress_bar
-from all_ensemble_data import ensemble_data
+from ensemble_data2_0.all_ensemble_data import ensemble_data
 import global_model2_0.global_fit_model2_0
 
 
