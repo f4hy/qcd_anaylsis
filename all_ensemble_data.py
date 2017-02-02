@@ -1,12 +1,9 @@
 #!/usr/bin/env python2
 import logging
-import pandas as pd
-import re
 import numpy as np
-from data_params import data_params, ensemble_params, bootstrap_data
+from data_params import ensemble_params, bootstrap_data
 
 from residualmasses import residual_mass
-import glob
 from alpha_s import get_Cmu_mbar
 
 from pickle_ensemble_data import read_pickle
@@ -282,7 +279,7 @@ class ensemble_data(object):
             m = d.dp.heavyq_mass + residual_mass(self.dp)
             Q = ((1 + m**2) / (1 - m**2))**2
             W0 = (1 + Q) / 2 - np.sqrt(3 * Q + Q**2) / 2
-            T = 1 - W0
+            T = 1 - W0  # noqa
             heavyfactor = 2.0 / ((1 - m**2) * (1 + np.sqrt(Q / (1 + 4 * W0))))
             ampfactor *= heavyfactor
 
@@ -327,22 +324,19 @@ class ensemble_data(object):
             m = d.dp.heavyq_mass + self.ep.residual_mass
             Q = ((1 + m**2) / (1 - m**2))**2
             W0 = (1 + Q) / 2 - np.sqrt(3 * Q + Q**2) / 2
-            T = 1 - W0
+            T = 1 - W0 # noqa
             heavyfactor = 2.0 / ((1 - m**2) * (1 + np.sqrt(Q / (1 + 4 * W0))))
             ampfactor *= heavyfactor
 
         ampdata = (d.amp1**2 / d.amp2) / ampfactor
         data = (q1 + q2) * np.sqrt(2 * (ampdata) / d.mass**3)
 
-        print args
         data = self.scale * data
         if args.get("matched", False):
             mq1 = self.scale * d.dp.heavyq_mass / self.ep.Zs
             C1 = get_Cmu_mbar(mq1)
-            print "C1", C1
             data = data / C1
 
-        print args
         return data
 
     def fDsA(self, **args):
@@ -359,7 +353,7 @@ class ensemble_data(object):
             m = d.dp.heavyq_mass + residual_mass(self.dp)
             Q = ((1 + m**2) / (1 - m**2))**2
             W0 = (1 + Q) / 2 - np.sqrt(3 * Q + Q**2) / 2
-            T = 1 - W0
+            T = 1 - W0 # noqa
             heavyfactor = 2.0 / ((1 - m**2) * (1 + np.sqrt(Q / (1 + 4 * W0))))
             ampfactor *= heavyfactor
 
@@ -402,7 +396,7 @@ class ensemble_data(object):
             m = d.dp.heavyq_mass + self.ep.residual_mass
             Q = ((1 + m**2) / (1 - m**2))**2
             W0 = (1 + Q) / 2 - np.sqrt(3 * Q + Q**2) / 2
-            T = 1 - W0
+            T = 1 - W0 # noqa
             heavyfactor = 2.0 / ((1 - m**2) * (1 + np.sqrt(Q / (1 + 4 * W0))))
             ampfactor *= heavyfactor
 
@@ -420,70 +414,10 @@ def test():
 
     # ed = ensemble_data("SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.007_ms0.030")
     ed = ensemble_data("SymDW_sHtTanh_b2.0_smr3_48x96x08_b4.35_M1.00_mud0.0080_ms0.0180")
-    # print ed
-    # # for i in ed.select_data("heavy-ud").iteritems():
-    # #     print i
-    # # print ed.get_mass("heavy-ud")
-    # for k,d in  ed.hl_mass_ratio().iteritems():
-    #     print k
-    #     print d.mean()
 
-    # for k,d in  ed.hl_mass_ratio(corrected=True).iteritems():
-    #     print k
-    #     print d.mean()
+    logging.info(np.mean(ed.fpi()))
+    logging.info(np.mean(ed.fD()))
 
-    # print ed.select_data("ud-ud", axial=True).mass
-    # print ed.get_mass("ud-ud")
-    # print ed.get_mass("ud-ud", axial=True)
-
-    # print ed.select_data("ud-ud", "PP").mass
-    # print "axial"
-    # print ed.select_data("ud-ud", axial=True).mass
-    # #print ed.select_data("heavy-ud").mass
-    # print ed.D_mass().mean()
-    # print ed.Ds_mass().mean()
-
-    # for k,v in  ed.select_data("heavy-heavy").iteritems():
-    #     print k
-    #     print v
-
-    # f= ed.fpi()
-    # fa = ed.fpiA()
-    # faa = ed.fpi(axial=True)
-    # print f - fa
-    # print f.mean(), fa.mean(), faa.mean(), f.mean()-fa.mean()
-
-    # print ed.fDs(heavy="m4").mean()
-    # print ed.fDs(heavy="m4",renorm=True).mean()
-    # print ed.fDs(heavy="m4",div=True).mean()
-    # exit(-1)
-
-    # f = ed.fDs()
-    # fhl = ed.fhs()
-    # print f.mean()
-    # for k,v in fhl.iteritems():
-    #     print k, v.mean()
-    # fa = ed.fDs(axial=True)
-    # fhla = ed.fhs(axial=True)
-    # print fa.mean()
-    # for k,v in fhla.iteritems():
-    #     print k, v.mean()
-    # exit(-1)
-
-    # bsd = bootstrap_data(filename)
-    # print bsd.filename
-    # print repr(bsd)
-    # exit(-1)
-
-    # print np.mean(ed.get_mass("ud-ud"))
-    # print np.mean(ed.get_mass("ud-s"))
-    # print np.mean(ed.kaon_mass())
-    # print"dmss",  np.mean(ed.D_mass())
-
-    # print np.mean(ed.get_amps("ud-ud"))
-
-    # print np.mean(ed.fpi())
-    # print np.mean(ed.fD())
 
 if __name__ == "__main__":
 

@@ -14,10 +14,12 @@
 #     except KeyError:
 #         return 0.0
 
+
 def residual_mass(dp):
-    residual_masses = {"4.17":  0.00041, "4.35": 0.00005, "4.47": 0.0 }
+    residual_masses = {"4.17":  0.00041, "4.35": 0.00005, "4.47": 0.0}
     return residual_masses.get(dp.beta, 0.0)
 
+
 def residual_mass_errors(dp):
-    residual_mass_errors = {"4.17":  0.00008, "4.35": 0.00003, "4.47": 0.0 }
+    residual_mass_errors = {"4.17":  0.00008, "4.35": 0.00003, "4.47": 0.0}
     return residual_mass_errors.get(dp.beta, 0.0)

@@ -2,11 +2,8 @@
 import logging
 import numpy as np
 
-from residualmasses import residual_mass, residual_mass_errors
-
-from msbar_convert import get_matm
 from alpha_s import get_alpha
-from all_ensemble_data import ensemble_data, MissingData, NoStrangeInterp
+from all_ensemble_data import MissingData
 import physical_values as pv
 import inspect
 
@@ -30,7 +27,7 @@ class Model(object):
         if self.each_heavy:
             for ed in self.eds:
                 ed.selected_heavies = []
-                for h,m in ed.ep.heavies.iteritems():
+                for h, m in ed.ep.heavies.iteritems():
                     if m < options.hqm_cutoff:
                         ed.selected_heavies.append(h)
         if len(self.eds) > 1:
@@ -38,7 +35,7 @@ class Model(object):
             datas = self.eds
             if self.each_heavy:
                 # We need N data for each ensemble
-                datas = [ ed for ed in self.eds for _ in ed.selected_heavies]
+                datas = [ed for ed in self.eds for _ in ed.selected_heavies]
             self.consts = {"a": np.array([ed.ep.a_gev for ed in datas]),
                            "lat": np.array([ed.ep.latspacing for ed in datas]),
                            "alphas": np.array([get_alpha(ed.ep.scale) for ed in datas])}
@@ -76,7 +73,7 @@ class Model(object):
                 data = choose_fun(ed)(**args)
                 keys = data.keys()
                 if self.each_heavy:
-                    if isinstance(keys[0], basestring) and any("m0" in k for k in keys):
+                    if isinstance(keys[0], basestring) and any("m0" in k for k in keys): # noqa
                         for m in ed.selected_heavies:
                             for k in (j for j in data.keys() if m in j):
                                 ls.append(data[k])
@@ -430,13 +427,13 @@ class linear_fDs_mpi(Model):
 
     def m(self, x, FDsphys, b, gamma_1=0.0, gamma_s1=0.0):
         delta_mpisqr = (x) - (pv.phys_pion**2)
-        Mss = (2.0*self.bstrapdata("mK")**2 - x)
-        phys_Mss = (2.0*(pv.phys_kaon**2)) - (pv.phys_pion**2)
+        Mss = (2.0 * self.bstrapdata("mK")**2 - x)
+        phys_Mss = (2.0 * (pv.phys_kaon**2)) - (pv.phys_pion**2)
         delta_Mss = Mss - phys_Mss
         asqr = (self.consts["a"]**2)
-        linear = FDsphys*(1.0+b*delta_mpisqr)
+        linear = FDsphys * (1.0 + b * delta_mpisqr)
         deltas = (1.0 + gamma_1 * asqr + gamma_s1 * delta_Mss)
-        M =  deltas*linear
+        M = deltas * linear
         return M
 
     def sqr_diff(self, FDsphys, b, gamma_1, gamma_s1):
@@ -447,6 +444,7 @@ class linear_fDs_mpi(Model):
         var = (self.data["fhs"]).var(1)
         sqr_diff = (data - M)**2
         return np.sum(sqr_diff / var)
+
 
 class fdsqrtm_chiral_dmss(Model):
 
@@ -472,35 +470,37 @@ class fdsqrtm_chiral_dmss(Model):
         self.contlim_args = ["Fsqrtm_inf", "C1", "C2"]
         self.finbeta_args = ["Fsqrtm_inf", "C1", "C2", "mu", "eta", "gamma"]
 
-
-    def m(self, x, Fsqrtm_inf, C1, C2, mu=0, eta=0, gamma=0,   b=0, delta_S=0):
+    def m(self, x, Fsqrtm_inf, C1, C2, mu=0, eta=0, gamma=0, b=0, delta_S=0):
         x = x
         delta_mpisqr = self.bstrapdata("mpi") - (pv.phys_pion**2)
-        Mss = (2.0*self.bstrapdata("mK")**2 - self.bstrapdata("mpi"))
-        phys_Mss = (2.0*(pv.phys_kaon**2)) - (pv.phys_pion**2)
+        Mss = (2.0 * self.bstrapdata("mK")**2 - self.bstrapdata("mpi"))
+        phys_Mss = (2.0 * (pv.phys_kaon**2)) - (pv.phys_pion**2)
 
         delta_mpisqr = (self.bstrapdata("mpi")**2) - (pv.phys_pion**2)
 
         delta_Mss = Mss - phys_Mss
         asqr = (self.consts["a"]**2)
         asqr = (self.consts["lat"]**2)
-        deltas = (1.0  + delta_S * delta_Mss +  b* delta_mpisqr + mu * asqr + eta*asqr/x + gamma*(asqr)/(x**2) )
+        deltas = (1.0 + delta_S * delta_Mss + b * delta_mpisqr +
+                  mu * asqr + eta * asqr / x + gamma * (asqr) / (x**2))
         # deltas = 1.0
-        poly = Fsqrtm_inf * (1.0 + C1 * x + C2 * x**2 )
-        M =  deltas*poly
+        poly = Fsqrtm_inf * (1.0 + C1 * x + C2 * x**2)
+        M = deltas * poly
         return M
 
-    def sqr_diff(self, Fsqrtm_inf, C1, C2, mu=0, eta=0, gamma=0,   b=0, delta_S=0):
+    def sqr_diff(self, Fsqrtm_inf, C1, C2, mu=0, eta=0, gamma=0, b=0, delta_S=0):
 
-        x = 1.0/self.bstrapdata("mhl")
+        x = 1.0 / self.bstrapdata("mhl")
         M = self.m(x, Fsqrtm_inf, C1, C2, mu, eta, gamma, b, delta_S)
-        data = self.bstrapdata("fhl")*np.sqrt(self.bstrapdata("mhl"))
+        data = self.bstrapdata("fhl") * np.sqrt(self.bstrapdata("mhl"))
         var = (self.data["fhl"] * np.sqrt(self.data["mhl"])).var(1)
         sqr_diff = (data - M)**2
         return np.sum(sqr_diff / var)
 
+
 fdsqrtm_chiral_dmss_HQET = fdsqrtm_chiral_dmss
 fdsqrtm_HQET_matched = fdsqrtm_chiral_dmss
+
 
 class fdsqrtm_HQET_matched_alphas(Model):
 
@@ -526,12 +526,11 @@ class fdsqrtm_HQET_matched_alphas(Model):
         self.contlim_args = ["Fsqrtm_inf", "C1", "C2"]
         self.finbeta_args = ["Fsqrtm_inf", "C1", "C2", "mu", "eta", "gamma"]
 
-
-    def m(self, x, Fsqrtm_inf, C1, C2, mu=0, eta=0, gamma=0,   b=0, delta_S=0):
+    def m(self, x, Fsqrtm_inf, C1, C2, mu=0, eta=0, gamma=0, b=0, delta_S=0):
         x = x
         delta_mpisqr = self.bstrapdata("mpi") - (pv.phys_pion**2)
-        Mss = (2.0*self.bstrapdata("mK")**2 - self.bstrapdata("mpi"))
-        phys_Mss = (2.0*(pv.phys_kaon**2)) - (pv.phys_pion**2)
+        Mss = (2.0 * self.bstrapdata("mK")**2 - self.bstrapdata("mpi"))
+        phys_Mss = (2.0 * (pv.phys_kaon**2)) - (pv.phys_pion**2)
 
         delta_mpisqr = (self.bstrapdata("mpi")**2) - (pv.phys_pion**2)
 
@@ -539,10 +538,11 @@ class fdsqrtm_HQET_matched_alphas(Model):
         asqr = (self.consts["a"]**2)
         asqr = (self.consts["lat"]**2)
         alphas = self.consts["alphas"]
-        deltas = (1.0  + delta_S * delta_Mss +  b* delta_mpisqr + mu * asqr + eta*asqr/x + gamma*alphas*(asqr)/(x**2) )
+        deltas = (1.0 + delta_S * delta_Mss + b * delta_mpisqr +
+                  mu * asqr + eta * asqr / x + gamma * alphas * (asqr) / (x**2))
         # deltas = 1
-        poly = Fsqrtm_inf * (1.0 + C1 * x + C2 * x**2 )
-        M =  deltas*poly
+        poly = Fsqrtm_inf * (1.0 + C1 * x + C2 * x**2)
+        M = deltas * poly
         return M
 
     def sqr_diff(self, FDsphys, b, gamma_1, gamma_s1):
@@ -579,29 +579,28 @@ class fdssqrtms_chiral_dmss(Model):
         self.contlim_args = ["Fssqrtms_inf", "C1", "C2"]
         self.finbeta_args = ["Fssqrtms_inf", "C1", "C2", "mu", "eta", "gamma"]
 
-
-    def m(self, x, Fssqrtms_inf, C1, C2, mu=0, eta=0, gamma=0,   b=0, delta_S=0):
+    def m(self, x, Fssqrtms_inf, C1, C2, mu=0, eta=0, gamma=0, b=0, delta_S=0):
         x = x
         delta_mpisqr = self.bstrapdata("mpi") - (pv.phys_pion**2)
-        Mss = (2.0*self.bstrapdata("mK")**2 - self.bstrapdata("mpi"))
-        phys_Mss = (2.0*(pv.phys_kaon**2)) - (pv.phys_pion**2)
+        Mss = (2.0 * self.bstrapdata("mK")**2 - self.bstrapdata("mpi"))
+        phys_Mss = (2.0 * (pv.phys_kaon**2)) - (pv.phys_pion**2)
 
         delta_mpisqr = (self.bstrapdata("mpi")**2) - (pv.phys_pion**2)
 
         delta_Mss = Mss - phys_Mss
         asqr = (self.consts["a"]**2)
         asqr = (self.consts["lat"]**2)
-        deltas = (1.0  + delta_S * delta_Mss +  b* delta_mpisqr + mu * asqr + eta*asqr/x + gamma*(asqr)/(x**2) )
+        deltas = (1.0 + delta_S * delta_Mss + b * delta_mpisqr + mu * asqr + eta * asqr / x + gamma * (asqr) / (x**2))
         # deltas = 1
-        poly = Fssqrtms_inf * (1.0 + C1 * x + C2 * x**2 )
-        M =  deltas*poly
+        poly = Fssqrtms_inf * (1.0 + C1 * x + C2 * x**2)
+        M = deltas * poly
         return M
 
     def sqr_diff(self, Fssqrtms_inf, C1, C2, mu, eta, gamma, b, delta_S):
 
-        x = 1.0/self.bstrapdata("mhs")
+        x = 1.0 / self.bstrapdata("mhs")
         M = self.m(x, Fssqrtms_inf, C1, C2, mu, eta, gamma, b, delta_S)
-        data = self.bstrapdata("fhs")*np.sqrt(self.bstrapdata("mhs"))
+        data = self.bstrapdata("fhs") * np.sqrt(self.bstrapdata("mhs"))
         var = (self.data["fhs"] * np.sqrt(self.data["mhs"])).var(1)
         sqr_diff = (data - M)**2
         return np.sum(sqr_diff / var)
@@ -636,12 +635,11 @@ class fdssqrtms_HQET_matched_alphas(Model):
         self.contlim_args = ["Fssqrtms_inf", "C1", "C2"]
         self.finbeta_args = ["Fssqrtms_inf", "C1", "C2", "mu", "eta", "gamma"]
 
-
-    def m(self, x, Fssqrtms_inf, C1, C2, mu=0, eta=0, gamma=0,   b=0, delta_S=0):
+    def m(self, x, Fssqrtms_inf, C1, C2, mu=0, eta=0, gamma=0, b=0, delta_S=0):
         x = x
         delta_mpisqr = self.bstrapdata("mpi") - (pv.phys_pion**2)
-        Mss = (2.0*self.bstrapdata("mK")**2 - self.bstrapdata("mpi"))
-        phys_Mss = (2.0*(pv.phys_kaon**2)) - (pv.phys_pion**2)
+        Mss = (2.0 * self.bstrapdata("mK")**2 - self.bstrapdata("mpi"))
+        phys_Mss = (2.0 * (pv.phys_kaon**2)) - (pv.phys_pion**2)
 
         delta_mpisqr = (self.bstrapdata("mpi")**2) - (pv.phys_pion**2)
 
@@ -649,17 +647,18 @@ class fdssqrtms_HQET_matched_alphas(Model):
         asqr = (self.consts["a"]**2)
         asqr = (self.consts["lat"]**2)
         alphas = self.consts["alphas"]
-        deltas = (1.0  + delta_S * delta_Mss +  b* delta_mpisqr + mu * asqr + eta*asqr/x + gamma*alphas*(asqr)/(x**2) )
+        deltas = (1.0 + delta_S * delta_Mss + b * delta_mpisqr +
+                  mu * asqr + eta * asqr / x + gamma * alphas * (asqr) / (x**2))
         # deltas = 1
-        poly = Fssqrtms_inf * (1.0 + C1 * x + C2 * x**2 )
-        M =  deltas*poly
+        poly = Fssqrtms_inf * (1.0 + C1 * x + C2 * x**2)
+        M = deltas * poly
         return M
 
     def sqr_diff(self, Fssqrtms_inf, C1, C2, mu, eta, gamma, b, delta_S):
 
-        x = 1.0/self.bstrapdata("mhs")
+        x = 1.0 / self.bstrapdata("mhs")
         M = self.m(x, Fssqrtms_inf, C1, C2, mu, eta, gamma, b, delta_S)
-        data = self.bstrapdata("fhs")*np.sqrt(self.bstrapdata("mhs"))
+        data = self.bstrapdata("fhs") * np.sqrt(self.bstrapdata("mhs"))
         var = (self.data["fhs"] * np.sqrt(self.data["mhs"])).var(1)
         sqr_diff = (data - M)**2
         return np.sum(sqr_diff / var)

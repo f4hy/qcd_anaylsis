@@ -4,7 +4,7 @@ import argparse
 import pandas as pd
 import re
 import numpy as np
-from data_params import  data_params, ensemble_params, bootstrap_data
+from data_params import data_params, ensemble_params, bootstrap_data
 
 from residualmasses import residual_mass
 import glob
@@ -14,10 +14,11 @@ import cPickle as pickle
 
 def read_pickle(ensemble, fittype="uncorrelated"):
 
-    filename = "{}/{}.pickle".format(ensemble,fittype)
+    filename = "{}/{}.pickle".format(ensemble, fittype)
     logging.info("reading {}".format(filename))
 
-    return pickle.load( open( filename, "rb" ) )
+    return pickle.load(open(filename, "rb"))
+
 
 def pickle_ensemble(ensemble, fittype="uncorrelated"):
 
@@ -38,7 +39,7 @@ def pickle_ensemble(ensemble, fittype="uncorrelated"):
         logging.error("not all files made it to data dictionary!!")
         exit(-1)
 
-    output_filename = "{}/{}.pickle".format(ensemble,fittype)
+    output_filename = "{}/{}.pickle".format(ensemble, fittype)
     with open(output_filename, 'wb') as pdata:
         logging.info("Pickling ensembledata to {}".format(output_filename))
         pickle.dump(data, pdata, protocol=pickle.HIGHEST_PROTOCOL)
@@ -50,10 +51,10 @@ def rebuild_pickled_db(fittype="uncorrelated"):
     for d in dirs:
         pickle_ensemble(d, fittype=fittype)
 
+
 def test():
-    #fitdatafiles = glob.glob("SymDW_sHtTanh_b2.0_smr3_*/*fit_uncorrelated_*/*.boot")
+    # fitdatafiles = glob.glob("SymDW_sHtTanh_b2.0_smr3_*/*fit_uncorrelated_*/*.boot")
     dirs = glob.glob("SymDW_sHtTanh_b2.0_smr3_*")
-    print dirs
     for d in dirs:
         data = read_pickle(d)
         print data
@@ -66,6 +67,7 @@ def test():
                 exit(-1)
         for k in data.keys()[0:5]:
             print d, data[k].filename
+
 
 if __name__ == "__main__":
 
@@ -85,6 +87,5 @@ if __name__ == "__main__":
     else:
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
-
+    # test()
     rebuild_pickled_db(args.fittype)
-    #test()

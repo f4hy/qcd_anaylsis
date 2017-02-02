@@ -2,39 +2,27 @@
 import matplotlib as mpl
 # mpl.use('Agg')
 import matplotlib.pyplot as plt
-import matplotlib.lines as mlines
 import logging
 import argparse
 import os
-
-
 import numpy as np
 
-from residualmasses import residual_mass, residual_mass_errors
-
-from data_params import flavor_map, scale, data_params, determine_flavor, read_fit_mass
-from data_params import all_same_beta, all_same_heavy, all_same_flavor
-from physical_values import phys_pion, phys_kaon, phys_mq, phys_Fpi, phys_FD, phys_FDs, phys_D, phys_Ds
-from physical_values import phys_eta, phys_etac, phys_FK, phys_mhq
-from data_params import Zs, Zv
-
-# from ensemble_data import ensemble_data, NoStrangeInterp
 
 from commonplotlib.auto_key import auto_key
+from commonplotlib.plot_helpers import add_mc_lines
+from commonplotlib.plot_helpers import add_vert_lines
 
 from add_chiral_fits import add_chiral_fit, add_boot_fit
-
 from add_model_fit import add_model_fit
-
 from plot_data import get_data, plot_data
-
 from itertools import cycle, count
 
-from plot_helpers import add_mc_lines
-from plot_helpers import add_vert_lines
+from data_params import scale
+
 from plot_uk_data import add_uk_plot_data
 
 from all_ensemble_data import ensemble_data, MissingData, NoStrangeInterp
+
 
 def round5(x):
     return int(5 * np.around(x/5.0))
@@ -49,14 +37,16 @@ def round(x, y):
         return round5(np.floor(x*scale))/scale, round5(np.ceil(y*scale))/scale
     return x, y
 
+
 def count_pm():
-    num = 0
     yield 0
     for i in count(1):
         yield i
         yield -i
 
+
 offsets = count_pm()
+
 
 def auto_fit_range(minval, maxval, zero=False, buff=0.5):
     spread = maxval - minval
@@ -75,6 +65,7 @@ added_handles = []
 summary_lines = []
 
 phys_marks = cycle('x+s')
+
 
 def colors_and_legend(data_properties, legend_mode="betaLs", ylabel=None):
 
@@ -96,7 +87,7 @@ def colors_and_legend(data_properties, legend_mode="betaLs", ylabel=None):
     if legend_mode == "betaLs":
         color, mark, mfc = auto_key((p.beta, p.s_mass, p.latsize))
         legend_label = r'$\beta = {}, L={}, m_s={}$'.format(p.beta, p.latsize[:2], p.s_mass)
-        if p.s_mass =="shifted":
+        if p.s_mass == "shifted":
             legend_label = r'$\beta = {}, L={}$'.format(p.beta, p.latsize[:2])
 
     if legend_mode == "betaL":
@@ -115,7 +106,6 @@ def colors_and_legend(data_properties, legend_mode="betaLs", ylabel=None):
         color, mark, mfc = auto_key((p.beta, p.heavymass))
         legend_label = r'$\beta = {}, mh={}$'.format(p.beta, p.heavymass)
 
-
     if legend_mode == "smearing":
         color, mark, mfc = auto_key(p.smearing)
         legend_label = r'$smearing={}$'.format(p.smearing)
@@ -128,10 +118,9 @@ def colors_and_legend(data_properties, legend_mode="betaLs", ylabel=None):
         color, mark, mfc = auto_key(len(ylabel))
         legend_label = r'{}'.format(ylabel)
 
-
     symbol = mpl.lines.Line2D([], [], color=color, mec=color, marker=mark, markersize=15,
                               linestyle="None", label=legend_label, mfc=mfc)
-    #legend_handles.append(mpatches.Patch(color=beta_colors[p.beta], label=mylabel))
+    # legend_handles.append(mpatches.Patch(color=beta_colors[p.beta], label=mylabel))
     handel = (color, mark, mfc)
     if handel not in added_handles:
         if legend_label is not None:
@@ -150,7 +139,6 @@ def plot_ensemble_data(options):
 
     fig, axe = plt.subplots(1)
 
-
     for es in options.ensembles:
         for yd in options.ydata:
             if options.offset:
@@ -161,14 +149,14 @@ def plot_ensemble_data(options):
                 ydata = get_data(es, yd, options)
                 xdata = get_data(es, options.xdata, options)
             except NoStrangeInterp as interperror:
-                logging.warn("for {} found error {}".format(f, interperror))
+                logging.warn("for {} found error {}".format(yd, interperror))
                 continue
             except MissingData:
                 logging.warn("for {} data is missing data {} {}".format(es.ep, options.xdata, yd))
                 continue
 
             if options.mhcut:
-                ydata = {k:v for k,v in ydata.iteritems() if es.ep.heavies[k] < options.mhcut}
+                ydata = {k: v for k, v in ydata.iteritems() if es.ep.heavies[k] < options.mhcut}
 
             if isinstance(xdata, plot_data) and isinstance(ydata, plot_data):
                 plotdata = [(xdata, ydata)]
@@ -187,7 +175,7 @@ def plot_ensemble_data(options):
                     logging.error("ydata {}".format(ydata))
                     exit(-1)
 
-            for x,y in plotdata:
+            for x, y in plotdata:
                 xlabel = x.label
                 ylabel = y.label
                 xphysical = x.physical
@@ -204,8 +192,7 @@ def plot_ensemble_data(options):
                 if "32x64" in repr(es.ep) and es.ep.ud_mass < 0.004:
                     alpha = 0.0
                     color = "#9999FF"
-                    #continue
-
+                    # continue
 
                 plotsettings = dict(linestyle="none", c=color, marker=mark,
                                     label=label, ms=15, elinewidth=4,
@@ -218,7 +205,7 @@ def plot_ensemble_data(options):
                     xerr = 0.0
                 else:
                     xerr = x.error
-                axe.errorbar(x.value + offset , y.value, yerr=y.error, xerr=xerr, zorder=0, **plotsettings)
+                axe.errorbar(x.value + offset, y.value, yerr=y.error, xerr=xerr, zorder=0, **plotsettings)
                 ymax = max(ymax, y.value)
                 ymin = min(ymin, y.value)
                 xmax = max(xmax, x.value)
@@ -228,7 +215,7 @@ def plot_ensemble_data(options):
         matchingkeys = set(xphysical).intersection(set(yphysical))
 
         if len(matchingkeys) > 1:
-            physiter = [(k, xphysical[k], yphysical[k]) for k in matchingkeys ]
+            physiter = [(k, xphysical[k], yphysical[k]) for k in matchingkeys]
         else:
             physiter = [(k, xp, yphysical[k]) for k in yphysical for xl, xp in xphysical.iteritems()]
         for yl, xp, yp in physiter:
@@ -247,15 +234,16 @@ def plot_ensemble_data(options):
     if options.scalelines:
         if options.xdata.startswith("1/"):
             for i in scale:
-                physxplot = axe.axvline(1.0/scale[i], color=auto_key((i, None, None), check=False)[0], ls="--", lw=2, label=i)
+                physxplot = axe.axvline(1.0/scale[i], color=auto_key((i, None, None), check=False)[0],
+                                        ls="--", lw=2, label=i)
         else:
             for i in scale:
-                physxplot = axe.axvline(scale[i], color=auto_key((i, None, None), check=False)[0], ls="--", lw=2, label=i)
-
+                physxplot = axe.axvline(scale[i], color=auto_key((i, None, None), check=False)[0],
+                                        ls="--", lw=2, label=i)
 
     if options.add_uk_data:
         logging.info("adding ukdata {}".format(options.add_uk_data))
-        handles = add_uk_plot_data(axe, options.add_uk_data[0] , options.add_uk_data[1])
+        handles = add_uk_plot_data(axe, options.add_uk_data[0], options.add_uk_data[1])
         legend_handles.extend(handles)
 
     add_mc_lines(axe, options, auto_key)
@@ -265,7 +253,6 @@ def plot_ensemble_data(options):
         axe.axvline(x=xline, linewidth=2, color='k', ls="dotted")
     for yline in options.ylines:
         axe.axhline(y=yline, linewidth=2, color='k', ls="dotted")
-
 
     if options.physx:
         physxplot = axe.axvline(xphysical, color='k', ls="--", lw=2, label="physical point")
@@ -298,12 +285,11 @@ def plot_ensemble_data(options):
                                   linestyle="None", label=options.adderrpoint[0], mfc="k")
         legend_handles.append(symbol)
 
-
     if options.addpoints:
         logging.info("adding points from {}".format(options.addpoints))
         with open(options.addpoints) as pointfile:
             for l in pointfile:
-                x,y = l.split(",")
+                x, y = l.split(",")
                 axe.errorbar(float(x), float(y), yerr=0, color='k', markersize=15, ecolor='k', marker='s')
                 logging.info("adding points {} {}".format(x, y))
                 ymax = max(ymax, float(y))
@@ -333,26 +319,25 @@ def plot_ensemble_data(options):
         del legend_handles[:]
 
     if options.chiral_fit_file:
-        #del legend_handles[:]
+        # del legend_handles[:]
         for i in options.chiral_fit_file:
             fit_lines = add_chiral_fit(axe, xran, i, options)
             if options.legendfits:
                 legend_handles.extend(fit_lines)
 
     if options.model_fit_file:
-        print options.model_fit_file
+        logging.info("called with model_fit_file {}".format(options.model_fit_file))
         for i in options.model_fit_file:
             fithandles = add_model_fit(axe, xran, i, options)
             if options.legendfits:
                 legend_handles.extend(fithandles)
 
     if options.boot_fit_file:
-        #del legend_handles[:]
+        # del legend_handles[:]
         for i in options.boot_fit_file:
             chiral_line = add_boot_fit(axe, xran, i, options)
             if options.legendfits:
                 legend_handles.extend(chiral_line)
-
 
     if options.xlabel:
         axe.set_xlabel(options.xlabel, labelpad=20, **fontsettings)
@@ -362,13 +347,12 @@ def plot_ensemble_data(options):
             import matplotlib.ticker as ticker
             ticks = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/(1000**2)))
             axe.xaxis.set_major_formatter(ticks)
-            axe.set_xlabel(xlabel.replace("MeV","GeV"), **fontsettings)
+            axe.set_xlabel(xlabel.replace("MeV", "GeV"), **fontsettings)
         if "1/MeV" in xlabel:
             import matplotlib.ticker as ticker
             ticks = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(1000*x))
             axe.xaxis.set_major_formatter(ticks)
-            axe.set_xlabel(xlabel.replace("1/MeV","1/GeV"), **fontsettings)
-
+            axe.set_xlabel(xlabel.replace("1/MeV", "1/GeV"), **fontsettings)
 
     if options.ylabel:
         if options.scale:
@@ -381,28 +365,25 @@ def plot_ensemble_data(options):
             import matplotlib.ticker as ticker
             ticks = ticker.FuncFormatter(lambda x, pos: '{0:.6g}'.format(x/(1000**(3.0/2.0))))
             start, end = axe.get_ylim()
-            first,second = axe.yaxis.get_ticklocs()[0:2]
+            first, second = axe.yaxis.get_ticklocs()[0:2]
             bot = np.floor(10*start/(1000**(3.0/2.0)))/10*(1000**(3.0/2.0))
             top = np.ceil(100*end/(1000**(3.0/2.0)))/100*(1000**(3.0/2.0))
-            axe.yaxis.set_ticks(np.arange(bot, top, (0.1*1000**(3.0/2.0) ) ))
+            axe.yaxis.set_ticks(np.arange(bot, top, (0.1*1000**(3.0/2.0))))
             axe.yaxis.set_major_formatter(ticks)
-            axe.set_ylabel(ylabel.replace("MeV^(3/2)","GeV^(3/2)"), **fontsettings)
+            axe.set_ylabel(ylabel.replace("MeV^(3/2)", "GeV^(3/2)"), **fontsettings)
             plt.ylim(bot, top)
-
 
     axe.tick_params(axis='both', which='major', labelsize=35)
 
     if options.title:
         fig.suptitle(options.title.replace("_", " "), **fontsettings)
 
-
     def legsort(i):
         return i.get_label()
 
-
     if not options.nolegend:
-        leg = axe.legend(handles=sorted(legend_handles, key=legsort), loc=options.legendloc,
-                         fontsize=40, numpoints=1, fancybox=True, framealpha=0.5)
+        axe.legend(handles=sorted(legend_handles, key=legsort), loc=options.legendloc,
+                   fontsize=40, numpoints=1, fancybox=True, framealpha=0.5)
     if(options.output_stub):
         options.output_stub = options.output_stub.replace(".", "_")
         summaryfilename = options.output_stub + ".txt"
@@ -414,7 +395,6 @@ def plot_ensemble_data(options):
         width = 17.0
         fig.set_size_inches(width, width*options.aspect)
         fig.tight_layout()
-        #fig.set_size_inches(28.5, 20.5)
         file_extension = ".png"
         if options.eps:
             file_extension = ".eps"
@@ -432,6 +412,7 @@ def plot_ensemble_data(options):
     logging.info("".join(summary_lines))
     plt.show()
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="average data files")
 
@@ -445,7 +426,6 @@ if __name__ == "__main__":
                                  help="save as eps not png")
     extention_group.add_argument("--pdf", action="store_true",
                                  help="save as pdf not png")
-
 
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="increase output verbosity")
@@ -463,13 +443,13 @@ if __name__ == "__main__":
                         help="set the yrange of the plot", default=None)
     parser.add_argument("-x", "--xrange", type=float, required=False, nargs=2,
                         help="set the xrange of the plot", default=None)
-    parser.add_argument("-uk","--add_uk_data", required=False, nargs=2, metavar=("Xdata", "Ydata"),
+    parser.add_argument("-uk", "--add_uk_data", required=False, nargs=2, metavar=("Xdata", "Ydata"),
                         help="Add ukdata points", default=None)
     parser.add_argument("--addpoint", required=False, nargs=3, metavar=("LABEL", "X", "Y"),
                         help="Add a point", default=None)
     parser.add_argument("--adderrpoint", required=False, nargs=4, metavar=("LABEL", "X", "Y", "err"),
                         help="Add a point", default=None)
-    parser.add_argument("--addpoints", required=False , type=str,
+    parser.add_argument("--addpoints", required=False, type=str,
                         help="Add points from file", default=None)
     parser.add_argument("--xaxis", required=False, choices=axis_choices,
                         help="what to set on the xaxis", default="mud")
@@ -548,7 +528,6 @@ if __name__ == "__main__":
     for es in args.ensembles:
         ed = ensemble_data(es, fittype=args.fittype)
         ensembles.append(ed)
-
 
     logging.info("Ploting data for: {}".format("\n".join(args.ensembles)))
     args.ensembles = ensembles

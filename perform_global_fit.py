@@ -5,18 +5,12 @@ import numpy as np
 from iminuit import Minuit
 
 import inspect
-import collections
 
 # from global_fit_model import Model
 
 from misc import all_equal
-
-import commonplotlib.progress_bar
-
-import os
-
-from all_ensemble_data import ensemble_data, MissingData, NoStrangeInterp
-
+from commonplotlib.progress_bar import progress_bar
+from all_ensemble_data import ensemble_data
 import new_fit_model
 
 
@@ -41,7 +35,6 @@ def interpolate(data, model_str, options):
     assert(all_equal(datapoints))
     ndata = datapoints[0]
 
-
     fixed_parms = [p for p in params if "fix" in p and params[p]]
     Nfree_params = len(ARGS) - len(fixed_parms)
     if model_str.startswith("combined"):
@@ -53,7 +46,6 @@ def interpolate(data, model_str, options):
 
     if dof < 1.0:
         raise RuntimeError("dof < 1")
-
 
     logging.info("fitting mean")
     model_obj.boostrap = "mean"
@@ -79,7 +71,7 @@ def interpolate(data, model_str, options):
         return mean_m, {0: mean_m}, np.nan
 
     bootstrap_m = {}
-    progressb = progress_bar.progress_bar(N)
+    progressb = progress_bar(N)
     for b in range(N):
         progressb.update(b)
         model_obj.set_bootstrap(b)
@@ -161,7 +153,7 @@ def global_fit(options):
             ed = ensemble_data(es)
             ensembles.append(ed)
         except Exception as e:
-            print "EXCPETOIN", e
+            logging.error("exception in loading ensemble_data")
             raise e
             raise argparse.ArgumentTypeError("Argument {} does not have valid ensemble data".format(es))
 
