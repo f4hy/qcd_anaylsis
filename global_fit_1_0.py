@@ -13,7 +13,7 @@ from ensemble_data1_0.ensemble_data import ensemble_data, MissingData
 import inspect
 import collections
 
-from global_fit_model import Model
+from global_model1_0.global_fit_model import Model
 
 from misc import all_equal
 
@@ -101,7 +101,7 @@ def interpolate(data, model_str, options):
         return mean_m, {0: mean_m}, np.nan
 
     bootstrap_m = {}
-    progressb = progress_bar.progress_bar(N)
+    progressb = commonplotlib.progress_bar.progress_bar(N)
     for b in range(N):
         progressb.update(b)
         model_obj.set_bootstrap(b)

@@ -26,7 +26,7 @@ from data_params import Zs, Zv
 from commonplotlib.auto_key import auto_key
 
 from plot_decay_constants import auto_fit_range
-from add_chiral_fits import format_parameters
+from plotter1_0.add_chiral_fits import format_parameters
 
 first = True
 

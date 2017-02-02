@@ -22,7 +22,7 @@ from ensemble_data1_0.ensemble_data import ensemble_data, NoStrangeInterp
 
 from commonplotlib.auto_key import auto_key
 
-from add_chiral_fits import add_chiral_fit, add_boot_fit
+from plotter1_0.add_chiral_fits import add_chiral_fit, add_boot_fit
 
 from plotter1_0.get_data import get_data
 

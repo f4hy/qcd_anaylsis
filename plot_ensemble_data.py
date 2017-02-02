@@ -12,8 +12,8 @@ from commonplotlib.auto_key import auto_key
 from commonplotlib.plot_helpers import add_mc_lines
 from commonplotlib.plot_helpers import add_vert_lines
 
-from add_chiral_fits import add_chiral_fit, add_boot_fit
-from add_model_fit import add_model_fit
+from plotter1_0.add_chiral_fits import add_chiral_fit, add_boot_fit
+from plotter2_0.add_model_fit import add_model_fit
 from plotter2_0.plot_data import get_data, plot_data
 from itertools import cycle, count
 

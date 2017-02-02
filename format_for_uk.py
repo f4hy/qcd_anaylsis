@@ -22,8 +22,6 @@ from ensemble_data1_0.ensemble_data import ensemble_data, NoStrangeInterp
 
 from commonplotlib.auto_key import auto_key
 
-from add_chiral_fits import add_chiral_fit
-
 from itertools import cycle
 
 def write_header(outwrite, dp, obsname, cval, cerr):

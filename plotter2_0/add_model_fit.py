@@ -29,7 +29,7 @@ from ratio_methods import ratio_chain
 
 from alpha_s import get_alpha
 
-import new_fit_model
+import global_model2_0.global_fit_model2_0
 
 import inspect
 
@@ -60,7 +60,7 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
 
     df = pd.read_csv(boot_fit_file, sep=",", delimiter=",", names=columns)
 
-    model = dict(inspect.getmembers(new_fit_model,inspect.isclass))[name]
+    model = dict(inspect.getmembers(global_model2_0.global_fit_model2_0,inspect.isclass))[name]
     m = model([], options)
     x = np.linspace(xran[0], xran[1], num=100)
     means = df.mean()

@@ -6,19 +6,17 @@ from iminuit import Minuit
 
 import inspect
 
-# from global_fit_model import Model
-
 from misc import all_equal
 from commonplotlib.progress_bar import progress_bar
 from all_ensemble_data import ensemble_data
-import new_fit_model
+import global_model2_0.global_fit_model2_0
 
 
 def interpolate(data, model_str, options):
 
     logging.info("Fitting data")
 
-    model_obj = getattr(new_fit_model, model_str)(data, options)
+    model_obj = getattr(global_model2_0.global_fit_model2_0, model_str)(data, options)
     # exit(-1)
     # model_obj = Model(data, model_str, options)
     params = model_obj.params
