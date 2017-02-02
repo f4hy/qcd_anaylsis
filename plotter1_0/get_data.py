@@ -24,6 +24,153 @@ def get_data(ed, data_type, options):
             num += 1
 
 
+
+
+    if data_type == "index":
+        data = dataindex()
+        err = 0
+        label = "index"
+        return data, err, label, {"": 0}
+
+    if data_type == "fDsqrtmD":
+        fdata = ed.fD(scaled=options.scale)
+        mdata = ed.D_mass(scaled=options.scale)
+
+        data = fdata*np.sqrt(mdata)
+
+        label = "$f_{hl}\, \sqrt{m_{hl}}$"
+        if options.scale:
+            label += " [MeV^(3/2)]"
+        return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
+
+    if data_type == "fDsqrtmD_ratio":
+        fdata_ratio = ed.fD_ratio(scaled=options.scale)
+        mdata_ratio = ed.D_mass_ratio(scaled=options.scale)
+
+        data = fdata_ratio*np.sqrt(mdata_ratio)
+
+        label = "$\\frac{f_{h^{+1}l}\, \sqrt{m_{h^{+1}l}}}{f_{hl}\, \sqrt{m_{hl}}}$"
+        # if options.scale:
+        #     label += " [MeV^(3/2)]"
+        return data.mean(), data.std(), label, {"HQL": 1.0}
+
+    if data_type == "fDssqrtmDs_ratio":
+        fdata_ratio = ed.fDs_ratio(scaled=options.scale)
+        mdata_ratio = ed.Ds_mass_ratio(scaled=options.scale)
+
+        data = fdata_ratio*np.sqrt(mdata_ratio)
+        #data =  fdata_ratio*np.sqrt(mdata_ratio)
+
+        label = "$\\frac{f_{h^{+1}s}\, \sqrt{m_{h^{+1}s}}}{f_{hs}\, \sqrt{m_{hs}}}$"
+        # if options.scale:
+        #     label += " [MeV^(3/2)]"
+        return data.mean(), data.std(), label, {"HQL": 1.0}
+
+
+    if data_type == "fD_divsqrtmD":
+        fdata = ed.fD(scaled=options.scale, div=True)
+        mdata = ed.D_mass_div(scaled=options.scale)
+
+        data = fdata*np.sqrt(mdata)
+
+
+        label = "${f}_{hl}\, \sqrt{{m}_{hl}}$"
+        if options.scale:
+            label += " [MeV^(3/2)]"
+        return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
+
+
+    if data_type == "fDs_divsqrtmDs":
+        fdata = ed.fDs(scaled=options.scale, div=True)
+        mdata = ed.Ds_mass_div(scaled=options.scale)
+
+        data = fdata*np.sqrt(mdata)
+
+
+        label = "${f}_{hs}\, \sqrt{{m}_{hs}}$"
+        if options.scale:
+            label += " [MeV^(3/2)]"
+        return data.mean(), data.std(), label, {"Charm": phys_FDs*np.sqrt(phys_Ds), "Bottom": phys_FBs*np.sqrt(phys_MBs)}
+
+
+    if data_type == "fDsqrtmD_renorm":
+        fdata = ed.fD(scaled=options.scale, renorm=True)
+        mdata = ed.D_mass(scaled=options.scale)
+
+        data = fdata*np.sqrt(mdata)
+
+        label = "$\widetilde{f}_{hl}\, \sqrt{m_{hl}}$"
+        if options.scale:
+            label += " [MeV^(3/2)]"
+        return data.mean(), data.std(), label, {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
+
+
+    if data_type == "Bs_B_raw":
+        fdata = ed.fD(scaled=options.scale)
+        mdata = ed.D_mass(scaled=options.scale)
+        fsdata = ed.fDs(scaled=options.scale)
+        msdata = ed.Ds_mass(scaled=options.scale)
+
+        datahl = fdata*np.sqrt(mdata)
+        datahs = fsdata*np.sqrt(msdata)
+
+        data = datahs / datahl
+
+        label = "$\widetilde{f}_{hs}\, \sqrt{m_{hs}}$ / $\widetilde{f}_{hl}\, \sqrt{m_{hl}}$"
+        if options.scale:
+            label += " "
+        return data.mean(), data.std(), label, {"Charm": phys_FDs*np.sqrt(phys_Ds)/(phys_FD*np.sqrt(phys_D)),
+                                                "Bottom": phys_FBs*np.sqrt(phys_MBs)/(phys_FB*np.sqrt(phys_MB))}
+
+    if data_type == "Bs_B_matched":
+        fdata = ed.fD(scaled=options.scale, renorm=True, div=True, matched=True)
+        mdata = ed.D_mass(scaled=options.scale)
+        fsdata = ed.fDs(scaled=options.scale, renorm=True, div=True, matched=True)
+        msdata = ed.Ds_mass(scaled=options.scale)
+
+        datahl = fdata*np.sqrt(mdata)
+        datahs = fsdata*np.sqrt(msdata)
+
+        data = datahs / datahl
+
+        label = "$\widetilde{f}_{hs}\, \sqrt{m_{hs}}$ / $\widetilde{f}_{hl}\, \sqrt{m_{hl}}$"
+        if options.scale:
+            label += " "
+        return data.mean(), data.std(), label, {"Charm": phys_FDs*np.sqrt(phys_Ds)/(phys_FD*np.sqrt(phys_D)),
+                                                "Bottom": phys_FBs*np.sqrt(phys_MBs)/(phys_FB*np.sqrt(phys_MB))}
+
+
+    if data_type == "fBs_fB_raw":
+        fdata = ed.fD(scaled=options.scale)
+        fsdata = ed.fDs(scaled=options.scale)
+
+        datahl = fdata
+        datahs = fsdata
+
+        data = datahs / datahl
+
+        label = "$\widetilde{f}_{hs}$ / $\widetilde{f}_{hl}$"
+        if options.scale:
+            label += " "
+        return data.mean(), data.std(), label, {"Charm": phys_FDs/(phys_FD),
+                                                "Bottom": phys_FBs/(phys_FB)}
+
+    if data_type == "fBs_fB_matched":
+        fdata = ed.fD(scaled=options.scale, renorm=True, div=True, matched=True)
+        fsdata = ed.fDs(scaled=options.scale, renorm=True, div=True, matched=True)
+
+        datahl = fdata
+        datahs = fsdata
+
+        data = datahs / datahl
+
+        label = "$\widetilde{f}_{hs}$ / $\widetilde{f}_{hl}$"
+        if options.scale:
+            label += " "
+        return data.mean(), data.std(), label, {"Charm": phys_FDs/(phys_FD),
+                                                "Bottom": phys_FBs/(phys_FB)}
+
+
     if data_type == "fDsqrtmD_raw":
         fdata = ed.fD(scaled=options.scale)
         mdata = ed.D_mass(scaled=options.scale)
@@ -945,7 +1092,43 @@ def get_data(ed, data_type, options):
 
         return data.mean(), data.std(), label, {"PDG": phys_pion**2 / phys_mq}
 
+    if data_type == "mud":
+        data = ed.dp.ud_mass + residual_mass(ed.dp)
+        err = residual_mass_errors(ed.dp)
+        label = "$m_{ud}$"
+        if options.scale:
+            data = scale[ed.dp.beta]*data
+            label += " [MeV]"
+        return data, err, label, {"PDG": phys_mq}
 
+    if data_type == "mheavyq":
+        data = ed.dp.heavyq_mass / Zs[ed.dp.beta]
+        print ed.dp.latspacing
+        err = 0.0
+        label = "$m_{q_h}$"
+        if options.scale:
+            data = scale[ed.dp.beta]*data
+            label += " [MeV]"
+        return data, err, label, {"PDG": phys_mhq}
+
+    if data_type == "mheavyq_bare":
+        data = ed.dp.heavyq_mass
+        err = 0.0
+        label = "$m_{q_h}^{bare}$"
+        if options.scale:
+            data = scale[ed.dp.beta]*data
+            label += " [MeV]"
+        return data, err, label, {"PDG": phys_mhq}
+
+
+    if data_type == "1/mheavyq":
+        data = 1.0/(ed.dp.heavyq_mass / Zs[ed.dp.beta])
+        err = 0.0
+        label = "$1/\\bar{m}_{q_h}$"
+        if options.scale:
+            data = data / scale[ed.dp.beta]
+            label += " [1/MeV]"
+        return data, err, label, {"PDG": phys_mhq}
 
 
     if data_type == "xi":
