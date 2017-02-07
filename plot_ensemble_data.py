@@ -326,7 +326,7 @@ def plot_ensemble_data(options):
                 legend_handles.extend(fit_lines)
 
     if options.model_fit_file:
-        logging.info("called with model_fit_file {}".format(options.model_fit_file))
+        logging.info("adding model fit from {}".format(options.model_fit_file))
         for i in options.model_fit_file:
             fithandles = add_model_fit(axe, xran, i, options)
             if options.legendfits:

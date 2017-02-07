@@ -115,7 +115,7 @@ class ensemble_data(object):
             logging.error("No data found for selection!")
             raise MissingData()
         else:
-            logging.error("selected more than one data value")
+            logging.debug("selected more than one data value")
             return OrderedDict([(k, self.data[k]) for k in sorted(selected)])
 
     def get_mass(self, flavor, **args):

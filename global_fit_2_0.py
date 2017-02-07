@@ -5,7 +5,6 @@ import numpy as np
 from iminuit import Minuit
 
 import inspect
-import sys
 
 from misc import all_equal
 from commonplotlib.progress_bar import progress_bar
@@ -13,6 +12,8 @@ from ensemble_data2_0.all_ensemble_data import ensemble_data
 from global_model2_0.global_fit_model2_0 import Model
 
 from global_model2_0.fdssqrtms_models import * # noqa
+from global_model2_0.single_heavy_fd_models import * # noqa
+from global_model2_0.fd_models import * # noqa
 
 
 def interpolate(data, model_str, options):
@@ -56,7 +57,7 @@ def interpolate(data, model_str, options):
     logging.debug(mean_results)
 
     logging.info("chi^2={}, dof={}, chi^2/dof={}".format(mean_m.fval, dof, mean_m.fval / dof))
-    logging.info('covariance {}'.format(mean_m.covariance))
+    logging.debug('covariance {}'.format(mean_m.covariance))
     logging.info('fitted values {}'.format(mean_m.values))
     logging.info('fitted errors {}'.format(mean_m.errors))
 
@@ -72,6 +73,7 @@ def interpolate(data, model_str, options):
         return mean_m, {0: mean_m}, np.nan
 
     bootstrap_m = {}
+    logging.info("Fitting {} bootstraps".format(N))
     progressb = progress_bar(N)
     for b in range(N):
         progressb.update(b)

@@ -32,6 +32,8 @@ from alpha_s import get_alpha
 from  global_model2_0.global_fit_model2_0 import Model
 
 from global_model2_0.fdssqrtms_models import * # noqa
+from global_model2_0.single_heavy_fd_models import * # noqa
+from global_model2_0.fd_models import * # noqa
 
 
 import inspect
@@ -57,6 +59,7 @@ def addplot(plots, axe, fill, save, x=None, y=None, params=None):
 
 def add_model_fit(axe, xran, boot_fit_file, options=None):
 
+
     header = boot_fit_file.readline().split(",")
     name = header[0].strip("# ")
     columns = [s.strip("\n ,") for s in header[1:]]
@@ -71,7 +74,7 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
     x = np.linspace(xran[0], xran[1], num=100)
     means = df.mean()
     params = [means[i] for i in m.contlim_args]
-
+    np.seterr(divide='ignore', invalid='ignore')  # Ignore errors like this when plotting
 
     logging.info("plotting line with params {}".format(params))
     y = m.m(x, *params)
