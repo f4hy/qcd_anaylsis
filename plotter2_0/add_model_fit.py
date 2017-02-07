@@ -29,7 +29,10 @@ from ratio_methods import ratio_chain
 
 from alpha_s import get_alpha
 
-import global_model2_0.global_fit_model2_0
+from  global_model2_0.global_fit_model2_0 import Model
+
+from global_model2_0.fdssqrtms_models import * # noqa
+
 
 import inspect
 
@@ -60,7 +63,10 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
 
     df = pd.read_csv(boot_fit_file, sep=",", delimiter=",", names=columns)
 
-    model = dict(inspect.getmembers(global_model2_0.global_fit_model2_0,inspect.isclass))[name]
+    valid_models = {m.__name__: m for m in Model.__subclasses__()}
+    logging.debug("valid models available {}".format(valid_models.keys()))
+    model = valid_models[name]
+
     m = model([], options)
     x = np.linspace(xran[0], xran[1], num=100)
     means = df.mean()

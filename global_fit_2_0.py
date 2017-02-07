@@ -5,27 +5,30 @@ import numpy as np
 from iminuit import Minuit
 
 import inspect
+import sys
 
 from misc import all_equal
 from commonplotlib.progress_bar import progress_bar
 from ensemble_data2_0.all_ensemble_data import ensemble_data
-import global_model2_0.global_fit_model2_0
+from global_model2_0.global_fit_model2_0 import Model
+
+from global_model2_0.fdssqrtms_models import * # noqa
 
 
 def interpolate(data, model_str, options):
 
     logging.info("Fitting data")
 
-    model_obj = getattr(global_model2_0.global_fit_model2_0, model_str)(data, options)
-    # exit(-1)
-    # model_obj = Model(data, model_str, options)
+    valid_models = {m.__name__: m for m in Model.__subclasses__()}
+    logging.debug("valid models available {}".format(valid_models.keys()))
+    model_obj = valid_models[model_str](data, options)
+
     params = model_obj.params
     model_fun = model_obj.sqr_diff
 
     # params, model_fun = model_obj.build_function()
     ARGS = inspect.getargspec(model_fun).args[1:]
     logging.info("Params {}".format(params))
-
     bootstraps = [d.shape[1] for d in model_obj.data.values()]
     assert(all_equal(bootstraps))
     N = bootstraps[0]

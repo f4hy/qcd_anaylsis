@@ -112,3 +112,20 @@ def fhlsqrtmhl_hqet(ed, options):
 
     phys = {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
     return {m: (d.mean(), d.std(), label, phys ) for m,d in data.iteritems()}
+
+
+def fhssqrtmhs_hqet(ed, options):
+    fdata = ed.fhs(div=True, matched=True)
+    mdata = ed.get_mass("heavy-s", div=True)
+    data = {}
+    for m in fdata:
+        mkey = [k for k in mdata if m in k][0]
+        data[m] = fdata[m]*np.sqrt(mdata[mkey])
+
+    label = "$\hat{f}_{hs}\, \sqrt{\hat{m}_{hs}} / C(\mu)$"
+
+    if ed.scale != 1.0:
+        label += " [MeV^(3/2)]"
+
+    phys = {"Charm": phys_FDs*np.sqrt(phys_Ds), "Bottom": phys_FBs*np.sqrt(phys_MBs)}
+    return {m: (d.mean(), d.std(), label, phys ) for m,d in data.iteritems()}
