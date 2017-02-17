@@ -10,6 +10,7 @@ import plot_heavy_masses        # noqa
 import plot_fdsqrtmd            # noqa
 import plot_fdssqrtmds          # noqa
 import plot_interpolated_fsqrtm # noqa
+import plot_light_decays        # noqa
 
 # function_list = inspect.getmembers(sys.modules["fitfunctions"], inspect.isclass)
 # functions = {name: f for name, f in function_list}
@@ -38,7 +39,7 @@ def get_data(ed, data_type, options):
     # We create a map of function names to their functions themselves
     # Mostly to break up these functions into many files
     modules_with_plot_fucntions = ("plot_latparams",  # List of modules with the plot files
-                                   "plot_light_masses",
+                                   "plot_light_masses", "plot_light_decays",
                                    "plot_heavy_decays", "plot_heavy_masses",
                                    "plot_fdsqrtmd", "plot_fdssqrtmds", "plot_interpolated_fsqrtm")
 

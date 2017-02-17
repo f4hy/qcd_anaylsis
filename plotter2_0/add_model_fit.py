@@ -34,6 +34,7 @@ from  global_model2_0.global_fit_model2_0 import Model
 from global_model2_0.fdssqrtms_models import * # noqa
 from global_model2_0.single_heavy_fd_models import * # noqa
 from global_model2_0.fd_models import * # noqa
+from global_model2_0.pion_chiral_model import * # noqa
 
 
 import inspect
@@ -77,7 +78,7 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
     np.seterr(divide='ignore', invalid='ignore')  # Ignore errors like this when plotting
 
     logging.info("plotting line with params {}".format(params))
-    y = m.m(x, *params)
+    y = m.plot_fit(x, *params)
     plot_handles = axe.plot(x,y, color='k', lw=2, label=m.label)
 
     ys = []

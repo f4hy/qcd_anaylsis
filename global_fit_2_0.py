@@ -14,6 +14,7 @@ from global_model2_0.global_fit_model2_0 import Model
 from global_model2_0.fdssqrtms_models import * # noqa
 from global_model2_0.single_heavy_fd_models import * # noqa
 from global_model2_0.fd_models import * # noqa
+from global_model2_0.pion_chiral_model import * # noqa
 
 
 def interpolate(data, model_str, options):
@@ -33,18 +34,19 @@ def interpolate(data, model_str, options):
     bootstraps = [d.shape[1] for d in model_obj.data.values()]
     assert(all_equal(bootstraps))
     N = bootstraps[0]
-    datapoints = [d.shape[0] for d in model_obj.data.values()]
-    assert(all_equal(datapoints))
-    ndata = datapoints[0]
+    # datapoints = [d.shape[0] for d in model_obj.data.values()]
+    # assert(all_equal(datapoints))
+    # ndata = datapoints[0]
 
-    fixed_parms = [p for p in params if "fix" in p and params[p]]
-    Nfree_params = len(ARGS) - len(fixed_parms)
-    if model_str.startswith("combined"):
-        dof = float(ndata * 2 - Nfree_params)
-    else:
-        dof = float(ndata - Nfree_params)
+    # fixed_parms = [p for p in params if "fix" in p and params[p]]
+    # Nfree_params = len(ARGS) - len(fixed_parms)
+    # if model_str.startswith("combined"):
+    #     dof = float(ndata * 2 - Nfree_params)
+    # else:
+    #     dof = float(ndata - Nfree_params)
 
-    logging.info("DOF {}, data {}, free {}".format(dof, len(data), Nfree_params))
+    dof = model_obj.degrees_of_freedom()
+
 
     if dof < 1.0:
         raise RuntimeError("dof < 1")
@@ -181,10 +183,10 @@ if __name__ == "__main__":
                         help='files to plot')
     parser.add_argument("--fitdata", required=False, type=str,
                         help="folder for fitdata when needed")
-    parser.add_argument("--cutoff", required=False, type=float,
-                        help="cutoff value")
+    parser.add_argument("--mpi_cutoff", required=False, type=float,
+                        help="cutoff value for mpi")
     parser.add_argument("--hqm_cutoff", required=False, type=float, default=100000.0,
-                        help="cutoff value")
+                        help="cutoff value for heavy quark mass")
     parser.add_argument("-m", "--model", required=False, type=str, default="linear_FD_in_mpi",
                         help="which model to use")
     parser.add_argument("-z", "--zero", required=False, type=str, nargs='+', default=[],

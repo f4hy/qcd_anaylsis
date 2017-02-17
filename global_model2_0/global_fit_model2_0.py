@@ -16,8 +16,12 @@ class Model(object):
 
         """
 
+
+
         self.each_heavy = each_heavy
         self.eds = ensemble_datas
+        if vars(options).get("mpi_cutoff"):
+            self.eds = [ed for ed in ensemble_datas if ed.pion_mass().mean() < options.mpi_cutoff]
         self.bstrap_data = {}
         try:
             self.hqm_cutoff = options.hqm_cutoff
@@ -32,7 +36,8 @@ class Model(object):
 
         # Model object is created without data, (maybe for plotting)
         # set some defaults
-        self.consts = {"a": 0.0, "lat": 0.0, "alphas": 1.0, "m1": 0.0, "m2": 0.0}
+        self.consts = {"a": 0.0, "lat": 0.0, "alphas": 1.0, "m1": 0.0, "m2": 0.0,
+                       "renorm_qmass": 0.0, "qmass": 0.0, "residual_error": 0.0}
         if len(self.eds) > 1:
             # one data per ensemble
             datas = self.eds
@@ -46,6 +51,10 @@ class Model(object):
             self.consts["a"] = np.array([ed.ep.a_gev for ed in datas])
             self.consts["lat"] = np.array([ed.ep.latspacing for ed in datas])
             self.consts["alphas"] = np.array([get_alpha(ed.ep.scale) for ed in datas])
+            self.consts["renorm_qmass"] = np.array([ed.ep.scale*(ed.ep.ud_mass+ed.ep.residual_mass) / ed.ep.Zs
+                                                    for ed in datas])
+            self.consts["qmass"] = np.array([ed.ep.scale*(ed.ep.ud_mass+ed.ep.residual_mass) for ed in datas])
+            self.consts["residual_error"] = np.array([ed.ep.scale*(ed.ep.residual_mass_error) for ed in datas])
 
         self.data = {}
         self.options = options
@@ -57,6 +66,26 @@ class Model(object):
         self.label = ""
 
         logging.info("Data read")
+
+    def degrees_of_freedom(self):
+        """
+        Return the degrees of freedom of the model. Overload this method if different if different
+        """
+        logging.info("data")
+        datapoints = [d.shape[0] for d in self.data.values()]
+        ndata = datapoints[0]
+
+        fixed_parms = [p for p in self.params if "fix" in p and self.params[p]]
+        Nparams = inspect.getargspec(self.m).args[1:]
+        Nfree_params = len(Nparams) - len(fixed_parms)
+        dof = float(ndata - Nfree_params)
+        logging.info("DOF {}, data {}, free {}".format(dof, ndata, Nfree_params))
+        return dof
+
+    def plot_fit(self, x, *args):
+        """ what to plot, override if needed"""
+        logging.debug("plotting with {}".format(args))
+        return self.m(x, *args)
 
     def make_array(self, fun_name, **args):
         logging.debug("making array for {} with {}".format(fun_name, args))
