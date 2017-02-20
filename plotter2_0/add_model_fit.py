@@ -85,7 +85,7 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
     modelpoints = []
     for i,row in df.iterrows():
         p = [row[n] for n in m.contlim_args]
-        ys.append(m.m(x,*p))
+        ys.append(m.plot_fit(x,*p))
         if options.model_fit_point:
             modelpoints.append(m.m(options.model_fit_point,*p))
 
