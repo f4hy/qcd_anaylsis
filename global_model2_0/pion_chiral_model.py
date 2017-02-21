@@ -199,8 +199,8 @@ class fpi_mpi_x_NNLO(Model):
         self.update_paramdict("Lambda12", 20.0, 0.1, limits=(0, None), fix=True)
         self.update_paramdict("km", -0.15, 0.01)
         self.update_paramdict("kf", 1.98, 0.01)
-        self.update_paramdict("gamma_1", -0.1, 0.1, fixzero=True)
-        self.update_paramdict("gamma_2", -0.1, 0.1, fixzero=True)
+        self.update_paramdict("gamma_1", -0.1, 0.1)
+        self.update_paramdict("gamma_2", -0.1, 0.1)
         self.update_paramdict("gamma_s1", 0.0, 0.0001)
         self.update_paramdict("gamma_s2", 0.0, 0.0001)
 
