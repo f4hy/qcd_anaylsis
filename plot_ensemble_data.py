@@ -495,7 +495,7 @@ if __name__ == "__main__":
                         action='append', help="add bootstrap fit lines")
     parser.add_argument("--model_fit_point", required=False, default=None, type=float,
                         help="add a point on the model fit")
-    parser.add_argument("--model_finite_fits", type=str, required=False, default=["4.17"],
+    parser.add_argument("--model_finite_fits", type=str, required=False, default=[],
                         action='append', help="add fit lines for finite beta")
     parser.add_argument("--mpisqrbymq", action="store_true",
                         help="compute mpisqr divided by mq, strange edge case")

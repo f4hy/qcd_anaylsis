@@ -87,7 +87,7 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
         p = [row[n] for n in m.contlim_args]
         ys.append(m.plot_fit(x,*p))
         if options.model_fit_point:
-            modelpoints.append(m.m(options.model_fit_point,*p))
+            modelpoints.append(m.plot_fit(options.model_fit_point,*p))
 
     ponesigma = np.percentile(ys, 84.1, axis=0)
     monesigma = np.percentile(ys, 15.9, axis=0)
@@ -96,7 +96,7 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
 
     if options.model_fit_point:
         point_x = options.model_fit_point
-        point_y = m.m(point_x, *params)
+        point_y = m.plot_fit(point_x, *params)
         py_upper = np.percentile(modelpoints, 84.1, axis=0) - point_y
         py_lower = point_y- np.percentile(modelpoints, 15.9, axis=0)
 
@@ -116,7 +116,7 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
             m.consts["lat"] = hbar_c/scale[beta]
             m.consts["alphas"] = get_alpha(scale[beta])
             finbeta_params = [means[i] for i in m.finbeta_args]
-            ybeta = m.m(x, *finbeta_params)
+            ybeta = m.plot_fit(x, *finbeta_params)
             h = axe.plot(x,ybeta, color=colors[beta], lw=2, label="fit at $\\beta$={}".format(beta))
             plot_handles.extend(h)
     except AttributeError as e:
