@@ -35,14 +35,17 @@ from global_model2_0.fdssqrtms_models import * # noqa
 from global_model2_0.single_heavy_fd_models import * # noqa
 from global_model2_0.fd_models import * # noqa
 from global_model2_0.pion_chiral_model import * # noqa
+from global_model2_0.kaon_chiral_model import * # noqa
 
+from itertools import cycle
 
 import inspect
 
 plotsettings = dict(linestyle="none", ms=12, elinewidth=4,
                     capsize=8, capthick=2, mew=2, c="k")
 
-
+colorcycle = cycle(['k', 'c', 'g', 'y'])
+styles = cycle(['--', '-.', ':', '-'])
 
 meanplot = {}
 
@@ -59,7 +62,10 @@ def addplot(plots, axe, fill, save, x=None, y=None, params=None):
 
 
 def add_model_fit(axe, xran, boot_fit_file, options=None):
-
+    c = colorcycle.next()
+    lstyle = styles.next()
+    plotsettings = dict(linestyle="none", ms=12, elinewidth=4,
+                        capsize=8, capthick=2, mew=2, c=c)
 
     header = boot_fit_file.readline().split(",")
     name = header[0].strip("# ")
@@ -79,7 +85,7 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
 
     logging.info("plotting line with params {}".format(params))
     y = m.plot_fit(x, *params)
-    plot_handles = axe.plot(x,y, color='k', lw=2, label=m.label)
+    plot_handles = axe.plot(x,y, color=c, lw=2, label=m.label, linestyle=lstyle)
 
     ys = []
     modelpoints = []
@@ -101,7 +107,7 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
         py_lower = point_y- np.percentile(modelpoints, 15.9, axis=0)
 
         logging.info("At model point specified, value is {} + {} - {}".format(point_y, py_upper, py_lower))
-        axe.errorbar(point_x,point_y, yerr=[[py_lower],[py_upper]], color='k', ms=15, elinewidth=4, mew=2, capthick=2, capsize=8)
+        axe.errorbar(point_x,point_y, yerr=[[py_lower],[py_upper]], color=c, ms=15, elinewidth=4, mew=2, capthick=2, capsize=8)
         # exit(-1)
 
     try:
