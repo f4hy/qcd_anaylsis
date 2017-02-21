@@ -5,23 +5,6 @@ from physical_values import phys_FB, phys_FBs, phys_FBsbyFB, phys_MB, phys_MBs, 
 from physical_values import phys_eta, phys_etac, phys_etab, phys_FK, phys_mhq, phys_Jpsi, phys_Upsilon
 
 
-def mpisqr_mq(ed, options):
-    mpi = ed.pion_mass()
-    mq = ed.scale*(ed.ep.ud_mass + ed.ep.residual_mass)/ed.ep.Zs
-
-    data = mpi**2 / mq
-
-    mpsqrerr = (mpi**2).std()
-    res_err = ed.scale*ed.ep.residual_mass_error
-    err = np.sqrt(( mpsqrerr / mq)**2 + (res_err * data.mean() / mq)**2 )
-
-    label = "$m_\pi^2 / m_q$"
-    if ed.scale != 1.0:
-        label += " [MeV]"
-
-    return (data.mean(), err,
-            label, {"PDG": phys_pion**2 / phys_mq})
-
 
 
 def fpi(ed, options):
@@ -43,6 +26,16 @@ def fK(ed, options):
 
     return (data.mean(), data.std(),
             label, {"PDG": phys_FK})
+
+def fK_fpi(ed, options):
+    data = ed.fK() / ed.fpi()
+
+    label = "$f_K / f_\pi$"
+    if ed.scale != 1.0:
+        label += " [MeV]"
+
+    return (data.mean(), data.std(),
+            label, {"PDG": phys_FK / phys_Fpi})
 
 
 
