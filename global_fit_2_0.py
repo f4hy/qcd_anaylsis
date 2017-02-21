@@ -70,7 +70,7 @@ def interpolate(data, model_str, options):
     params.update(mean_m.values)
 
     # return mean_m, {0: mean_m}, np.nan
-    if (mean_m.fval / dof) > 100.0:
+    if (mean_m.fval / dof) > 500.0:
         logging.error("Chi^2/dof is huge, dont bother with bootstraps")
         return mean_m, {0: mean_m}, np.nan
 
@@ -85,13 +85,12 @@ def interpolate(data, model_str, options):
         bootstrap_results = bootstrap_m[b].migrad()
         logging.debug(bootstrap_results)
         if not bootstrap_m[b].get_fmin().is_valid:
-            logging.error("NOT VALID for bootstrap".format(b))
+            logging.error("NOT VALID for bootstrap {}".format(b))
             exit(-1)
     progressb.done()
 
     logging.info('fitted mean values {}'.format(mean_m.values))
     logging.info('fitted mean errors {}'.format(mean_m.errors))
-
     means = []
     for i in ARGS:
         x = [b.values[i] for b in bootstrap_m.values()]
@@ -156,7 +155,8 @@ def global_fit(options):
     for es in options.ensembles:
         try:
             ed = ensemble_data(es)
-            ensembles.append(ed)
+            if ed.ep.ename != "KC0":
+                ensembles.append(ed)
         except Exception as e:
             logging.error("exception in loading ensemble_data")
             raise e
