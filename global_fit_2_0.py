@@ -15,6 +15,7 @@ from global_model2_0.fdssqrtms_models import * # noqa
 from global_model2_0.single_heavy_fd_models import * # noqa
 from global_model2_0.fd_models import * # noqa
 from global_model2_0.pion_chiral_model import * # noqa
+from global_model2_0.kaon_chiral_model import * # noqa
 
 
 def interpolate(data, model_str, options):
