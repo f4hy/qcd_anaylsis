@@ -336,10 +336,10 @@ class fpi_mpi_xi_inverse_NNLO(Model):
         self.update_paramdict("Lambda12", 20.0, 0.1, limits=(0, None), fix=True)
         self.update_paramdict("cm", 1.0, 0.1)
         self.update_paramdict("cf", -12.0, 0.1)
-        self.update_paramdict("gamma_1", -0.1, 0.1, fixzero=True)
-        self.update_paramdict("gamma_2", -0.1, 0.1, fixzero=True)
-        self.update_paramdict("gamma_s1", 0.0, 0.0001, fixzero=True)
-        self.update_paramdict("gamma_s2", 0.0, 0.0001, fixzero=True)
+        self.update_paramdict("gamma_1", -0.1, 0.1)
+        self.update_paramdict("gamma_2", -0.1, 0.1)
+        self.update_paramdict("gamma_s1", 0.0, 0.0001)
+        self.update_paramdict("gamma_s2", 0.0, 0.0001)
 
         self.contlim_args = ["F_0", "B", "Lambda3", "Lambda4", "Lambda12", "cm", "cf", ]
         self.finbeta_args = ["F_0", "B", "Lambda3", "Lambda4", "Lambda12", "cm", "cf", "gamma_1", "gamma_2"]
@@ -397,11 +397,9 @@ class fpi_mpi_xi_inverse_NNLO(Model):
         delta_M = (1+gamma_1*asqr+gamma_s1*delta_Mss)
         delta_F = (1+gamma_2*asqr+gamma_s2*delta_Mss)
 
-        print arg3
-        print arg4
-        Mpisqr = delta_M * 2*B / (1.0 + 0.5*xi*np.log(arg3) -5.0/8.0*(xi*lnOmegaM)**2 + cm*(xi**2))
+        Mpisqr = delta_M * 2*B / (1.0 - 0.5*xi*np.log(arg3) -5.0/8.0*(xi*lnOmegaM)**2 + cm*(xi**2))
 
-        Fpi = delta_F * F_0 / (1.0 - xi*np.log(arg4) - 1.0/4.0*(xi*lnOmegaF)**2 + cf*(xi**2))
+        Fpi = delta_F * F_0 / (1.0 + xi*np.log(arg4) - 1.0/4.0*(xi*lnOmegaF)**2 + cf*(xi**2))
 
         return Mpisqr, Fpi
 
@@ -465,8 +463,8 @@ class fpi_mpi_xi_NNLO(Model):
         self.update_paramdict("beta", 2000.0, 1.0)
         self.update_paramdict("ellphys", -32.0, 4.3, fix=True)
 
-        self.update_paramdict("gamma_1", -0.1, 0.1, fixzero=True)
-        self.update_paramdict("gamma_2", -0.1, 0.1, fixzero=True)
+        self.update_paramdict("gamma_1", -0.1, 0.1)
+        self.update_paramdict("gamma_2", -0.1, 0.1)
         self.update_paramdict("gamma_s1", 0.0, 0.0001)
         self.update_paramdict("gamma_s2", 0.0, 0.0001)
 
@@ -500,9 +498,9 @@ class fpi_mpi_xi_NNLO(Model):
         delta_F = (1+gamma_2*asqr+gamma_s2*delta_Mss)
 
 
-        Fpi = delta_F * F_0 * (1 - xi*np.log(xi) + 5.0/4.0*(xi*np.log(xi))**2 + 1/6.0*(ellphys+53.0/2.0)*xi*xi*np.log(xi)) + c4*xi*(1-5*xi*np.log(xi)) + beta*xi**2
-        Mpisqr = delta_M * 2*B*(1.0+0.5*xi*np.log(xi) +7.0/8.0*(xi*np.log(xi))**2+
-                                (c4/F_0 - 1.0/3.0 * (ellphys+16))*np.log(xi)*xi**2) + c3*xi*(1-5*xi*np.log(xi)) + alpha*xi**2
+        Fpi = delta_F * (F_0 * (1 - xi*np.log(xi) + 5.0/4.0*(xi*np.log(xi))**2 + 1/6.0*(ellphys+53.0/2.0)*xi*xi*np.log(xi)) + c4*xi*(1-5*xi*np.log(xi)) + beta*xi**2)
+        Mpisqr = delta_M * (2*B*(1.0+0.5*xi*np.log(xi) +7.0/8.0*(xi*np.log(xi))**2+
+                                 (c4/F_0 - 1.0/3.0 * (ellphys+16))*np.log(xi)*xi**2) + c3*xi*(1-5*xi*np.log(xi)) + alpha*xi**2)
 
         return Mpisqr, Fpi
 
@@ -523,3 +521,109 @@ class fpi_mpi_xi_NNLO(Model):
         sqr_diff1 = (mdata - M)**2
         sqr_diff2 = (self.bstrapdata("fpi") - F)**2
         return np.sum(sqr_diff1 / self.var1) + np.sum(sqr_diff2 / self.var2)
+
+class fpi_xi_NLO(Model):
+
+    def __init__(self, ensemble_datas, options):
+
+        Model.__init__(self, ensemble_datas, options)
+        self.data["fpi"] = self.make_array("fpi")
+        self.data["mpi"] = self.make_array("pion_mass")
+        self.data["mK"] = self.make_array("kaon_mass")
+        self.data["xi"] = self.make_array("xi")
+
+        try:
+            self.var1 = (((self.data["mpi"]**2).std(1)/self.consts["renorm_qmass"])**2
+                         + (self.consts["residual_error"]*self.data["mpi"].mean(1) / self.consts["qmass"])**2)
+            self.var2 = (self.data["fpi"]).var(1)
+
+        except IndexError:
+            self.var1 = np.NaN
+            self.var2 = np.NaN
+
+
+        self.label = "Linear continuum fit"
+
+        self.update_paramdict("F_0", 117.8, 0.1, limits=(0, None))
+        self.update_paramdict("c4", 0.0, 1.0)
+
+        self.update_paramdict("gamma_2", -0.1, 0.1)
+        self.update_paramdict("gamma_s2", 0.0, 0.0001)
+
+        self.contlim_args = ["F_0", "c4"]
+        self.finbeta_args = ["F_0", "c4", "gamma_2"]
+
+
+    def m(self, xi, F_0, c4, gamma_2=0, gamma_s2=0):
+
+        Mss = (2.0 * self.bstrapdata("mK")**2 - self.bstrapdata("mpi")**2)
+        phys_Mss = (2.0 * (pv.phys_kaon**2)) - (pv.phys_pion**2)
+        delta_Mss = Mss - phys_Mss
+
+        asqr = (self.consts["lat"]**2)
+
+        delta_F = (1+gamma_2*asqr+gamma_s2*delta_Mss)
+
+        Fpi = delta_F * (F_0 * (1 - xi*np.log(xi)) + c4 * xi)
+
+        return Fpi
+
+
+    def sqr_diff(self, F_0, c4, gamma_2, gamma_s2):
+
+        xi = self.bstrapdata("xi")
+        F = self.m(xi, F_0, c4, gamma_2, gamma_s2)
+        sqr_diff2 = (self.bstrapdata("fpi") - F)**2
+        return np.sum(sqr_diff2 / self.var2)
+
+class mpi_xi_NLO(Model):
+
+    def __init__(self, ensemble_datas, options):
+
+        Model.__init__(self, ensemble_datas, options)
+        self.data["fpi"] = self.make_array("fpi")
+        self.data["mpi"] = self.make_array("pion_mass")
+        self.data["mK"] = self.make_array("kaon_mass")
+        self.data["xi"] = self.make_array("xi")
+
+        try:
+            self.var1 = (((self.data["mpi"]**2).std(1)/self.consts["renorm_qmass"])**2
+                         + (self.consts["residual_error"]*self.data["mpi"].mean(1) / self.consts["qmass"])**2)
+            self.var2 = (self.data["fpi"]).var(1)
+
+        except IndexError:
+            self.var1 = np.NaN
+            self.var2 = np.NaN
+
+        self.label = "Linear continuum fit"
+
+        self.update_paramdict("B", 117.8, 0.1, limits=(0, None))
+        self.update_paramdict("c3", 0.0, 1.0)
+
+        self.update_paramdict("gamma_1", -0.1, 0.1)
+        self.update_paramdict("gamma_s1", 0.0, 0.0001)
+
+        self.contlim_args = ["B", "c3"]
+        self.finbeta_args = ["B", "c3", "gamma_1"]
+
+
+    def m(self, xi, B, c3, gamma_1=0, gamma_s1=0):
+
+        Mss = (2.0 * self.bstrapdata("mK")**2 - self.bstrapdata("mpi")**2)
+        phys_Mss = (2.0 * (pv.phys_kaon**2)) - (pv.phys_pion**2)
+        delta_Mss = Mss - phys_Mss
+
+        asqr = (self.consts["lat"]**2)
+        delta_M = (1+gamma_1*asqr+gamma_s1*delta_Mss)
+
+        Mpisqr = delta_M * (2*B*(1.0+0.5*xi*np.log(xi)) + c3*xi)
+
+        return Mpisqr
+
+    def sqr_diff(self, B, c3, gamma_1, gamma_s1):
+
+        xi = self.bstrapdata("xi")
+        M = self.m(xi, B, c3, gamma_1, gamma_s1)
+        mdata = self.bstrapdata("mpi")**2 / self.consts["renorm_qmass"]
+        sqr_diff1 = (mdata - M)**2
+        return np.sum(sqr_diff1 / self.var1)
