@@ -28,9 +28,11 @@ from commonplotlib.auto_key import auto_key
 from plot_decay_constants import auto_fit_range
 from plotter1_0.add_chiral_fits import format_parameters
 
+from itertools import cycle
+
 first = True
 
-colors = ['b', 'r', 'k', 'm', 'c', 'y']*10
+colors = cycle(reversed(['k', 'y', 'm', 'c',  'b', 'r']))
 
 def mark_generator():
     for i in ["D", "^", "<", ">", "v", "x", "p", "8"]:
@@ -38,249 +40,221 @@ def mark_generator():
 
 def number_generator():
     for i in range(1,100):
-        yield i
+        yield i*0.2
 
 plotindex = number_generator()
 
 summary_lines = []
 
-def plot_constants(axe, chiral_fit_file, options):
+def read_data(fit_file):
+    infoline = fit_file.readline().strip()
+    columns = infoline.split(",")[1:]
+    name = infoline.strip("# ").split(",")[0]
+    df = pd.read_csv(fit_file, sep=",", delimiter=",", names=columns)
+    return name, df
+
+
+def Lambda3(data):
+    lam3 = data.Lambda3
+    mean = lam3.mean()
+    err =  lam3.std()
+    syserr = (data.Lambda3*0.01433447098).mean()
+    logging.info("lam3: mean{} err{} syserr{}".format(mean, err, syserr))
+    return (mean, err, syserr)
+
+def Lambda4(data):
+    lam4 = data.Lambda4
+    mean = lam4.mean()
+    err =  lam4.std()
+    syserr = (data.Lambda4*0.01433447098).mean()
+    logging.info("lam4: mean{} err{} syserr{}".format(mean, err, syserr))
+    return (mean, err, syserr)
+
+
+
+def f0(data):
+    F = data.F_0 / np.sqrt(2)
+    mean = F.mean()
+    err =  F.std()
+    syserr = ((F*0.01433447098)).mean()
+    logging.info("F: mean{} err{} syserr{}".format(mean, err, syserr))
+    return (mean, err, syserr)
+
+def l3(data):
+    ell3 = np.log(data.Lambda3**2 / phys_pion**2)
+    mean = ell3.mean()
+    err =  ell3.std()
+    syserr = None
+    logging.info("l3: mean{} err{} syserr{}".format(mean, err, syserr))
+    return (mean, err, syserr)
+
+def l4(data):
+    ell4 = np.log(data.Lambda4**2 / phys_pion**2)
+    mean = ell4.mean()
+    err =  ell4.std()
+    syserr = None
+    logging.info("l4: mean{} err{} syserr{}".format(mean, err, syserr))
+    return (mean, err, syserr)
+
+def sigma13(data):
+    sigma = (data.B*(data.F_0)**2)/2.
+    s13 = sigma**(1./3.)
+    mean = s13.mean()
+    err =  s13.std()
+    syserr = ((s13*0.01433447098)).mean()
+    logging.info("sigma3: mean{} err{} syserr{}".format(mean, err, syserr))
+    return (mean, err, syserr)
+
+def plot_constants(axe, bootstrap_fit_files, options):
 
     values = {}
     errors = {}
 
-    if "failed" in chiral_fit_file.name:
-        return
+    alldata = {}
 
-    print chiral_fit_file.name
-    for i in chiral_fit_file:
-        if i.startswith("#"):
-            fittype = i.split(" ")[0][1:]
-            continue
+    for f in bootstrap_fit_files:
+        if "failed" in f.name:
+            info.warn("included failed fit file {}".format(f.name))
+        name, d = read_data(f)
+        alldata[name] = d
 
-        name, val, err = (j.strip() for j in i.replace("+/-",",").split(","))
-        values[name] = float(val)
-        errors[name] = float(err)
-
-    try:
-        values[" M_\pi<"] = re.search("cut([0-9]+)", chiral_fit_file.name).group(1)
-        errors[" M_\pi<"] = 0
-    except:
-        pass
+    if "mpi_xi_inverse_NLO" in alldata.keys() and "fpi_xi_inverse_NLO" in alldata.keys():
+        logging.info("merging mpi nlo with fpi nlo fits")
+        alldata["fpi_mpi_xi_inverse_NLO"] =  pd.concat([alldata["mpi_xi_inverse_NLO"], alldata["fpi_xi_inverse_NLO"]], axis=1, join='inner')
+        del alldata["mpi_xi_inverse_NLO"]
+        del alldata["fpi_xi_inverse_NLO"]
 
 
-    print values
-    # if "c3" in values:
-
-    #     print values["c3"] / phys_Fpi
-    #     print (8*np.pi**2 * phys_Fpi**2) / (np.exp(values["c3"] / phys_Fpi))
-    #     print "LAMBDA3",  np.sqrt((8*np.pi**2 * phys_Fpi**2) / (np.exp(values["c3"] / phys_Fpi)))
-
-    if "F_0" in values:
-        F_0 = values["F_0"]/np.sqrt(2)
-        F_0_err = errors["F_0"]/np.sqrt(2)
-
-    if "c3" in values:
-
-        B = values["B"]
-
-        LAMBDA3 = np.sqrt((8*np.pi**2 * phys_Fpi**2) / (np.exp(values["c3"] / B)))
-        LAMBDA3_err = errors["c3"] * (LAMBDA3 / (2*phys_Fpi) )
-
-        c3string = print_paren_error(values["c3"], errors["c3"])
-        c3percent = 100*errors["c3"]/ values["c3"]
-        lam3string = print_paren_error(LAMBDA3, LAMBDA3_err)
-        lam3percent = 100*LAMBDA3_err/LAMBDA3
-
-        l3 = np.log(LAMBDA3**2 / phys_pion**2)
-        l3_err = LAMBDA3_err *2 / LAMBDA3
-        l3string = print_paren_error(l3, l3_err)
-        l3percent = 100*l3_err/l3
-
-        logging.info("c3: {}, {}%".format(c3string, c3percent ))
-        logging.info("lambda3: {}, {}%".format(lam3string, lam3percent ))
-        logging.info("l3: {}, {}%\n".format(l3string, l3percent ))
-
-
-    if "c4" in values:
-
-        f = values["F_0"]
-
-        LAMBDA4 = np.sqrt((8*np.pi**2 * phys_Fpi**2) / (np.exp(values["c4"] / f)))
-        LAMBDA4_err = errors["c4"] * (LAMBDA4 / (2*phys_Fpi) )
-
-        c4string = print_paren_error(values["c4"], errors["c4"])
-        c4percent = 100*errors["c4"]/ values["c4"]
-        lam4string = print_paren_error(LAMBDA4, LAMBDA4_err)
-        lam4percent = 100*LAMBDA4_err/LAMBDA4
-
-        l4 = np.log(LAMBDA4**2 / phys_pion**2)
-        l4_err = LAMBDA4_err *2 / LAMBDA4
-        l4string = print_paren_error(l4, l4_err)
-        l4percent = 100*l4_err/l4
-
-        logging.info("c4: {}, {}%".format(c4string, c4percent ))
-        logging.info("lambda4: {}, {}%".format(lam4string, lam4percent ))
-        logging.info("l4: {}, {}%\n".format(l4string, l4percent ))
-
-
-    if "Lambda4" in values:
-
-        LAMBDA4, LAMBDA4_err = values["Lambda4"], errors["Lambda4"]
-        c4 = phys_Fpi * np.log((8*np.pi**2 * phys_Fpi**2)/(values["Lambda4"]**2))
-        c4_err = errors["Lambda4"] * np.abs((2*phys_Fpi) / values["Lambda4"])
-        lam4string = print_paren_error(values["Lambda4"], errors["Lambda4"])
-        lam4percent = 100*errors["Lambda4"] / values["Lambda4"]
-        c4string = print_paren_error(c4, c4_err)
-        c4percent = 100*c4_err / np.abs(c4)
-
-
-        l4 = np.log(LAMBDA4**2 / phys_pion**2)
-        l4_err = LAMBDA4_err *2 / LAMBDA4
-        l4string = print_paren_error(l4, l4_err)
-        l4percent = 100*l4_err/l4
-
-        logging.info("lambda4: {}, {}%".format(lam4string, lam4percent ))
-        logging.info("c4: {}, {}%".format(c4string, c4percent ))
-        logging.info("l4: {}, {}%\n".format(l4string, l4percent ))
-
-    if "Lambda3" in values:
-
-        B = values["B"]
-
-        LAMBDA3, LAMBDA3_err = values["Lambda3"], errors["Lambda3"]
-        c3 = B * np.log((8*np.pi**2 * phys_Fpi**2)/(values["Lambda3"]**2))
-        c3_err = errors["Lambda3"] * np.abs((2*B) / values["Lambda3"])
-        lam3string = print_paren_error(values["Lambda3"], errors["Lambda3"])
-        lam3percent = 100*errors["Lambda3"] / values["Lambda3"]
-        c3string = print_paren_error(c3, c3_err)
-        c3percent = 100*c3_err / np.abs(c3)
-
-
-        l3 = np.log(LAMBDA3**2 / phys_pion**2)
-        l3_err = LAMBDA3_err *2 / LAMBDA3
-        l3string = print_paren_error(l3, l3_err)
-        l3percent = 100*l3_err/l3
-
-        logging.info("lambda3: {}, {}%".format(lam3string, lam3percent ))
-        logging.info("c3: {}, {}%".format(c3string, c3percent ))
-        logging.info("l3: {}, {}%\n".format(l3string, l3percent ))
-
-    if "B" in values:
-
-        B, B_err = values["B"], errors["B"]
-        SIGMA = (B*phys_Fpi**2)/2.0
-        SIGMA_err = (B_err*phys_Fpi**2)/2.0
-        Sroot = SIGMA**(1.0/3.0)
-        Sroot_err = B_err *((phys_Fpi**2)/2.0) / (3.0* SIGMA**(2.0/3.0))
-
-        Bstring = print_paren_error(B, B_err)
-        Bpercent = 100*B_err/B
-        SIGMAstring = print_paren_error(SIGMA, SIGMA_err)
-        SIGMApercent = 100*SIGMA_err/SIGMA
-        Srootstring = print_paren_error(Sroot, Sroot_err)
-        Srootpercent = 100*Sroot_err/Sroot
-
-        logging.info("B: {}, {}%".format(Bstring, Bpercent ))
-        logging.info("Sroot: {}, {}%".format(Srootstring, Srootpercent ))
-        logging.info("SIGMA: {}, {}%\n".format(SIGMAstring, SIGMApercent ))
-
-
-    if "x" in chiral_fit_file.name:
-        if "NNLO" in chiral_fit_file.name:
-            label = "NNLO x"
-        elif "NLO" in chiral_fit_file.name:
-            label = "NLO x"
-            print chiral_fit_file.name, "NLO x"
-    if "xi" in chiral_fit_file.name or "XI" in chiral_fit_file.name:
-        if "NNLO" in chiral_fit_file.name:
-            label = "NNLO xi"
-        elif "NLO" in chiral_fit_file.name:
-            label = "NLO xi"
-
-    color = colors.pop()
-    plotsettings = dict(linestyle="none", c=color, marker="o",
-                        label=label, ms=12, elinewidth=4,
-                        capsize=8, capthick=2, mec=color, mew=2,
-                        aa=True, mfc=color, fmt='o', ecolor=color)
-
-    try:
+    plots = []
+    for k in sorted(alldata.keys()):
+        data = alldata[k]
         if options.constant == "Lambda4":
-            ydata=LAMBDA4
-            y_err=LAMBDA4_err
-        if options.constant == "Lambda3":
-            ydata=LAMBDA3
-            y_err=LAMBDA3_err
-        if options.constant == "l4":
-            ydata=l4
-            y_err=l4_err
-        if options.constant == "l3":
-            ydata=l3
-            y_err=l3_err
-        if options.constant == "sigma13":
-            ydata=Sroot
-            y_err=Sroot_err
-        if options.constant == "f0":
-            ydata=F_0
-            y_err=F_0_err
-        thisx = plotindex.next()
-        summary_lines.append("{}, {}, {}\n".format(label, ydata, y_err))
-        return axe.errorbar(x=thisx, y=ydata, yerr=y_err, **plotsettings)
-    except UnboundLocalError:
-        logging.warn("file {} did not contain {}".format(chiral_fit_file.name, options.constant))
-        return []
+            xdata, staterr, syserr = Lambda4(data)
+        elif options.constant == "Lambda3":
+            xdata, staterr, syserr = Lambda3(data)
+        elif options.constant == "l4":
+            xdata, staterr, syserr = l4(data)
+        elif options.constant == "l3":
+            xdata, staterr, syserr = l3(data)
+        elif options.constant == "sigma13":
+            xdata, staterr, syserr = sigma13(data)
+        elif options.constant == "f0":
+            xdata, staterr, syserr = f0(data)
+        else:
+            logging.error("Not a valid constant selection")
+            exit(-1)
+
+        thisy = plotindex.next()
+        # color = colors.next()
+        if "x" in k:
+            color = 'b'
+            if "NNLO" in k:
+                label = "NNLO x"
+                mark='o'
+            elif "NLO" in k:
+                label = "NLO x"
+                mark='.'
+        if "xi" in k or "XI" in k:
+            color = 'r'
+            if "NNLO" in k:
+                label = "NNLO $\\xi$"
+                mark='o'
+            elif "NLO" in k:
+                label = "NLO $\\xi$"
+                mark='.'
+
+
+        plotsettings = dict(linestyle="none", c=color, marker=mark,
+                            label=label, ms=12, elinewidth=4,
+                            capsize=8, capthick=2, mec=color, mew=2,
+                            aa=True, mfc=color, fmt='o', ecolor=color)
+
+        if syserr > 0:
+            axe.errorbar(y=thisy, x=xdata, xerr=np.sqrt(staterr**2+ (syserr)**2), **dict(plotsettings, label=None))
+        p = axe.errorbar(y=thisy, x=xdata, xerr=staterr, **plotsettings)
+        plots.append(p)
+
+    return plots
+
+def otherplot(axe, x, xerr, label, labelx, plotsettings):
+    y = plotindex.next()
+    mark_gen = mark_generator()
+    mark = mark_gen.next()
+    axe.errorbar(y=y, x=x, xerr=xerr, marker=mark, **plotsettings)
+    axe.annotate(label, xy=(labelx,y), fontsize=30)
+
+def flagplot(axe, x, xerr, labelx, plotsettings):
+    y = plotindex.next()
+    axe.errorbar(y=y, x=x, xerr=xerr, **plotsettings)
+    axe.annotate("FLAG", xy=(labelx,y), fontsize=30)
+    axe.axvspan(x-xerr, x+xerr, facecolor='0.5', alpha=0.5)
+
 
 def add_others(axe, options):
+    divlinex = plotindex.next()
+    axe.axhline(y=divlinex, color="k")
     color = 'k'
     flagplotsettings = dict(linestyle="none", c=color, marker="x",
-                            ms=12, elinewidth=4, label="FLAG",
+                            ms=12, elinewidth=4,
                             capsize=8, capthick=2, mec=color, mew=2,
                             aa=True, mfc=color, fmt='o', ecolor=color)
     color = 'g'
-    mark_gen = mark_generator()
     plotsettings = dict(linestyle="none", c=color,
                             ms=12, elinewidth=4,
                             capsize=8, capthick=2, mec=color, mew=2,
                             aa=True, mfc=color, fmt='o', ecolor=color)
 
     # if options.constant == "Lambda4":
-    #     return axe.errorbar(x=plotindex.next(), y=LAMBDA4, yerr=LAMBDA4_err, **plotsettings)
+    #     return axe.errorbar(y=plotindex.next(), x=LAMBDA4, xerr=LAMBDA4_err, **plotsettings)
     # if options.constant == "Lambda3":
-    #     return axe.errorbar(x=plotindex.next(), y=LAMBDA3, yerr=LAMBDA3_err, **plotsettings)
+    #     return axe.errorbar(y=plotindex.next(), x=LAMBDA3, xerr=LAMBDA3_err, **plotsettings)
     if options.constant == "l4":
-        axe.set_ylim(0,6)
-        axe.errorbar(x=plotindex.next(), y=4.02, yerr=0.28, **flagplotsettings)
-        axe.errorbar(x=plotindex.next(), y=3.8, yerr=0.44, label="BMW13", marker=mark_gen.next(), **plotsettings)
-        axe.errorbar(x=plotindex.next(), y=3.99, yerr=0.18, label="RBC/UKQCD 12", marker=mark_gen.next(), **plotsettings)
-        axe.errorbar(x=plotindex.next(), y=4.03, yerr=0.16, label="Borsanyi 12", marker=mark_gen.next(), **plotsettings)
-        axe.errorbar(x=plotindex.next(), y=3.98, yerr=0.32, label="MILC 10A", marker=mark_gen.next(), **plotsettings)
-        axe.errorbar(x=plotindex.next(), y=4.30, yerr=0.51, label="NPLQCD 11", marker=mark_gen.next(), **plotsettings)
+        # axe.set_xlim(3,8)
+        xlabel=5.2
+        flagplot(axe,  4.10, 0.45,xlabel, flagplotsettings)
+        axe.axvspan(4.10-0.45, 4.10+0.45, facecolor='0.5', alpha=0.5)
+        otherplot(axe,  4.02, 0.253, "RBC/UKQCD15E",xlabel, plotsettings)
+        otherplot(axe,  4.113, 0.59, "RBC/UKQCD14B",xlabel, plotsettings)
+        otherplot(axe,  3.8, 0.44, "BMW13",xlabel, plotsettings)
+        otherplot(axe,  3.99, 0.18, "RBC/UKQCD 12",xlabel, plotsettings)
+        otherplot(axe,  4.03, 0.16, "Borsanyi 12",xlabel, plotsettings)
+        otherplot(axe,  3.98, 0.32, "MILC 10A",xlabel, plotsettings)
+        otherplot(axe,  4.30, 0.51, "NPLQCD 11",xlabel, plotsettings)
     if options.constant == "l3":
-        axe.set_ylim(0,6)
-        axe.errorbar(x=plotindex.next(), y=3.05, yerr=0.99, **flagplotsettings)
-        axe.errorbar(x=plotindex.next(), y=2.5, yerr=0.64, label="BMW13", marker=mark_gen.next(), **plotsettings)
-        axe.errorbar(x=plotindex.next(), y=2.91, yerr=0.24, label="RBC/UKQCD 12", marker=mark_gen.next(), **plotsettings)
-        axe.errorbar(x=plotindex.next(), y=3.16, yerr=0.30, label="Borsanyi 12", marker=mark_gen.next(), **plotsettings)
-        axe.errorbar(x=plotindex.next(), y=2.85, yerr=0.81, label="MILC 10A", marker=mark_gen.next(), **plotsettings)
-        axe.errorbar(x=plotindex.next(), y=4.04, yerr=0.40, label="NPLQCD 11", marker=mark_gen.next(), **plotsettings)
+        xlabel=4.0
+        # axe.set_xlim(0,6)
+        flagplot(axe,  2.81, 0.64,xlabel, flagplotsettings)
+        axe.axvspan(2.81-0.64, 2.81+0.64, facecolor='0.5', alpha=0.5)
+        otherplot(axe,  2.81, 0.488, "RBC/UKQCD15E",xlabel, plotsettings)
+        otherplot(axe,  2.73, 0.13, "RBC/UKQCD14B",xlabel, plotsettings)
+        otherplot(axe,  2.5, 0.64, "BMW13",xlabel, plotsettings)
+        otherplot(axe,  2.91, 0.24, "RBC/UKQCD 12",xlabel, plotsettings)
+        otherplot(axe,  3.16, 0.30, "Borsanyi 12",xlabel, plotsettings)
+        # otherplot(axe,  2.85, 0.81, "MILC 10A",xlabel, plotsettings)
+        # otherplot(axe,  4.04, 0.40, "NPLQCD 11",xlabel, plotsettings)
     if options.constant == "sigma13":
-        axe.set_ylim(150,350)
-        axe.errorbar(x=plotindex.next(), y=271.0, yerr=15.0, **flagplotsettings)
-        axe.errorbar(x=plotindex.next(), y=271.0, yerr=4.0, label="BMW13", marker=mark_gen.next(), **plotsettings)
-        axe.errorbar(x=plotindex.next(), y=281.5, yerr=5.2, label="MILC 10A", marker=mark_gen.next(), **plotsettings)
-        axe.errorbar(x=plotindex.next(), y=272.3, yerr=1.84, label="Borsanyi 12", marker=mark_gen.next(), **plotsettings)
-        axe.errorbar(x=plotindex.next(), y=234.3, yerr=17.4, label="JLQCD/TWQCD 10", marker=mark_gen.next(), **plotsettings)
+        xlabel=290
+        # axe.set_xlim(150,350)
+        flagplot(axe,  274.0, 3.0,xlabel, flagplotsettings)
+        axe.axvspan(274.0-3.0, 274.0+3.0, facecolor='0.5', alpha=0.5)
+        otherplot(axe,  274.2, 4.88, "RBC/UKQCD15E",xlabel, plotsettings)
+        otherplot(axe,  275.9, 2.15, "RBC/UKQCD14B",xlabel, plotsettings)
+        otherplot(axe,  271.0, 4.0, "BMW13",xlabel, plotsettings)
+        otherplot(axe,  281.5, 5.2, "MILC 10A",xlabel, plotsettings)
+        otherplot(axe,  272.3, 1.84, "Borsanyi 12",xlabel, plotsettings)
+        # otherplot(axe,  234.3, 17.4, "JLQCD/TWQCD 10",xlabel, plotsettings)
     if options.constant == "f0":
-        axe.set_ylim(70,100)
-        # axe.errorbar(x=plotindex.next(), y=271.0, yerr=15.0, **flagplotsettings)
-        axe.errorbar(x=plotindex.next(), y=88.0, yerr=1.4, label="BMW13", marker=mark_gen.next(), **plotsettings)
-        axe.errorbar(x=plotindex.next(), y=87.5, yerr=1.0, label="MILC 10A", marker=mark_gen.next(), **plotsettings)
-        axe.errorbar(x=plotindex.next(), y=86.78, yerr=0.25, label="Borsanyi 12", marker=mark_gen.next(), **plotsettings)
-        # axe.errorbar(x=plotindex.next(), y=234.3, yerr=17.4, label="JLQCD/TWQCD 10", marker=mark_gen.next(), **plotsettings)
+        xlabel=90
+        # axe.set_ylim(70,100)
+        # otherplot(axe,  271.0, 15.0, flagplotsettings)
+        otherplot(axe,  88.0, 1.4, "BMW13",xlabel, plotsettings)
+        otherplot(axe,  87.5, 1.0, "MILC 10A",xlabel, plotsettings)
+        otherplot(axe,  86.78, 0.25, "Borsanyi 12",xlabel, plotsettings)
+        # otherplot(axe,  234.3, 17.4, "JLQCD/TWQCD 10",xlabel, plotsettings)
 
-    divlinex = plotindex.next()
-    axe.axvline(x=divlinex, color="k")
-    axe.text(divlinex+0.5, 0.5, 'This work', fontsize=80)
+    # divlinex = plotindex.next()
+    # axe.axhline(y=divlinex, color="k")
+    # axe.text(divlinex+0.5, 0.5, 'This work', fontsize=80)
 
     return
 
@@ -312,31 +286,39 @@ if __name__ == "__main__":
 
     fig, axe = plt.subplots(1)
     axe.tick_params(
-        axis='x',          # changes apply to the x-axis
+        axis='y',          # changes apply to the x-axis
         which='both',      # both major and minor ticks are affected
         bottom='off',      # ticks along the bottom edge are off
         top='off',         # ticks along the top edge are off
         labelbottom='off') # labels along the bottom edge are off
 
     plots = []
+    plots.extend(plot_constants(axe, args.files, args))
     add_others(axe, args)
-    for i in args.files:
-        plots.extend(plot_constants(axe, i, args))
 
     fontsettings = dict(fontweight='bold', fontsize=50)
 
     axe.set_title("${}$".format(format_parameters(args.constant)), **fontsettings)
-    axe.set_ylabel("${}$".format(format_parameters(args.constant)), **fontsettings)
+    axe.set_xlabel("${}$".format(format_parameters(args.constant)), **fontsettings)
 
-    axe.tick_params(axis='y', which='major', labelsize=40)
+    axe.tick_params(axis='x', which='major', labelsize=40)
+    axe.tick_params(
+        axis='y',          # changes apply to the x-axis
+        which='both',      # both major and minor ticks are affected
+        left='off',      # ticks along the bottom edge are off
+        right='off',         # ticks along the top edge are off
+        labelleft='off') # labels along the bottom edge are off
 
-
-    axe.legend(loc=0, fontsize=30, numpoints=1)
-    plt.xlim(0, plotindex.next()+3)
-
+    plots.reverse()
+    axe.legend(handles=plots, loc=4, fontsize=30, numpoints=1)
+    plt.ylim(0, plotindex.next())
+    print("xlim:", axe.get_xlim())
+    print("ylim:", axe.get_ylim())
+    xlim = axe.get_xlim()
+    plt.xlim(xlim[0], xlim[1]+(0.9*(xlim[1] - xlim[0])))
 
     if(args.output_stub):
-        fig.set_size_inches(26.5, 9.5)
+        fig.set_size_inches(9.5, 12.5)
         summaryfilename = args.output_stub + ".txt"
         logging.info("Writting summary to {}".format(summaryfilename))
         with open(summaryfilename, 'w') as summaryfile:
