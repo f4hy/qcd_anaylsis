@@ -70,8 +70,7 @@ def add_chiral_fit(axe, xran, chiral_fit_file=None, options=None):
 
     #ratio_chain(fittype, values)
 
-
-    return choose_fit(axe, xran, fittype, values, errors, fill=False, save=True)
+    return choose_fit(axe, xran, fittype, values, errors, fill=False, save=True, options=options)
 
 def add_boot_fit(axe, xran, boot_fit_file=None, options=None):
 
@@ -97,14 +96,12 @@ def add_boot_fit(axe, xran, boot_fit_file=None, options=None):
 
 
 
-def choose_fit(axe, xran, fittype, values, errors, fill=False, save=False):
-
+def choose_fit(axe, xran, fittype, values, errors, fill=False, save=False, options=None):
     if fittype.startswith("combined"):
-        if options.ydata == "fpi":
+        if "fpi" in options.ydata:
             fittype = fittype.replace("combined", "FPI")
         else:
             fittype = fittype.replace("combined", "mpisqrbymq")
-
     if fittype.startswith("FPI_XI_inverse_NNLO"):
         return add_XI_inverse_NNLO_fit(axe, xran, values, errors, fill=fill, save=save)
 
@@ -536,7 +533,6 @@ def add_X_NLO_all_fit(axe, xran, values, errors, fill=False, save=False):
     arg1 = LAMBDA4**2 / Msqr
     arg2 = LAMBDA3**2 / Msqr
     y = F_0 * (1 + x * np.log(arg1))
-
     plots = []
     paramstring = " ".join("${}={}$".format(format_parameters(k), print_paren_error(float(v), float(errors[k])))
                            for k, v in sorted(values.iteritems()))
@@ -650,7 +646,6 @@ def add_X_NNLO_all_fit(axe, xran, values, errors, fill=False, save=False):
     """
     B = values["B"]
     F_0 = values["F_0"]
-
     LAMBDA4 = values["Lambda4"]
     LAMBDA3 = values["Lambda3"]
     # LAMBDA12 = values["Lambda12"]
@@ -760,10 +755,10 @@ def add_mpisqrbymq_x_NNLO_fit(axe, xran, values, errors, fill=False, save=False)
     x = np.linspace(xran[0], xran[1], num=500)
 
     Msqr = x * (8 * (np.pi**2) * (F_0**2))
+
     arg4 = LAMBDA4**2 / Msqr
     arg3 = LAMBDA3**2 / Msqr
     # # arg12 = LAMBDA12**2 / Msqr
-
     l1 = -0.4
     l2 = 4.3
     Lambda1sqr = (phys_pion**2) * np.exp(l1)
