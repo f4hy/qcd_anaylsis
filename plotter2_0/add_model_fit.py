@@ -85,7 +85,12 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
 
     logging.info("plotting line with params {}".format(params))
     y = m.plot_fit(x, *params)
-    plot_handles = axe.plot(x,y, color=c, lw=2, label=m.label, linestyle=lstyle)
+    label = m.label
+    if "cutoff" in boot_fit_file.name:
+        cutoff = re.search("cutoff([0-9.]*[0-9])", boot_fit_file.name).group(1)
+        if options.xdata in ["chiral_x", "xi"] and float(cutoff) < 600:
+            label += ' ${}<{}$'.format("M_{\pi}", cutoff)
+    plot_handles = axe.plot(x,y, color=c, lw=2, label=label, linestyle=lstyle)
 
     ys = []
     modelpoints = []
@@ -123,7 +128,10 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
             m.consts["alphas"] = get_alpha(scale[beta])
             finbeta_params = [means[i] for i in m.finbeta_args]
             ybeta = m.plot_fit(x, *finbeta_params)
-            h = axe.plot(x,ybeta, color=colors[beta], lw=2, label="fit at $\\beta$={}".format(beta))
+            h = axe.plot(x,ybeta, color=colors[beta], lw=2, label="Fit at $\\beta$={}".format(beta))
+            if options.model_fit_point:
+                mfp = options.model_fit_point
+                logging.info("Model point at {}: {}".format(mfp, m.plot_fit(mfp, *finbeta_params)))
             plot_handles.extend(h)
     except AttributeError as e:
         logging.warn("This model doesn't support plotting at finite beta")
