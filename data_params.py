@@ -14,17 +14,35 @@ flavor_map = {"ud-ud": "\pi", "ud-s": "K", "s-s": "\eta", "heavy-ud": "Hl", "hea
 
 scale = {"4.17": 2453.1, "4.35": 3609.7, "4.47": 4496.1}
 
+# statistical
+# beta4.17: 4.0
+# beta4.35: 8.9
+# beta4.47: 9.2
+# BMW = 0.1465(21)(13) -> err 0.0024698
+# 0.0168587 -> 1.68587%
+# input uncertainty
+# beta4.17: 41.35607697
+# beta4.35: 60.8548
+# beta4.47: 75.7984
+# Combine in quad
+# beta4.17: 41.5491
+# beta4.35: 61.5022
+# beta4.47: 76.35468
+scale_err = {"4.17": 41.5491, "4.35": 61.5022, "4.47": 76.35468}
+
 # Zv(=Za)<MSbar>
 # beta4.17: Zv = 0.9517(58)(10)(33)
 # beta4.35: Zv = 0.9562(42)(8)(20)
 # beta4.47: Zv = 0.9624(33)(7)(20)
 Zv = {"4.17": 0.9517, "4.35": 0.9562, "4.47": 0.9624}
+Zv = {"4.17": 0.9553, "4.35": 0.9636, "4.47": 0.9699}
 
 # Zs(=Zp):<MSbar, 2GeV>
 # beta4.17: Zs = 1.024(15)(84)(6)
 # beta4.35: Zs = 0.922(11)(45)(5)
 # beta4.47: Zs = 0.880(7)(38)(4)
 Zs = {"4.17": 1.024, "4.35": 0.922, "4.47": 0.880}
+Zs = {"4.17": 1.0372, "4.35": 0.9342, "4.47": 0.8926}
 
 
 ensemble_names = {}
@@ -101,6 +119,7 @@ class ensemble_params(object):
         self.latspacing = hbar_c/scale[self.beta]
 
         self.scale = scale[self.beta]
+        self.scale_err = scale_err[self.beta]
 
         self.a_gev = 1000.0/(self.scale)
 
