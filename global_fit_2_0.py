@@ -48,13 +48,12 @@ def interpolate(data, model_str, options):
 
     dof = model_obj.degrees_of_freedom()
 
-
     if dof < 1.0:
         raise RuntimeError("dof < 1")
 
     logging.info("fitting mean")
     model_obj.boostrap = "mean"
-    mean_m = Minuit(model_fun, errordef=dof, print_level=0, pedantic=True, **params)
+    mean_m = Minuit(model_fun, errordef=1.0, print_level=0, pedantic=True, **params)
     mean_m.set_strategy(2)
     mean_results = mean_m.migrad()
     logging.debug(mean_results)
@@ -81,8 +80,8 @@ def interpolate(data, model_str, options):
     for b in range(N):
         progressb.update(b)
         model_obj.set_bootstrap(b)
-        bootstrap_m[b] = Minuit(model_fun, errordef=dof, print_level=0, pedantic=True, **params)
-        bootstrap_m[b].set_strategy(2)
+        bootstrap_m[b] = Minuit(model_fun, errordef=1.0, print_level=0, pedantic=True, **params)
+        bootstrap_m[b].set_strategy(1)
         bootstrap_results = bootstrap_m[b].migrad()
         logging.debug(bootstrap_results)
         if not bootstrap_m[b].get_fmin().is_valid:
@@ -100,20 +99,24 @@ def interpolate(data, model_str, options):
         logging.info("bootstraped {}: mean {} med {} std {}".format(i, np.mean(x), np.median(x), np.std(x)))
         logging.info("bootstraped error {}: mean {} med {} std {}".format(i, np.mean(ex), np.median(ex), np.std(ex)))
 
+        logging.info("bootstraped chi^2 {}: dof {} chi/dof std {}".format(i, np.mean(ex), np.median(ex), np.std(ex)))
+
+    fvals = [b.fval/dof for b in bootstrap_m.values()]
+
     boot_ave_fval = model_fun(*means)
-    return mean_m, bootstrap_m, boot_ave_fval
+    return mean_m, bootstrap_m, np.mean(fvals), dof
 
 
-def write_data(fit_parameters, output_stub, suffix, model):
+def write_data(fit_parameters, output_stub, suffix, model, dof):
     if output_stub is None:
         logging.info("Not writing output")
         return
     outfilename = output_stub + suffix
     logging.info("writing fit to {}".format(outfilename))
     with open(outfilename, "w") as ofile:
-        chisqrbydof = fit_parameters.fval / fit_parameters.errordef
+        chisqrbydof = fit_parameters.fval / dof
         ofile.write("#{} chisqr {}, dof {}, chisqr/dof {}\n".format(model, fit_parameters.fval,
-                                                                    fit_parameters.errordef,
+                                                                    dof,
                                                                     chisqrbydof))
 
         for name in fit_parameters.values:
@@ -121,7 +124,7 @@ def write_data(fit_parameters, output_stub, suffix, model):
                                                  fit_parameters.errors[name]))
 
 
-def write_bootstrap_data(fit_parameters, boot_fval, output_stub, suffix, model):
+def write_bootstrap_data(fit_parameters, boot_fval, output_stub, suffix, model, dof):
     if output_stub is None:
         logging.info("Not writing output")
         return
@@ -129,7 +132,6 @@ def write_bootstrap_data(fit_parameters, boot_fval, output_stub, suffix, model):
     logging.info("writing bootstrapfit to {}".format(outfilename))
     with open(outfilename, "w") as ofile:
         fval = boot_fval
-        dof = np.mean([b.errordef for b in fit_parameters.values()])
         chisqrbydof = fval / dof
         ofile.write("#{} chisqr {}, dof {}, chisqr/dof {}\n".format(model, fval, dof, chisqrbydof))
 
@@ -163,10 +165,9 @@ def global_fit(options):
             raise e
             raise argparse.ArgumentTypeError("Argument {} does not have valid ensemble data".format(es))
 
-    mean_fit_parameters, bootstrap_fit_parameters, boot_fval = interpolate(ensembles, options.model, options)
-
-    write_data(mean_fit_parameters, options.output_stub, ".fit", options.model)
-    write_bootstrap_data(bootstrap_fit_parameters, boot_fval, options.output_stub, "bootstraped.fit", options.model)
+    mean_fit_parameters, bootstrap_fit_parameters, boot_fval, dof = interpolate(ensembles, options.model, options)
+    write_data(mean_fit_parameters, options.output_stub, ".fit", options.model, dof)
+    write_bootstrap_data(bootstrap_fit_parameters, boot_fval, options.output_stub, "bootstraped.fit", options.model, dof)
 
 
 if __name__ == "__main__":
