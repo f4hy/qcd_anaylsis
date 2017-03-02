@@ -3,7 +3,7 @@ import logging
 import numpy as np
 
 from alpha_s import get_alpha
-from all_ensemble_data import MissingData
+from ensemble_data2_0.all_ensemble_data import MissingData
 import inspect
 
 
