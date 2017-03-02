@@ -5,6 +5,7 @@ import numpy as np
 from iminuit import Minuit
 
 import inspect
+import os
 
 from misc import all_equal
 from commonplotlib.progress_bar import progress_bar
