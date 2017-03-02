@@ -11,6 +11,7 @@ import plot_fdsqrtmd            # noqa
 import plot_fdssqrtmds          # noqa
 import plot_interpolated_fsqrtm # noqa
 import plot_light_decays        # noqa
+import plot_axial_compare       # noqa
 
 import numpy as np
 # function_list = inspect.getmembers(sys.modules["fitfunctions"], inspect.isclass)
@@ -50,7 +51,8 @@ def get_data(ed, data_type, options):
     modules_with_plot_fucntions = ("plot_latparams",  # List of modules with the plot files
                                    "plot_light_masses", "plot_light_decays",
                                    "plot_heavy_decays", "plot_heavy_masses",
-                                   "plot_fdsqrtmd", "plot_fdssqrtmds", "plot_interpolated_fsqrtm")
+                                   "plot_fdsqrtmd", "plot_fdssqrtmds", "plot_interpolated_fsqrtm",
+                                   "plot_axial_compare")
 
     function_map = {}
     for m in modules_with_plot_fucntions:

@@ -113,6 +113,9 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
 
         logging.info("At model point specified, value is {} + {} - {}".format(point_y, py_upper, py_lower))
         axe.errorbar(point_x,point_y, yerr=[[py_lower],[py_upper]], color=c, ms=15, elinewidth=4, mew=2, capthick=2, capsize=8)
+        withsys_err = [[np.sqrt((py_lower)**2 + (point_y*0.0168587)**2)],[np.sqrt((py_upper)**2 + (point_y*0.0168587)**2) ]]
+        axe.errorbar(point_x,point_y, yerr=withsys_err, color=c, ms=15, elinewidth=4, mew=2, capthick=2, capsize=8)
+
         # exit(-1)
 
     try:
