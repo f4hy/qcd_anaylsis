@@ -67,13 +67,13 @@ class Model(object):
 
         logging.info("Data read")
 
-    def degrees_of_freedom(self):
+    def degrees_of_freedom(self, data_multiply=1.0):
         """
         Return the degrees of freedom of the model. Overload this method if different if different
         """
         logging.info("data")
         datapoints = [d.shape[0] for d in self.data.values()]
-        ndata = datapoints[0]
+        ndata = datapoints[0] * data_multiply
 
         fixed_parms = [p for p in self.params if "fix" in p and self.params[p]]
         Nparams = inspect.getargspec(self.m).args[1:]
@@ -132,11 +132,13 @@ class Model(object):
                     self.consts[n] = np.delete(d, i)
             del self.eds[i]
 
-        logging.debug("made array for {} of size {} vs {}".format(fun_name, len(ls), len(self.eds)))
+        logging.info("made array for {} of size {} vs {}".format(fun_name, len(ls), len(self.eds)))
+        if len(ls) == 0:
+            return np.array([[0.0]])
         return np.array(ls)
 
     def bstrapdata(self, data_string):
-        if len(self.eds) < 1:
+        if len(self.eds) < 1 and self.bootstrap is not None:
             logging.debug("running in reference mode, just give zero")
             return 0.0
         d = self.data[data_string]

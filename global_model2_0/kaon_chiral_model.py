@@ -19,7 +19,7 @@ class fK_linear_mpisqr(Model):
         except IndexError:
             self.var = np.NaN
 
-        self.label = "Linear continuum fit"
+        self.label = "Linear fit"
 
         self.update_paramdict("F_K0", 155.0, 1.0)
         self.update_paramdict("alpha", 0.1, 0.1)
@@ -63,7 +63,7 @@ class fKbyfpi_linear_mpisqr(Model):
         except IndexError:
             self.var = np.NaN
 
-        self.label = "Linear continuum fit"
+        self.label = "Linear fit"
 
         self.update_paramdict("ratio0", 155.0, 1.0)
         self.update_paramdict("alpha", 0.1, 0.1)
