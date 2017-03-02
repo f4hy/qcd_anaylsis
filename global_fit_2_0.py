@@ -112,6 +112,7 @@ def write_data(fit_parameters, output_stub, suffix, model, dof):
         logging.info("Not writing output")
         return
     outfilename = output_stub + suffix
+    ensure_dir(outfilename)
     logging.info("writing fit to {}".format(outfilename))
     with open(outfilename, "w") as ofile:
         chisqrbydof = fit_parameters.fval / dof
@@ -129,6 +130,7 @@ def write_bootstrap_data(fit_parameters, boot_fval, output_stub, suffix, model, 
         logging.info("Not writing output")
         return
     outfilename = output_stub + suffix
+    ensure_dir(outfilename)
     logging.info("writing bootstrapfit to {}".format(outfilename))
     with open(outfilename, "w") as ofile:
         fval = boot_fval
@@ -148,6 +150,14 @@ def write_bootstrap_data(fit_parameters, boot_fval, output_stub, suffix, model, 
         for b, d in fit_parameters.iteritems():
             line = ",".join(["{}".format(d.values[n]) for n in names])
             ofile.write("{}\n".format(line))
+
+def ensure_dir(filename):
+    outdir = os.path.dirname(filename)
+    if not os.path.exists(outdir):
+        logging.info("directory for output {} does not exist, atempting to create".format(outdir))
+        if outdir is not "":
+            os.makedirs(outdir)
+
 
 
 def global_fit(options):

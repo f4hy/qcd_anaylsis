@@ -404,6 +404,7 @@ def plot_ensemble_data(options):
             file_extension = ".pdf"
         filename = options.output_stub + file_extension
         logging.info("Saving plot to {}".format(filename))
+        ensure_dir(filename)
         plt.savefig(filename)
         if options.open_image:
             if file_extension == ".png":
@@ -415,8 +416,19 @@ def plot_ensemble_data(options):
     plt.show()
 
 
+def ensure_dir(filename):
+    outdir = os.path.dirname(filename)
+    if not os.path.exists(outdir):
+        logging.info("directory for output {} does not exist, atempting to create".format(outdir))
+        if outdir is not "":
+            os.makedirs(outdir)
+
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="average data files")
+    example_usage = """Example Usage:  plot_ensemble_data.py SymDW* --ydata mpi --xdata fpi -o fpi_by_mpi -x 0 500 \n
+    """
+    parser = argparse.ArgumentParser(description="Read pickled ensemble fit data and plot it",
+                                     epilog=example_usage)
 
     axis_choices = ["mud", "mud_s", "mpi", "mpisqr", "2mksqr-mpisqr", "mpisqr/mq", "xi", "mq"]
     legend_choices = ["betaLs", "betaL", "heavy", "smearing", "flavor", "strange", "betaheavy", "custom", "operator"]
