@@ -346,7 +346,7 @@ class ensemble_data(object):
         if "heavy" not in args:
             args["heavy"] = "m0"
 
-        d = self.select_data("heavy-s", **args)
+        d = self.select_data("heavy-s", axial=True, **args)
         ampfactor = self.ep.volume
 
         if args.get("renorm", False):
