@@ -12,6 +12,30 @@ def fD(ed, options):
     return (data.mean(), data.std(),
                      label, {"Charm": phys_FD, "Bottom": phys_FB})
 
+def fDA(ed, options):
+    data = ed.fDA()
+
+    label = "$f_D^A$"
+    if ed.scale != 1.0:
+        label += " [MeV]"
+    return (data.mean(), data.std(),
+                     label, {"Charm": phys_FD, "Bottom": phys_FB})
+
+
+def fDAr(ed, options):
+    data = ed.fD() / ed.fDA()
+
+    label = "$f_D^A$"
+    return (data.mean(), data.std(),
+            label, {})
+
+def fDAr_Z(ed, options):
+    data = ed.fD() / (ed.fDA()/ed.ep.Zv)
+
+    label = "$f_D / f_D^A$"
+    return (data.mean(), data.std(),
+            label, {})
+
 def fhl(ed, options):
     data = ed.fhl()
 
@@ -74,6 +98,16 @@ def fDs(ed, options):
         label += " [MeV]"
     return (data.mean(), data.std(),
                      label, {"Charm": phys_FD, "Bottom": phys_FB})
+
+def fDsA(ed, options):
+    data = ed.fDsA()
+
+    label = "$f_{Ds}^A$"
+    if ed.scale != 1.0:
+        label += " [MeV]"
+    return (data.mean(), data.std(),
+                     label, {"Charm": phys_FD, "Bottom": phys_FB})
+
 
 def fDs_m1(ed, options):
     data = ed.fDs(heavy="m1")

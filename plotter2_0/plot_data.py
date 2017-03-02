@@ -12,6 +12,7 @@ import plot_fdssqrtmds          # noqa
 import plot_interpolated_fsqrtm # noqa
 import plot_light_decays        # noqa
 
+import numpy as np
 # function_list = inspect.getmembers(sys.modules["fitfunctions"], inspect.isclass)
 # functions = {name: f for name, f in function_list}
 
@@ -27,6 +28,14 @@ class plot_data(object):
         self.physical = physical
         if physical is None:
             self.physical = {}
+    def addscale_error(self, syserr):
+        if "[MeV]" in self.label:
+            return np.sqrt(self.error**2 + syserr**2)
+        if "[MeV^2]" in self.label:
+            return np.sqrt(self.error**2 + (syserr**2)**2)
+        else:
+            logging.warn("Not sure how to process sytematic err on scale")
+            return self.error
 
 
 def package_heavies(datas):

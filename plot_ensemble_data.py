@@ -23,6 +23,7 @@ from plot_uk_data import add_uk_plot_data
 
 from ensemble_data2_0.all_ensemble_data import ensemble_data, MissingData, NoStrangeInterp
 
+plt.rc('text', usetex=True)
 
 def round5(x):
     return int(5 * np.around(x/5.0))
@@ -195,18 +196,19 @@ def plot_ensemble_data(options):
                     # continue
 
                 plotsettings = dict(linestyle="none", c=color, marker=mark,
-                                    label=label, ms=15, elinewidth=4,
+                                    label=label, ms=9, elinewidth=4,
                                     capsize=8, capthick=2, mec=color, mew=2,
                                     aa=True, mfc=mfc, fmt='o', ecolor=color,
                                     alpha=alpha)
                 logging.info("plotting {} {} {}".format(x.value, y.value, y.error))
 
                 if options.xerror is False:
-                    xerr = 0.0
+                    xerr = None
                 else:
                     xerr = x.error
                 axe.errorbar(x.value + offset, y.value, yerr=y.error, xerr=xerr, zorder=0, **plotsettings)
-                ymax = max(ymax, y.value)
+                # axe.errorbar(x.value + offset, y.value, yerr=y.addscale_error(es.ep.scale_err), xerr=xerr, zorder=0, **plotsettings)
+                ymax = max(ymax, y.value) #
                 ymin = min(ymin, y.value)
                 xmax = max(xmax, x.value)
 
@@ -382,7 +384,7 @@ def plot_ensemble_data(options):
         return i.get_label()
 
     if not options.nolegend:
-        axe.legend(handles=sorted(legend_handles, key=legsort), loc=options.legendloc,
+        axe.legend(handles=sorted(legend_handles, key=legsort), loc=options.legendloc, handletextpad=0.1, handlelength=1,
                    fontsize=40, numpoints=1, fancybox=True, framealpha=0.5)
     if(options.output_stub):
         options.output_stub = options.output_stub.replace(".", "_")

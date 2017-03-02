@@ -34,9 +34,18 @@ def mDs(ed, options):
     data = ed.Ds_mass()
     label = "$m_{hs}$"
     if ed.scale != 1.0:
-        label += " [1/MeV]"
+        label += " [MeV]"
     return (data.mean(), data.std(),
                      label, {"Charm": phys_Ds, "Bottom": phys_MBs})
+
+
+def mDs_mD(ed, options):
+    data = ed.Ds_mass()-ed.D_mass()
+    label = "$m_{D_s}-m_{D}$"
+    if ed.scale != 1.0:
+        label += " [MeV]"
+    return (data.mean(), data.std(),
+                     label, {"PDG": phys_Ds-phys_D})
 
 
 def inv_mhs(ed, options):
