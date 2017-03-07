@@ -13,7 +13,51 @@ def ZA_fpi_fpiA(ed, options):
     label = "$f_{\pi}/f_{\pi}^A$"
 
     return (data.mean(), data.std(),
-            label, {"4.17": 0.9553, "4.35": 0.9636, "4.47": 0.9699})
+            label, {"4.17": (0.9553), "4.35": 0.9636, "4.47": 0.9699})
+
+def ZA_udud(ed, options):
+    data = ed.ZA_est(flavor="ud-ud")
+    err = np.sqrt(data.var() + (ed.ep.residual_mass_error * data.mean()/(2*ed.ep.ud_mass))**2)
+    print data.std()
+    print err
+
+    label = "udud:$\\frac{(m+m)<0|P|\pi>}{m_\pi<0|A|P>}$"
+
+    return (data.mean(), err,
+            label, {"4.17": (0.9553), "4.35": 0.9636, "4.47": 0.9699})
+
+
+def ZA_uds(ed, options):
+    data = ed.ZA_est(flavor="ud-s")
+    err = np.sqrt(data.var() + (ed.ep.residual_mass_error * data.mean()/(ed.ep.ud_mass+ed.ep.s_mass))**2)
+    print data.std()
+    print err
+
+    label = "uds:$\\frac{(m_s+m)<0|P|P>}{m_P<0|A|P>}$"
+
+    return (data.mean(), err,
+            label, {"4.17": (0.9553), "4.35": 0.9636, "4.47": 0.9699})
+
+def ZA_ss(ed, options):
+    data = ed.ZA_est(flavor="s-s")
+    err = np.sqrt(data.var() + (ed.ep.residual_mass_error * data.mean()/(2*ed.ep.s_mass))**2)
+    print data.std()
+    print err
+    label = "ss:$\\frac{(m_s+m_s)<0|P|P>}{m_P<0|A|P>}$"
+
+    return (data.mean(), err,
+            label, {"4.17": (0.9553), "4.35": 0.9636, "4.47": 0.9699})
+
+def ZA_hh(ed, options):
+    data = ed.ZA_est(flavor="h-h")
+    err = np.sqrt(data.var() + (ed.ep.residual_mass_error * data.mean()/(2*d.dp.heavyq_mass))**2)
+    print data.std()
+    print err
+    label = "ss:$\\frac{(m_s+m_s)<0|P|P>}{m_P<0|A|P>}$"
+
+    return (data.mean(), err,
+            label, {"4.17": (0.9553), "4.35": 0.9636, "4.47": 0.9699})
+
 
 
 def ZA_fK_fKA(ed, options):
@@ -26,6 +70,8 @@ def ZA_fK_fKA(ed, options):
 
     return (data.mean(), data.std(),
             label, {"4.17": 0.9553, "4.35": 0.9636, "4.47": 0.9699})
+
+
 
 def ZA_fD_fDA(ed, options):
     dataA = ed.fDA(scaled=options.scale) / ed.ep.Zv

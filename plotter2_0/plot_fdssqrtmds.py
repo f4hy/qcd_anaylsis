@@ -55,7 +55,7 @@ def fDssqrtmDs_hqet(ed, options, heavy="m0"):
 
     data = fdata*np.sqrt(mdata)
 
-    label = "$\hat{f}^{"+heavy+"}_{hs}\, \sqrt{\hat{m}^{"+heavy+"}_{hs}}$"
+    label = "$\\hat{f}^{"+heavy+"}_{hs}\, \sqrt{\\hat{m}^{"+heavy+"}_{hs}}$"
 
     if ed.scale != 1.0:
 
@@ -85,7 +85,7 @@ def fhssqrtmhs_hqet(ed, options):
         mkey = [k for k in mdata if m in k][0]
         data[m] = fdata[m]*np.sqrt(mdata[mkey])
 
-    label = "$\hat{f}_{hs}\, \sqrt{\hat{m}_{hs}} / C(\mu)$"
+    label = "$\\hat{f}_{hs}\, \sqrt{\\hat{m}_{hs}} / C(\mu)$"
 
     if ed.scale != 1.0:
         label += " [MeV^(3/2)]"
