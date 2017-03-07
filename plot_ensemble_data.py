@@ -273,18 +273,19 @@ def plot_ensemble_data(options):
                                   linestyle="None", label=options.addpoint[0], mfc="k")
         legend_handles.append(symbol)
 
-    if options.adderrpoint:
-        logging.info("adding point {}".format(options.adderrpoint))
-        px = float(options.adderrpoint[1])
-        py = float(options.adderrpoint[2])
-        pyerr = float(options.adderrpoint[3])
+    for pt in options.adderrpoint:
+
+        logging.info("adding point {}".format(pt))
+        px = float(pt[1])
+        py = float(pt[2])
+        pyerr = float(pt[3])
         physplot = axe.errorbar(px, py, yerr=pyerr, marker="", # noqa
-                                ecolor="k", color="k", label=options.adderrpoint[0],
-                                ms=15, elinewidth=3, capsize=8,
+                                ecolor="k", color="k", label=pt[0],
+                                ms=15, elinewidth=3, capsize=8, alpha=0.5,
                                 capthick=2, mec='k', mew=3, mfc='k',
                                 zorder=100)
         symbol = mpl.lines.Line2D([], [], color="k", mec="k", marker="x", markersize=15, mew=3,
-                                  linestyle="None", label=options.adderrpoint[0], mfc="k")
+                                  linestyle="None", label=pt[0], mfc="k")
         legend_handles.append(symbol)
 
     if options.addpoints:
@@ -461,8 +462,8 @@ if __name__ == "__main__":
                         help="Add ukdata points", default=None)
     parser.add_argument("--addpoint", required=False, nargs=3, metavar=("LABEL", "X", "Y"),
                         help="Add a point", default=None)
-    parser.add_argument("--adderrpoint", required=False, nargs=4, metavar=("LABEL", "X", "Y", "err"),
-                        help="Add a point", default=None)
+    parser.add_argument("--adderrpoint", required=False, action='append', nargs=4, metavar=("LABEL", "X", "Y", "err"),
+                        help="Add a point", default=[])
     parser.add_argument("--addpoints", required=False, type=str,
                         help="Add points from file", default=None)
     parser.add_argument("--xaxis", required=False, choices=axis_choices,
