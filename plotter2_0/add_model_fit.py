@@ -84,7 +84,7 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
     np.seterr(divide='ignore', invalid='ignore')  # Ignore errors like this when plotting
 
     logging.info("plotting line with params {}".format(params))
-    y = m.plot_fit(x, *params)
+    y = m.eval_fit(x, *params)
     label = m.label
     if "cutoff" in boot_fit_file.name:
         cutoff = re.search("cutoff([0-9.]*[0-9])", boot_fit_file.name).group(1)
@@ -96,9 +96,9 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
     modelpoints = []
     for i,row in df.iterrows():
         p = [row[n] for n in m.contlim_args]
-        ys.append(m.plot_fit(x,*p))
+        ys.append(m.eval_fit(x,*p))
         if options.model_fit_point:
-            modelpoints.append(m.plot_fit(options.model_fit_point,*p))
+            modelpoints.append(m.eval_fit(options.model_fit_point,*p))
 
     ponesigma = np.percentile(ys, 84.1, axis=0)
     monesigma = np.percentile(ys, 15.9, axis=0)
@@ -107,7 +107,7 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
 
     if options.model_fit_point:
         point_x = options.model_fit_point
-        point_y = m.plot_fit(point_x, *params)
+        point_y = m.eval_fit(point_x, *params)
         py_upper = np.percentile(modelpoints, 84.1, axis=0) - point_y
         py_lower = point_y- np.percentile(modelpoints, 15.9, axis=0)
 
@@ -130,11 +130,11 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
             m.consts["lat"] = hbar_c/scale[beta]
             m.consts["alphas"] = get_alpha(scale[beta])
             finbeta_params = [means[i] for i in m.finbeta_args]
-            ybeta = m.plot_fit(x, *finbeta_params)
+            ybeta = m.eval_fit(x, *finbeta_params)
             h = axe.plot(x,ybeta, color=colors[beta], lw=2, label="Fit at $\\beta$={}".format(beta))
             if options.model_fit_point:
                 mfp = options.model_fit_point
-                logging.info("Model point at {}: {}".format(mfp, m.plot_fit(mfp, *finbeta_params)))
+                logging.info("Model point at {}: {}".format(mfp, m.eval_fit(mfp, *finbeta_params)))
             plot_handles.extend(h)
     except AttributeError as e:
         logging.warn("This model doesn't support plotting at finite beta")

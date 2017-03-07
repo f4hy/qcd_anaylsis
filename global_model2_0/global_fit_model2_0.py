@@ -95,9 +95,9 @@ class Model(object):
         logging.info("DOF {}, data {}, free {}".format(dof, ndata, Nfree_params))
         return dof
 
-    def plot_fit(self, x, *args):
-        """ what to plot, override if needed"""
-        logging.debug("plotting with {}".format(args))
+    def eval_fit(self, x, *args):
+        """ Default evaluating the fit model is the m function but may need changes in special cases"""
+        logging.debug("evaluating fit with with {}".format(args))
         return self.m(x, *args)
 
     def make_array(self, fun_name, **args):

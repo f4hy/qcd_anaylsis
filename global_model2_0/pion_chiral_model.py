@@ -52,8 +52,8 @@ class fpi_x_NLO(Model):
 
         return Fpi
 
-    def plot_fit(self, x, F_0, B, Lambda4):
-        """ Override the normal plotter, this needs to not call m in this case """
+    def eval_fit(self, x, F_0, B, Lambda4):
+        """ Override the normal evaluation, this needs to not call m in this case """
         Msqr = x * (8*(np.pi**2)*(F_0**2))
         arg4 = (Lambda4**2)/Msqr
         return F_0 * (1.0 + x*np.log(arg4))
@@ -82,13 +82,14 @@ class fpi_mpi_x_NLO(Model):
             self.var1 = np.NaN
             self.var2 = np.NaN
 
+        self.evalmodes = ["fpi", "mpi"]
         try:
             if "fpi" in options.ydata:
-                self.plotmode = "fpi"
+                self.evalmode = "fpi"
             else:
-                self.plotmode = "mpisqr"
+                self.evalmode = "mpisqr"
         except AttributeError as e:
-            self.plotmode = ""
+            self.evalmode = ""
 
         self.label = "NLO"
 
@@ -133,13 +134,13 @@ class fpi_mpi_x_NLO(Model):
 
         return Mpisqr, Fpi
 
-    def plot_fit(self, x, F_0, B, Lambda3, Lambda4):
-        """ Override the normal plotter, this needs to not call m in this case """
+    def eval_fit(self, x, F_0, B, Lambda3, Lambda4):
+        """ Override the normal evaluation, this needs to not call m in this case """
         Msqr = x * (8 * (np.pi**2) * (F_0**2))
         arg3 = (Lambda3**2)/Msqr
         arg4 = (Lambda4**2)/Msqr
 
-        if self.plotmode == "fpi":
+        if self.evalmode == "fpi":
             return F_0 * (1.0 + x*np.log(arg4))
         else:
             return 2 * B * (1.0-0.5*x*np.log(arg3))
@@ -172,13 +173,14 @@ class fpi_mpi_x_NNLO(Model):
             self.var1 = np.NaN
             self.var2 = np.NaN
 
+        self.evalmodes = ["fpi", "mpi"]
         try:
             if "fpi" in options.ydata:
-                self.plotmode = "fpi"
+                self.evalmode = "fpi"
             else:
-                self.plotmode = "mpisqr"
+                self.evalmode = "mpisqr"
         except AttributeError as e:
-            self.plotmode = ""
+            self.evalmode = ""
 
         self.label = "NNLO"
 
@@ -246,8 +248,8 @@ class fpi_mpi_x_NNLO(Model):
 
         return Mpisqr, Fpi
 
-    def plot_fit(self, x, F_0, B, Lambda3, Lambda4, Lambda12, km, kf):
-        """ Override the normal plotter, this needs to not call m in this case """
+    def eval_fit(self, x, F_0, B, Lambda3, Lambda4, Lambda12, km, kf):
+        """ Override the normal evaluation, this needs to not call m in this case """
         Msqr = x * (8 * (np.pi**2) * (F_0**2))
         arg3 = (Lambda3**2)/Msqr
         arg4 = (Lambda4**2)/Msqr
@@ -266,7 +268,7 @@ class fpi_mpi_x_NNLO(Model):
         lm = 1.0/51.0 * (60.0*np.log(arg12) - 9.0*np.log(arg3)+49.0)
         lf = 1.0/30.0 * (30.0*np.log(arg12) + 6.0*np.log(arg3)-6.0*np.log(arg4)+23.0)
 
-        if self.plotmode == "fpi":
+        if self.evalmode == "fpi":
             return F_0 * (1.0 + x*np.log(arg4)-5.0/4.0*(x**2)*(lf)**2 + kf*x**2)
         else:
             return 2 * B * (1.0 - 0.5 * x * np.log(arg3) + 17.0 / 8.0 * (x**2) * (lm)**2 + km * x**2)
@@ -300,13 +302,14 @@ class fpi_mpi_xi_inverse_NNLO(Model):
             self.var1 = np.NaN
             self.var2 = np.NaN
 
+        self.evalmodes = ["fpi", "mpi"]
         try:
             if "fpi" in options.ydata:
-                self.plotmode = "fpi"
+                self.evalmode = "fpi"
             else:
-                self.plotmode = "mpisqr"
+                self.evalmode = "mpisqr"
         except AttributeError as e:
-            self.plotmode = ""
+            self.evalmode = ""
 
         self.label = "NNLO"
 
@@ -374,12 +377,12 @@ class fpi_mpi_xi_inverse_NNLO(Model):
 
         return Mpisqr, Fpi
 
-    def plot_fit(self, xi, F_0, B, Lambda3, Lambda4, Lambda12, cm, cf):
-        """ Override the normal plotter, this needs to not call m in this case """
+    def eval_fit(self, xi, F_0, B, Lambda3, Lambda4, Lambda12, cm, cf):
+        """ Override the normal evaluation, this needs to not call m in this case """
         self.data["mpi"] = np.array([[pv.phys_pion]])
         self.data["mK"] = np.array([[pv.phys_kaon]])
         Mpisqr, Fpi = self.m(xi, F_0, B, Lambda3, Lambda4, Lambda12, cm, cf, 0, 0 ,0 ,0)
-        if self.plotmode == "fpi":
+        if self.evalmode == "fpi":
             return Fpi
         else:
             return Mpisqr
@@ -413,13 +416,14 @@ class fpi_mpi_xi_NNLO(Model):
             self.var1 = np.NaN
             self.var2 = np.NaN
 
+        self.evalmodes = ["fpi", "mpi"]
         try:
             if "fpi" in options.ydata:
-                self.plotmode = "fpi"
+                self.evalmode = "fpi"
             else:
-                self.plotmode = "mpisqr"
+                self.evalmode = "mpisqr"
         except AttributeError as e:
-            self.plotmode = ""
+            self.evalmode = ""
 
         self.label = "NNLO"
 
@@ -439,6 +443,7 @@ class fpi_mpi_xi_NNLO(Model):
 
         self.contlim_args = ["F_0", "B", "c3", "c4", "alpha", "beta", "ellphys"]
         self.finbeta_args = ["F_0", "B", "c3", "c4", "alpha", "beta", "ellphys", "gamma_1", "gamma_2"]
+
 
     def degrees_of_freedom(self):
         """
@@ -464,10 +469,10 @@ class fpi_mpi_xi_NNLO(Model):
 
         return Mpisqr, Fpi
 
-    def plot_fit(self, xi, F_0, B, c3, c4, alpha, beta, ellphys):
-        """ Override the normal plotter, this needs to not call m in this case """
+    def eval_fit(self, xi, F_0, B, c3, c4, alpha, beta, ellphys):
+        """ Override the normal evaluation, this needs to not call m in this case """
 
-        if self.plotmode == "fpi":
+        if self.evalmode == "fpi":
             return F_0 * (1 - xi*np.log(xi) + 5.0/4.0*(xi*np.log(xi))**2 + 1/6.0*(ellphys+53.0/2.0)*xi*xi*np.log(xi)) + c4*xi*(1-5*xi*np.log(xi)) + beta*xi**2
         else:
             return 2*B*(1.0+0.5*xi*np.log(xi) +7.0/8.0*(xi*np.log(xi))**2+
@@ -566,8 +571,8 @@ class fpi_xi_inverse_NLO(Model):
         self.contlim_args = ["F_0", "Lambda4"]
         self.finbeta_args = ["F_0", "Lambda4", "gamma_2"]
 
-    def plot_fit(self, xi, F_0, Lambda4):
-        """ Override the normal plotter, this needs to not call m in this case """
+    def eval_fit(self, xi, F_0, Lambda4):
+        """ Override the normal evaluation, this needs to not call m in this case """
         self.data["mpi"] = np.array([[pv.phys_pion]])
         self.data["mK"] = np.array([[pv.phys_kaon]])
         return self.m( xi, F_0, Lambda4)
@@ -697,8 +702,8 @@ class mpi_xi_inverse_NLO(Model):
 
         return Mpisqr
 
-    def plot_fit(self, xi, B, Lambda3):
-        """ Override the normal plotter, this needs to not call m in this case """
+    def eval_fit(self, xi, B, Lambda3):
+        """ Override the normal evaluation, this needs to not call m in this case """
         self.data["mpi"] = np.array([[pv.phys_pion]])
         self.data["mK"] = np.array([[pv.phys_kaon]])
         return self.m( xi, B, Lambda3)
