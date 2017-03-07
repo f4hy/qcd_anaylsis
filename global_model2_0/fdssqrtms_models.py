@@ -8,9 +8,9 @@ class fdsqrtm_chiral_dmss(Model):
     """
     poorly named bu leaving it for now. Raw fsqrtm fit
     """
-    def __init__(self, ensemble_datas, options, hqet=False):
+    def __init__(self, ensemble_datas, options, hqet=False, **kargs):
 
-        Model.__init__(self, ensemble_datas, options, each_heavy=True)
+        Model.__init__(self, ensemble_datas, options, each_heavy=True, **kargs)
         self.data["mhl"] = self.make_array("get_mass", flavor="heavy-ud", div=hqet)
         self.data["fhl"] = self.make_array("fhl", div=hqet)
         self.data["mpi"] = self.make_array("pion_mass")
@@ -66,9 +66,9 @@ class fdssqrtms_chiral_dmss(Model):
     poorly named bu leaving it for now. Raw fsqrtm fit
     """
 
-    def __init__(self, ensemble_datas, options, hqet=False):
+    def __init__(self, ensemble_datas, options, hqet=False, **kargs):
 
-        Model.__init__(self, ensemble_datas, options, each_heavy=True)
+        Model.__init__(self, ensemble_datas, options, each_heavy=True, **kargs)
         self.data["mhs"] = self.make_array("get_mass", flavor="heavy-s", div=hqet)
         self.data["fhs"] = self.make_array("fhs", div=hqet)
         self.data["mpi"] = self.make_array("pion_mass")
@@ -122,9 +122,9 @@ class fdsqrtm_HQET_matched_alphas(Model):
     """
     HQET fsqrtm global fit with Cmu and using alphas
     """
-    def __init__(self, ensemble_datas, options, hqet=True):
+    def __init__(self, ensemble_datas, options, hqet=True, **kargs):
 
-        Model.__init__(self, ensemble_datas, options, each_heavy=True)
+        Model.__init__(self, ensemble_datas, options, each_heavy=True, **kargs)
         self.data["fhl"] = self.make_array("fhl", div=hqet, matched=True)
         self.data["mhl"] = self.make_array("get_mass", flavor="heavy-ud", div=hqet)
         self.data["mpi"] = self.make_array("pion_mass")
@@ -182,10 +182,10 @@ class fdssqrtms_HQET_matched_alphas(Model):
     """
     HQET fsqrtm global fit with Cmu and using alphas
     """
-    def __init__(self, ensemble_datas, options, hqet=True):
+    def __init__(self, ensemble_datas, options, hqet=True, **kargs):
 
         hqet = True
-        Model.__init__(self, ensemble_datas, options, each_heavy=True)
+        Model.__init__(self, ensemble_datas, options, each_heavy=True, **kargs)
         self.data["fhs"] = self.make_array("fhs", div=hqet, matched=True)
         self.data["mhs"] = self.make_array("get_mass", flavor="heavy-s", div=hqet)
         self.data["mpi"] = self.make_array("pion_mass")

@@ -25,7 +25,7 @@ def interpolate(data, model_str, options):
 
     valid_models = {m.__name__: m for m in Model.__subclasses__()}
     logging.debug("valid models available {}".format(valid_models.keys()))
-    model_obj = valid_models[model_str](data, options)
+    model_obj = valid_models[model_str](data, options, scale_sigma=options.shift_scale)
 
     params = model_obj.params
     model_fun = model_obj.sqr_diff
@@ -36,16 +36,6 @@ def interpolate(data, model_str, options):
     bootstraps = [d.shape[1] for d in model_obj.data.values()]
     assert(all_equal(bootstraps))
     N = bootstraps[0]
-    # datapoints = [d.shape[0] for d in model_obj.data.values()]
-    # assert(all_equal(datapoints))
-    # ndata = datapoints[0]
-
-    # fixed_parms = [p for p in params if "fix" in p and params[p]]
-    # Nfree_params = len(ARGS) - len(fixed_parms)
-    # if model_str.startswith("combined"):
-    #     dof = float(ndata * 2 - Nfree_params)
-    # else:
-    #     dof = float(ndata - Nfree_params)
 
     dof = model_obj.degrees_of_freedom()
 
@@ -69,7 +59,10 @@ def interpolate(data, model_str, options):
         exit(-1)
 
     params.update(mean_m.values)
-
+    if options.scale_systematic:
+        logging.info("Finding the systematic dependance upon the scale seeting")
+        find_scale_dependance(data, valid_models[model_str], mean_m.values, options)
+        exit(0)
     # return mean_m, {0: mean_m}, np.nan
     if (mean_m.fval / dof) > 500.0:
         logging.error("Chi^2/dof is huge, dont bother with bootstraps")
@@ -106,6 +99,47 @@ def interpolate(data, model_str, options):
 
     boot_ave_fval = model_fun(*means)
     return mean_m, bootstrap_m, np.mean(fvals), dof
+
+
+def find_scale_dependance(data, model, mean, options):
+    model_obj_p = model(data, options, scale_sigma=+1)
+    model_obj_m = model(data, options, scale_sigma=-1)
+
+    params_p = model_obj_p.params
+    params_m = model_obj_m.params
+    model_fun_p = model_obj_p.sqr_diff
+    model_fun_m = model_obj_m.sqr_diff
+
+    logging.info("fitting mean_p")
+    model_obj_p.boostrap = "mean"
+    mean_m_p = Minuit(model_fun_p, errordef=1.0, print_level=0, pedantic=True, **params_p)
+    mean_m_p.set_strategy(2)
+    mean_results_p = mean_m_p.migrad()
+    logging.debug(mean_results_p)
+
+    logging.info("a+sigma chi^2={}".format(mean_m_p.fval))
+    logging.info('a+sigma fitted values {}'.format(mean_m_p.values))
+    logging.info('a+sigma fitted errors {}'.format(mean_m_p.errors))
+
+
+    logging.info("fitting mean_m")
+    model_obj_m.boostrap = "mean"
+    mean_m_m = Minuit(model_fun_m, errordef=1.0, print_level=0, pedantic=True, **params_m)
+    mean_m_m.set_strategy(2)
+    mean_results_m = mean_m_m.migrad()
+    logging.debug(mean_results_m)
+
+    logging.info("a+sigma chi^2={}".format(mean_m_m.fval))
+    logging.info('a+sigma fitted values {}'.format(mean_m_m.values))
+    logging.info('a+sigma fitted errors {}'.format(mean_m_m.errors))
+
+    logging.info("a+sigma difference = {}".format({k: mean[k] - mean_m_p.values[k]
+                                                  for k in mean.keys()}))
+    logging.info("a-sigma difference = {}".format({k: mean[k] - mean_m_m.values[k]
+                                                  for k in mean.keys()}))
+    maxdiff = {k: max(abs(mean[k] - mean_m_m.values[k]),abs(mean[k] - mean_m_p.values[k])) for k in mean.keys()}
+    logging.info("a1sigma difference = {}".format(maxdiff))
+    return maxdiff
 
 
 def write_data(fit_parameters, output_stub, suffix, model, dof):
@@ -202,6 +236,10 @@ if __name__ == "__main__":
                         help="cutoff value for heavy quark mass")
     parser.add_argument("-m", "--model", required=False, type=str, default="linear_FD_in_mpi",
                         help="which model to use")
+    parser.add_argument("--scale_systematic", required=False, action="store_true",
+                        help="find the systematic from changing the lat spacing by 1 sigma")
+    parser.add_argument("--shift_scale", required=False, type=int, choices=[-1, 0, 1], default=0,
+                        help="Shift scale by 1 or -1 sigma before fitting")
     parser.add_argument("-z", "--zero", required=False, type=str, nargs='+', default=[],
                         help="Zero a fit variable")
     args = parser.parse_args()
@@ -213,5 +251,21 @@ if __name__ == "__main__":
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
     ensure_dir(args.output_stub)
+
+    if args.output_stub is not None:
+        root = logging.getLogger()
+        errfilename = args.output_stub+".err"
+        errfilehandler = logging.FileHandler(errfilename, delay=True)
+        errfilehandler.setLevel(logging.WARNING)
+        formatter = logging.Formatter('%(levelname)s: %(message)s')
+        errfilehandler.setFormatter(formatter)
+        root.addHandler(errfilehandler)
+        logfilename = args.output_stub+".log"
+        logfilehandler = logging.FileHandler(logfilename, delay=True)
+        logfilehandler.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(levelname)s: %(message)s')
+        logfilehandler.setFormatter(formatter)
+        root.addHandler(logfilehandler)
+
 
     global_fit(args)

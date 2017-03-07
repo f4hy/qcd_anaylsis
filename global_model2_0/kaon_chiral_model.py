@@ -7,9 +7,9 @@ import inspect
 
 class fK_linear_mpisqr(Model):
 
-    def __init__(self, ensemble_datas, options):
+    def __init__(self, ensemble_datas, options, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["fK"] = self.make_array("fK")
         self.data["mpi"] = self.make_array("pion_mass")
         self.data["mK"] = self.make_array("kaon_mass")
@@ -50,9 +50,9 @@ class fK_linear_mpisqr(Model):
 
 class fKbyfpi_linear_mpisqr(Model):
 
-    def __init__(self, ensemble_datas, options):
+    def __init__(self, ensemble_datas, options, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["fK"] = self.make_array("fK")
         self.data["fpi"] = self.make_array("fpi")
         self.data["mpi"] = self.make_array("pion_mass")

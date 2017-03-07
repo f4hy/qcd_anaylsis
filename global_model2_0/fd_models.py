@@ -6,9 +6,9 @@ import logging
 
 class linear_fD_mpi(Model):
 
-    def __init__(self, ensemble_datas, options, heavy="m0", hqet=False):
+    def __init__(self, ensemble_datas, options, heavy="m0", hqet=False, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["fhl"] = self.make_array("fD", heavy=heavy, div=hqet)
         self.data["mhl"] = self.make_array("D_mass", heavy=heavy, div=hqet)
         self.data["mpi"] = self.make_array("pion_mass")
@@ -52,9 +52,9 @@ class linear_fD_mpi(Model):
 
 class linear_fDs_mpi(Model):
 
-    def __init__(self, ensemble_datas, options, heavy="m0", hqet=False):
+    def __init__(self, ensemble_datas, options, heavy="m0", hqet=False, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["fhs"] = self.make_array("fDs", heavy=heavy, div=hqet)
         self.data["mhs"] = self.make_array("Ds_mass", heavy=heavy, div=hqet)
         self.data["mpi"] = self.make_array("pion_mass")
@@ -95,9 +95,9 @@ class linear_fDs_mpi(Model):
 
 class linear_mD_mpi(Model):
 
-    def __init__(self, ensemble_datas, options, heavy="m0", hqet=False):
+    def __init__(self, ensemble_datas, options, heavy="m0", hqet=False, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["mhl"] = self.make_array("D_mass", heavy=heavy, div=hqet)
         self.data["mpi"] = self.make_array("pion_mass")
         self.data["mK"] = self.make_array("kaon_mass")
@@ -138,9 +138,9 @@ class linear_mD_mpi(Model):
 
 class linear_mDs_mpi(Model):
 
-    def __init__(self, ensemble_datas, options, heavy="m0", hqet=False):
+    def __init__(self, ensemble_datas, options, heavy="m0", hqet=False, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["mhs"] = self.make_array("Ds_mass", heavy=heavy, div=hqet)
         self.data["mpi"] = self.make_array("pion_mass")
         self.data["mK"] = self.make_array("kaon_mass")
@@ -181,9 +181,9 @@ class linear_mDs_mpi(Model):
 
 class linear_mDsplit_mpi(Model):
 
-    def __init__(self, ensemble_datas, options, heavy="m0", hqet=False):
+    def __init__(self, ensemble_datas, options, heavy="m0", hqet=False, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["mhl"] = self.make_array("D_mass", heavy=heavy, div=hqet)
         self.data["mhs"] = self.make_array("Ds_mass", heavy=heavy, div=hqet)
         self.data["mpi"] = self.make_array("pion_mass")

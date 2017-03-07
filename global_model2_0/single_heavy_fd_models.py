@@ -6,9 +6,9 @@ import logging
 
 class linear_FD_in_mpi(Model):
 
-    def __init__(self, ensemble_datas, options):
+    def __init__(self, ensemble_datas, options, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["mpi"] = self.make_array("pion_mass")
         self.data["mK"] = self.make_array("kaon_mass")
         self.data["fD"] = self.make_array("fD")
@@ -35,9 +35,9 @@ class linear_FD_in_mpi(Model):
 
 class poly_fDs_mpi(Model):
 
-    def __init__(self, ensemble_datas, options):
+    def __init__(self, ensemble_datas, options, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["mpi"] = self.make_array("pion_mass")
         self.data["fDs"] = self.make_array("fDs")
 
@@ -65,9 +65,9 @@ class poly_fDs_mpi(Model):
 
 class poly_fDssqrtmDs_a(Model):
 
-    def __init__(self, ensemble_datas, options):
+    def __init__(self, ensemble_datas, options, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["mpi"] = self.make_array("pion_mass")
         self.data["fDs"] = self.make_array("fDs")
         self.data["mDs"] = self.make_array("Ds_mass")
@@ -99,9 +99,9 @@ class poly_fDssqrtmDs_a(Model):
 
 class poly_fhssqrtmhs_a(Model):
 
-    def __init__(self, ensemble_datas, options, heavy="m0", hqet=False):
+    def __init__(self, ensemble_datas, options, heavy="m0", hqet=False, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["fhs"] = self.make_array("fDs", heavy=heavy, div=hqet)
         self.data["mhs"] = self.make_array("Ds_mass", heavy=heavy, div=hqet)
         self.data["mpi"] = self.make_array("pion_mass")
@@ -132,70 +132,70 @@ class poly_fhssqrtmhs_a(Model):
 
 
 class poly_fhssqrtmhs_a_m0(poly_fhssqrtmhs_a):
-    def __init__(self, ensemble_datas, options):
-        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m0")
+    def __init__(self, ensemble_datas, options, **kargs):
+        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m0", **kargs)
 
 
 class poly_fhssqrtmhs_a_m1(poly_fhssqrtmhs_a):
-    def __init__(self, ensemble_datas, options):
-        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m1")
+    def __init__(self, ensemble_datas, options, **kargs):
+        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m1", **kargs)
 
 
 class poly_fhssqrtmhs_a_m2(poly_fhssqrtmhs_a):
-    def __init__(self, ensemble_datas, options):
-        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m2")
+    def __init__(self, ensemble_datas, options, **kargs):
+        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m2", **kargs)
 
 
 class poly_fhssqrtmhs_a_m3(poly_fhssqrtmhs_a):
-    def __init__(self, ensemble_datas, options):
-        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m3")
+    def __init__(self, ensemble_datas, options, **kargs):
+        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m3", **kargs)
 
 
 class poly_fhssqrtmhs_a_m4(poly_fhssqrtmhs_a):
-    def __init__(self, ensemble_datas, options):
-        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m4")
+    def __init__(self, ensemble_datas, options, **kargs):
+        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m4", **kargs)
 
 
 class poly_fhssqrtmhs_a_m5(poly_fhssqrtmhs_a):
-    def __init__(self, ensemble_datas, options):
-        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m5")
+    def __init__(self, ensemble_datas, options, **kargs):
+        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m5", **kargs)
 
 
 class poly_fhssqrtmhs_hqet_a_m0(poly_fhssqrtmhs_a):
-    def __init__(self, ensemble_datas, options):
-        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m0", hqet=True)
+    def __init__(self, ensemble_datas, options, **kargs):
+        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m0", hqet=True, **kargs)
 
 
 class poly_fhssqrtmhs_hqet_a_m1(poly_fhssqrtmhs_a):
-    def __init__(self, ensemble_datas, options):
-        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m1", hqet=True)
+    def __init__(self, ensemble_datas, options, **kargs):
+        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m1", hqet=True, **kargs)
 
 
 class poly_fhssqrtmhs_hqet_a_m2(poly_fhssqrtmhs_a):
-    def __init__(self, ensemble_datas, options):
-        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m2", hqet=True)
+    def __init__(self, ensemble_datas, options, **kargs):
+        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m2", hqet=True, **kargs)
 
 
 class poly_fhssqrtmhs_hqet_a_m3(poly_fhssqrtmhs_a):
-    def __init__(self, ensemble_datas, options):
-        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m3", hqet=True)
+    def __init__(self, ensemble_datas, options, **kargs):
+        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m3", hqet=True, **kargs)
 
 
 class poly_fhssqrtmhs_hqet_a_m4(poly_fhssqrtmhs_a):
-    def __init__(self, ensemble_datas, options):
-        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m4", hqet=True)
+    def __init__(self, ensemble_datas, options, **kargs):
+        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m4", hqet=True, **kargs)
 
 
 class poly_fhssqrtmhs_hqet_a_m5(poly_fhssqrtmhs_a):
-    def __init__(self, ensemble_datas, options):
-        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m5", hqet=True)
+    def __init__(self, ensemble_datas, options, **kargs):
+        poly_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m5", hqet=True, **kargs)
 
 
 class linear_fhssqrtmhs_a(Model):
 
-    def __init__(self, ensemble_datas, options, heavy="m0", hqet=False):
+    def __init__(self, ensemble_datas, options, heavy="m0", hqet=False, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["fhs"] = self.make_array("fDs", heavy=heavy, div=hqet)
         self.data["mhs"] = self.make_array("Ds_mass", heavy=heavy, div=hqet)
         self.data["mpi"] = self.make_array("pion_mass")
@@ -225,30 +225,30 @@ class linear_fhssqrtmhs_a(Model):
 
 
 class linear_fhssqrtmhs_hqet_a_m0(linear_fhssqrtmhs_a):
-    def __init__(self, ensemble_datas, options):
-        linear_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m0", hqet=True)
+    def __init__(self, ensemble_datas, options, **kargs):
+        linear_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m0", hqet=True, **kargs)
 
 
 class linear_fhssqrtmhs_hqet_a_m1(linear_fhssqrtmhs_a):
-    def __init__(self, ensemble_datas, options):
-        linear_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m1", hqet=True)
+    def __init__(self, ensemble_datas, options, **kargs):
+        linear_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m1", hqet=True, **kargs)
 
 
 class linear_fhssqrtmhs_hqet_a_m2(linear_fhssqrtmhs_a):
-    def __init__(self, ensemble_datas, options):
-        linear_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m2", hqet=True)
+    def __init__(self, ensemble_datas, options, **kargs):
+        linear_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m2", hqet=True, **kargs)
 
 
 class linear_fhssqrtmhs_hqet_a_m3(linear_fhssqrtmhs_a):
-    def __init__(self, ensemble_datas, options):
-        linear_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m3", hqet=True)
+    def __init__(self, ensemble_datas, options, **kargs):
+        linear_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m3", hqet=True, **kargs)
 
 
 class linear_fhssqrtmhs_hqet_a_m4(linear_fhssqrtmhs_a):
-    def __init__(self, ensemble_datas, options):
-        linear_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m4", hqet=True)
+    def __init__(self, ensemble_datas, options, **kargs):
+        linear_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m4", hqet=True, **kargs)
 
 
 class linear_fhssqrtmhs_hqet_a_m5(linear_fhssqrtmhs_a):
-    def __init__(self, ensemble_datas, options):
-        linear_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m5", hqet=True)
+    def __init__(self, ensemble_datas, options, **kargs):
+        linear_fhssqrtmhs_a.__init__(self, ensemble_datas, options, heavy="m5", hqet=True, **kargs)

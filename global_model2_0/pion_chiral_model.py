@@ -7,9 +7,9 @@ import inspect
 
 class fpi_x_NLO(Model):
 
-    def __init__(self, ensemble_datas, options):
+    def __init__(self, ensemble_datas, options, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["fpi"] = self.make_array("fpi")
         self.data["mpi"] = self.make_array("pion_mass")
         self.data["mK"] = self.make_array("kaon_mass")
@@ -66,9 +66,9 @@ class fpi_x_NLO(Model):
 
 class fpi_mpi_x_NLO(Model):
 
-    def __init__(self, ensemble_datas, options):
+    def __init__(self, ensemble_datas, options, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["fpi"] = self.make_array("fpi")
         self.data["mpi"] = self.make_array("pion_mass")
         self.data["mK"] = self.make_array("kaon_mass")
@@ -156,9 +156,9 @@ class fpi_mpi_x_NLO(Model):
 
 class fpi_mpi_x_NNLO(Model):
 
-    def __init__(self, ensemble_datas, options):
+    def __init__(self, ensemble_datas, options, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["fpi"] = self.make_array("fpi")
         self.data["mpi"] = self.make_array("pion_mass")
         self.data["mK"] = self.make_array("kaon_mass")
@@ -283,9 +283,9 @@ class fpi_mpi_x_NNLO(Model):
 
 class fpi_mpi_xi_inverse_NNLO(Model):
 
-    def __init__(self, ensemble_datas, options):
+    def __init__(self, ensemble_datas, options, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["fpi"] = self.make_array("fpi")
         self.data["mpi"] = self.make_array("pion_mass")
         self.data["mK"] = self.make_array("kaon_mass")
@@ -396,9 +396,9 @@ class fpi_mpi_xi_inverse_NNLO(Model):
 
 class fpi_mpi_xi_NNLO(Model):
 
-    def __init__(self, ensemble_datas, options):
+    def __init__(self, ensemble_datas, options, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["fpi"] = self.make_array("fpi")
         self.data["mpi"] = self.make_array("pion_mass")
         self.data["mK"] = self.make_array("kaon_mass")
@@ -484,9 +484,9 @@ class fpi_mpi_xi_NNLO(Model):
 
 class fpi_xi_NLO(Model):
 
-    def __init__(self, ensemble_datas, options):
+    def __init__(self, ensemble_datas, options, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["fpi"] = self.make_array("fpi")
         self.data["mpi"] = self.make_array("pion_mass")
         self.data["mK"] = self.make_array("kaon_mass")
@@ -538,9 +538,9 @@ class fpi_xi_NLO(Model):
 
 class fpi_xi_inverse_NLO(Model):
 
-    def __init__(self, ensemble_datas, options):
+    def __init__(self, ensemble_datas, options, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["fpi"] = self.make_array("fpi")
         self.data["mpi"] = self.make_array("pion_mass")
         self.data["mK"] = self.make_array("kaon_mass")
@@ -600,9 +600,9 @@ class fpi_xi_inverse_NLO(Model):
 
 class mpi_xi_NLO(Model):
 
-    def __init__(self, ensemble_datas, options):
+    def __init__(self, ensemble_datas, options, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["fpi"] = self.make_array("fpi")
         self.data["mpi"] = self.make_array("pion_mass")
         self.data["mK"] = self.make_array("kaon_mass")
@@ -652,9 +652,9 @@ class mpi_xi_NLO(Model):
 
 class mpi_xi_inverse_NLO(Model):
 
-    def __init__(self, ensemble_datas, options):
+    def __init__(self, ensemble_datas, options, **kargs):
 
-        Model.__init__(self, ensemble_datas, options)
+        Model.__init__(self, ensemble_datas, options, **kargs)
         self.data["fpi"] = self.make_array("fpi")
         self.data["mpi"] = self.make_array("pion_mass")
         self.data["mK"] = self.make_array("kaon_mass")

@@ -9,11 +9,11 @@ import inspect
 
 class Model(object):
 
-    def __init__(self, ensemble_datas, options, each_heavy=False):
+    def __init__(self, ensemble_datas, options, each_heavy=False, scale_sigma=0):
         """ Initialize the model object with constants and placeholders
 
         The 'each_heavy' parameter treats each heavy mass within an ensemble as a seperate ensemble
-
+        The 'scale_sigma' parameter uses the scale set to offsety by +/- 1 sigma to see the systmatic effect
         """
 
 
@@ -37,7 +37,7 @@ class Model(object):
         # Model object is created without data, (maybe for plotting)
         # set some defaults
         self.consts = {"a": 0.0, "lat": 0.0, "alphas": 1.0, "m1": 0.0, "m2": 0.0,
-                       "renorm_qmass": 0.0, "qmass": 0.0, "residual_error": 0.0}
+                       "renorm_qmass": np.nan, "qmass": np.nan, "residual_error": 0.0}
         if len(self.eds) > 1:
             # one data per ensemble
             datas = self.eds
@@ -50,6 +50,19 @@ class Model(object):
                                               for m in ed.selected_heavies])
             self.consts["a"] = np.array([ed.ep.a_gev for ed in datas])
             self.consts["lat"] = np.array([ed.ep.latspacing for ed in datas])
+            if scale_sigma == +1:
+                self.consts["a"] = np.array([ed.ep.a_gev_p for ed in datas])
+                self.consts["lat"] = np.array([ed.ep.latspacing_p for ed in datas])
+                ed.ep.a_gev = ed.ep.a_gev_p
+                ed.ep.latspacing = ed.ep.latspacing_p
+                ed.ep.scale = ed.ep.scale + ed.ep.scale_err
+            if scale_sigma == -1:
+                self.consts["a"] = np.array([ed.ep.a_gev_m for ed in datas])
+                self.consts["lat"] = np.array([ed.ep.latspacing_m for ed in datas])
+                ed.ep.a_gev = ed.ep.a_gev_m
+                ed.ep.latspacing = ed.ep.latspacing_m
+                ed.ep.scale = ed.ep.scale - ed.ep.scale_err
+
             self.consts["alphas"] = np.array([get_alpha(ed.ep.scale) for ed in datas])
             self.consts["renorm_qmass"] = np.array([ed.ep.scale*(ed.ep.ud_mass+ed.ep.residual_mass) / ed.ep.Zs
                                                     for ed in datas])
