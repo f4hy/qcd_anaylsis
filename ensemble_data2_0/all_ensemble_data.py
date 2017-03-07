@@ -388,8 +388,27 @@ class ensemble_data(object):
 
         data = self.ep.scale * data
 
+        return data
+
+    def ZA_est(self, **args):
+        if "flavor" not in args:
+            args["flavor"] = "ud-ud"
+
+        d = self.select_data(axial=False, **args)
+        dA = self.select_data(axial=True, **args)
+        ampfactor = self.ep.volume
+        Pampdata = np.sqrt((d.amp1**2 / d.amp2) / ampfactor)
+        Aampdata = np.sqrt((dA.amp1**2 / dA.amp2) / ampfactor)
+
+        qu = self.ep.ud_mass + self.ep.residual_mass
+        qs = self.ep.s_mass + self.ep.residual_mass
+        qh = d.dp.heavyq_mass + self.ep.residual_mass
+        qmasses = {"ud-ud": qu+qu, "ud-s": qs+qu, "s-s":qs+qs,
+                   "h-h":qh+qh, "h-ud":qh+qu, "h-s":qh+qs}
+        data = qmasses[args["flavor"]] * Pampdata / (d.mass * Aampdata)
 
         return data
+
 
 
 def test():
