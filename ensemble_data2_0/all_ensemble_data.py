@@ -15,25 +15,6 @@ from collections import OrderedDict
 FITTYPE = "uncorrelated"
 # FITTYPE="fullcorrelated"
 
-scale = {"4.17": 2492, "4.35": 3660, "4.47": 4600}
-scale = {"4.17": 2473, "4.35": 3618, "4.47": 4600}
-scale = {"4.17": 2453.1, "4.35": 3609.7, "4.47": 4496.1}
-
-# Zv(=Za)<MSbar>
-# beta4.17: Zv = 0.9517(58)(10)(33)
-# beta4.35: Zv = 0.9562(42)(8)(20)
-# beta4.47: Zv = 0.9624(33)(7)(20)
-Zv = {"4.17": 0.9517, "4.35": 0.9562, "4.47": 0.9624}
-
-# Zs(=Zp):<MSbar, 2GeV>
-# beta4.17: Zs = 1.024(15)(84)(6)
-# beta4.35: Zs = 0.922(11)(45)(5)
-# beta4.47: Zs = 0.880(7)(38)(4)
-Zs = {"4.17": 1.024, "4.35": 0.922, "4.47": 0.880}
-
-# # Zs(=Zp):<RGI>  = Zs:<MSbar, 2GeV>*0.75
-# Zs = {"4.17": 1.024*0.75, "4.35": 0.922*0.75, "4.47": 0.880*0.75}
-
 
 ensemble_names = {}
 ensemble_names["SymDW_sHtTanh_b2.0_smr3_32x64x12_b4.17_M1.00_mud0.0035_ms0.0400"] = "KC0"
@@ -74,9 +55,11 @@ class ensemble_data(object):
         self.default_smearing = smearing
         self.default_operator = def_op
 
-        self.scale = self.ep.scale
+        # self.scale = self.ep.scale
+        # if scale_values is False:
+        #     self.scale = 1.0
         if scale_values is False:
-            self.scale = 1.0
+            self.ep.scale = 1.0
 
         self.interpstrange = interpstrange
 
@@ -121,9 +104,9 @@ class ensemble_data(object):
     def get_mass(self, flavor, **args):
         data = self.select_data(flavor, **args)
         if isinstance(data, bootstrap_data):
-            return self.scale * data.mass
+            return self.ep.scale * data.mass
         else:
-            mass_data = OrderedDict([(k, self.scale * v.mass) for k, v in data.iteritems()])
+            mass_data = OrderedDict([(k, self.ep.scale * v.mass) for k, v in data.iteritems()])
             return mass_data
 
     def get_amps(self, flavor, **args):
@@ -203,14 +186,14 @@ class ensemble_data(object):
         q2 = self.ep.ud_mass + self.ep.residual_mass
         ampdata = (d.amp1**2 / d.amp2) / ampfactor
         data = (q1 + q2) * np.sqrt(2 * (ampdata) / d.mass**3)
-        return self.scale * data
+        return self.ep.scale * data
 
     def fpiA(self, **args):
         d = self.select_data("ud-ud", axial=True, **args)
         ampfactor = self.ep.volume
         ampdata = (d.amp1**2 / d.amp2) / ampfactor
         data = self.ep.Zv * np.sqrt(2 * (ampdata) / d.mass)
-        return self.scale * data
+        return self.ep.scale * data
 
     def fK(self, **args):
         if args.get("axial", False):
@@ -222,14 +205,14 @@ class ensemble_data(object):
         q2 = self.ep.s_mass + self.ep.residual_mass
         ampdata = (d.amp1**2 / d.amp2) / ampfactor
         data = (q1 + q2) * np.sqrt(2 * (ampdata) / d.mass**3)
-        return self.scale * data
+        return self.ep.scale * data
 
     def fKA(self, **args):
         d = self.select_data("ud-s", axial=True, **args)
         ampfactor = self.ep.volume
         ampdata = (d.amp1**2 / d.amp2) / ampfactor
         data = self.ep.Zv * np.sqrt(2 * (ampdata) / d.mass)
-        return self.scale * data
+        return self.ep.scale * data
 
     def fD(self, **args):
         if args.get("axial", False):
@@ -257,9 +240,9 @@ class ensemble_data(object):
         ampdata = (d.amp1**2 / d.amp2) / ampfactor
         data = (q1 + q2) * np.sqrt(2 * (ampdata) / d.mass**3)
 
-        data = self.scale * data
+        data = self.ep.scale * data
         if args.get("matched", False):
-            mq1 = self.scale * d.dp.heavyq_mass / self.ep.Zs
+            mq1 = self.ep.scale * d.dp.heavyq_mass / self.ep.Zs
             C1 = get_Cmu_mbar(mq1)
             data = data / C1
 
@@ -286,9 +269,9 @@ class ensemble_data(object):
         ampdata = (d.amp1**2 / d.amp2) / ampfactor
         data = self.ep.Zv * np.sqrt(2 * (ampdata) / d.mass)
 
-        data = self.scale * data
+        data = self.ep.scale * data
         if args.get("matched", False):
-            mq1 = self.scale * d.dp.heavyq_mass / self.ep.Zs
+            mq1 = self.ep.scale * d.dp.heavyq_mass / self.ep.Zs
             C1 = get_Cmu_mbar(mq1)
             data = data / C1
 
@@ -331,9 +314,9 @@ class ensemble_data(object):
         ampdata = (d.amp1**2 / d.amp2) / ampfactor
         data = (q1 + q2) * np.sqrt(2 * (ampdata) / d.mass**3)
 
-        data = self.scale * data
+        data = self.ep.scale * data
         if args.get("matched", False):
-            mq1 = self.scale * d.dp.heavyq_mass / self.ep.Zs
+            mq1 = self.ep.scale * d.dp.heavyq_mass / self.ep.Zs
             C1 = get_Cmu_mbar(mq1)
             data = data / C1
 
@@ -360,9 +343,9 @@ class ensemble_data(object):
         ampdata = (d.amp1**2 / d.amp2) / ampfactor
         data = self.ep.Zv * np.sqrt(2 * (ampdata) / d.mass)
 
-        data = self.scale * data
+        data = self.ep.scale * data
         if args.get("matched", False):
-            mq1 = self.scale * d.dp.heavyq_mass / self.ep.Zs
+            mq1 = self.ep.scale * d.dp.heavyq_mass / self.ep.Zs
             C1 = get_Cmu_mbar(mq1)
             data = data / C1
 
@@ -403,7 +386,8 @@ class ensemble_data(object):
         ampdata = (d.amp1**2 / d.amp2) / ampfactor
         data = (q1 + q2) * np.sqrt(2 * (ampdata) / d.mass**3)
 
-        data = self.scale * data
+        data = self.ep.scale * data
+
 
         return data
 
