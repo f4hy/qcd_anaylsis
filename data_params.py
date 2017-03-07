@@ -37,6 +37,8 @@ scale_err = {"4.17": 41.5491, "4.35": 61.5022, "4.47": 76.35468}
 Zv = {"4.17": 0.9517, "4.35": 0.9562, "4.47": 0.9624}
 Zv = {"4.17": 0.9553, "4.35": 0.9636, "4.47": 0.9699}
 
+Zv_err = {"4.17": 0.00674759216313, "4.35": 0.00472, "4.47": 0.0039217}
+
 # Zs(=Zp):<MSbar, 2GeV>
 # beta4.17: Zs = 1.024(15)(84)(6)
 # beta4.35: Zs = 0.922(11)(45)(5)
@@ -117,11 +119,15 @@ class ensemble_params(object):
         if self.beta == "0.00":
             self.beta = "4.47"
         self.latspacing = hbar_c/scale[self.beta]
+        self.latspacing_p = hbar_c/(scale[self.beta]+scale_err[self.beta])
+        self.latspacing_m = hbar_c/(scale[self.beta]-scale_err[self.beta])
 
         self.scale = scale[self.beta]
         self.scale_err = scale_err[self.beta]
 
         self.a_gev = 1000.0/(self.scale)
+        self.a_gev_p = 1000.0/(self.scale+self.scale_err)
+        self.a_gev_m = 1000.0/(self.scale-self.scale_err)
 
         if self.ename is None:
             self.ename = "Ib{}u{}s{}".format(self.beta, self.ud_mass, self.s_mass)
