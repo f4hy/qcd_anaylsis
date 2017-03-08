@@ -6,7 +6,7 @@ from physical_values import phys_eta, phys_etac, phys_etab, phys_FK, phys_mhq, p
 def mD(ed, options):
     data = ed.D_mass()
     label = "$m_{hl}$"
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [MeV]"
     return (data.mean(), data.std(),
                      label, {"Charm": phys_D, "Bottom": phys_MB})
@@ -15,7 +15,7 @@ def mD(ed, options):
 def inv_mhl(ed, options):
     data = ed.get_mass("heavy-ud")
     label = "$1/m_{hl}$"
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [1/MeV]"
     phys = {"Charm": phys_D, "Bottom": phys_MB}
     return {m.split("_")[-1]: ((1/d).mean(), (1/d).std(), label, phys ) for m,d in data.iteritems()}
@@ -24,7 +24,7 @@ def inv_mhl(ed, options):
 def inv_mD(ed, options):
     data = 1.0 / ed.D_mass()
     label = "$1/m_{hl}$"
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [1/MeV]"
     return (data.mean(), data.std(),
                      label, {"Charm": 1/phys_D, "Bottom": 1/phys_MB})
@@ -33,7 +33,7 @@ def inv_mD(ed, options):
 def mDs(ed, options):
     data = ed.Ds_mass()
     label = "$m_{hs}$"
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [MeV]"
     return (data.mean(), data.std(),
                      label, {"Charm": phys_Ds, "Bottom": phys_MBs})
@@ -42,7 +42,7 @@ def mDs(ed, options):
 def mDs_mD(ed, options):
     data = ed.Ds_mass()-ed.D_mass()
     label = "$m_{D_s}-m_{D}$"
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [MeV]"
     return (data.mean(), data.std(),
                      label, {"PDG": phys_Ds-phys_D})
@@ -51,7 +51,7 @@ def mDs_mD(ed, options):
 def inv_mhs(ed, options):
     data = ed.get_mass("heavy-s")
     label = "$1/m_{hs}$"
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [1/MeV]"
     phys = {"Charm": phys_Ds, "Bottom": phys_MBs}
     return {m.split("_")[-1]: ((1/d).mean(), (1/d).std(), label, phys ) for m,d in data.iteritems()}
@@ -60,7 +60,7 @@ def inv_mhs(ed, options):
 def inv_mDs(ed, options):
     data = 1.0 / ed.Ds_mass()
     label = "$m_{hs}$"
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [1/MeV]"
     return (data.mean(), data.std(),
                      label, {"Charm": 1/phys_Ds, "Bottom": 1/phys_MBs})
@@ -85,9 +85,9 @@ def inv_mhl_corrected(ed, options):
         mkey = [k for k in mdata if m in k][0]
         m1,m2 = m12s
         print m1,m2
-        data[m] = (mdata[mkey] + (m2 - m1)*ed.scale )
+        data[m] = (mdata[mkey] + (m2 - m1)*ed.ep.scale )
     label = "$1/(m_{hl} + m_2 - m_1)$"
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [1/MeV]"
         phys = {"Charm": phys_D, "Bottom": phys_MB}
     return {m.split("_")[-1]: ((1/d).mean(), (1/d).std(), label, phys ) for m,d in data.iteritems()}
@@ -110,9 +110,9 @@ def inv_mhs_corrected(ed, options):
         mkey = [k for k in mdata if m in k][0]
         m1,m2 = m12s
         print m1,m2
-        data[m] = (mdata[mkey] + (m2 - m1)*ed.scale )
+        data[m] = (mdata[mkey] + (m2 - m1)*ed.ep.scale )
     label = "$1/(m_{hs} + m_2 - m_1)$"
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [1/MeV]"
         phys = {"Charm": phys_Ds, "Bottom": phys_MBs}
     return {m.split("_")[-1]: ((1/d).mean(), (1/d).std(), label, phys ) for m,d in data.iteritems()}

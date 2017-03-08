@@ -11,27 +11,50 @@ def fpi(ed, options):
     data = ed.fpi()
 
     label = "$f_\pi$"
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [MeV]"
 
     return (data.mean(), data.std(),
             label, {"PDG": phys_Fpi})
 
+def Fpi(ed, options):
+    """ Other normaliztion of fpi"""
+    data = ed.fpi() / np.sqrt(2)
+
+    label = "$F_\pi$"
+    if ed.ep.scale != 1.0:
+        label += " [MeV]"
+
+    return (data.mean(), data.std(),
+            label, {"PDG": phys_Fpi / np.sqrt(2)})
+
+
 def fK(ed, options):
     data = ed.fK()
 
     label = "$f_K$"
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [MeV]"
 
     return (data.mean(), data.std(),
             label, {"PDG": phys_FK})
 
+def FK(ed, options):
+    data = ed.fK() / np.sqrt(2)
+
+    label = "$F_K$"
+    if ed.ep.scale != 1.0:
+        label += " [MeV]"
+
+    return (data.mean(), data.std(),
+            label, {"PDG": phys_FK / np.sqrt(2)})
+
+
 def fK_fpi(ed, options):
     data = ed.fK() / ed.fpi()
 
     label = "$f_K / f_\pi$"
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [MeV]"
 
     return (data.mean(), data.std(),
@@ -43,29 +66,29 @@ def xi(ed, options):
     mpi = ed.pion_mass()
     fpi = ed.fpi()
 
-    data = ((mpi**2) / (8 * (np.pi**2)*(fpi**2)))
+    data = ((mpi**2) / (16. * (np.pi**2)*(fpi**2)))
 
     label = "$\\xi$"
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [MeV]"
 
-    phys_xi = phys_pion**2 / (8 * (np.pi**2)*(phys_Fpi**2))
+    phys_xi = phys_pion**2 / (16. * (np.pi**2)*(phys_Fpi**2))
 
     return (data.mean(), data.std(),
             label, {"PDG": phys_xi})
 
 def chiral_x(ed, options):
     B = 2777.99374105
-    B = 2817.51286699
-    F_0 = 117.492871007
+    B =  2817.1
+    F_0 = 85.8
     # logging.warn("PLEASE SET B and F0 for these plots")
 
-    qmass = ed.scale*(ed.ep.ud_mass + ed.ep.residual_mass)/ed.ep.Zs
+    qmass = ed.ep.scale*(ed.ep.ud_mass + ed.ep.residual_mass)/ed.ep.Zs
     Msqr = B * (qmass + qmass)
-    data = Msqr / (8 * (np.pi**2) * (F_0**2))
+    data = Msqr / (16. * (np.pi**2) * (F_0**2))
 
     label = "$x=B(m_q + m_q)/(4 \pi F)^2$"
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [MeV]"
 
     return (data, 0,

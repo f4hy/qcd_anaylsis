@@ -14,7 +14,7 @@ def interpolated_fsqrtm(ed, options, heavy="m0"):
 
     label = "$f_{hs}\, \sqrt{m_{hs}}$"
 
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [MeV^(3/2)]"
 
     phys = {"Charm": phys_FDs * np.sqrt(phys_Ds), "Bottom": phys_FBs * np.sqrt(phys_MBs)}
@@ -30,7 +30,7 @@ def interpolated_fsqrtm_hqet(ed, options, heavy="m0"):
 
     label = '$f^{{HQET}}_{hs}\, \sqrt{m^{{HQET}}_{hs}}$'
 
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [MeV^(3/2)]"
 
     phys = {"Charm": phys_FDs * np.sqrt(phys_Ds), "Bottom": phys_FBs * np.sqrt(phys_MBs)}
@@ -46,7 +46,7 @@ def interpolated_fsqrtm_linearhqet(ed, options, heavy="m0"):
 
     label = '$\mathrm{linear } f^{{HQET}}_{hs}\, \sqrt{m^{{HQET}}_{hs}}$'
 
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [MeV^(3/2)]"
 
     phys = {"Charm": phys_FDs * np.sqrt(phys_Ds), "Bottom": phys_FBs * np.sqrt(phys_MBs)}

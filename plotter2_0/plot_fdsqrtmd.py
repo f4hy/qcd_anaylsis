@@ -16,7 +16,7 @@ def fDsqrtmD(ed, options, heavy="m0"):
 
     label = "$f^{"+heavy+"}_{hl}\, \sqrt{m^{"+heavy+"}_{hl}}$"
 
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
 
         label += " [MeV^(3/2)]"
     return (data.mean(), data.std(), label,
@@ -46,7 +46,7 @@ def fhlsqrtmhl(ed, options):
 
     label = "$f_{hl}\, \sqrt{m_{hl}}$"
 
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [MeV^(3/2)]"
 
     phys = {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
@@ -107,7 +107,7 @@ def fhlsqrtmhl_hqet(ed, options):
 
     label = "$\hat{f}_{hl}\, \sqrt{\hat{m}_{hl}} / C(\mu)$"
 
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [MeV^(3/2)]"
 
     phys = {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
@@ -124,7 +124,7 @@ def fhssqrtmhs_hqet(ed, options):
 
     label = "$\hat{f}_{hs}\, \sqrt{\hat{m}_{hs}} / C(\mu)$"
 
-    if ed.scale != 1.0:
+    if ed.ep.scale != 1.0:
         label += " [MeV^(3/2)]"
 
     phys = {"Charm": phys_FDs*np.sqrt(phys_Ds), "Bottom": phys_FBs*np.sqrt(phys_MBs)}
