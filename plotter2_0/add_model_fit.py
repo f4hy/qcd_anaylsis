@@ -60,6 +60,17 @@ def addplot(plots, axe, fill, save, x=None, y=None, params=None):
             meanplot[params["label"]] = y
         plots.extend(axe.plot(x, y, **params))
 
+def determine_eval_mode(modes, datanames):
+    for m in modes:
+        for name in datanames:
+            print m
+            print name
+            if m.lower() in name.lower():
+                logging.info("setting evaluation mode to {}".format(m))
+                return m
+    return None           # dont change if none match
+
+
 
 def add_model_fit(axe, xran, boot_fit_file, options=None):
     c = colorcycle.next()
@@ -82,6 +93,9 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
     means = df.mean()
     params = [means[i] for i in m.contlim_args]
     np.seterr(divide='ignore', invalid='ignore')  # Ignore errors like this when plotting
+
+    m.evalmode =  determine_eval_mode(m.evalmodes, options.ydata)
+
 
     logging.info("plotting line with params {}".format(params))
     y = m.eval_fit(x, *params)

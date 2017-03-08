@@ -58,7 +58,12 @@ def interpolate(data, model_str, options):
         logging.error("NOT VALID")
         exit(-1)
 
-    params.update(mean_m.values)
+    params.update(mean_m.values) # Update the guesses on each
+                                 # bootstrap to be that of the
+                                 # mean. Sometimes one bootstrap can
+                                 # fail but less likly if starting
+                                 # with better guesses
+
     if options.scale_systematic:
         logging.info("Finding the systematic dependance upon the scale seeting")
         find_scale_dependance(data, valid_models[model_str], mean_m.values, options)

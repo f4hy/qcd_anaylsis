@@ -172,8 +172,8 @@ class ensemble_data(object):
 
     def xi(self, scaled=False):
         mpi = self.pion_mass()
-        fpi = self.fpi()
-        xi = ((mpi**2) / (8.0 * (np.pi**2) * (fpi**2)))
+        fpi = self.fpi()/np.sqrt(2)
+        xi = ((mpi**2) / (16.0 * (np.pi**2) * (fpi**2)))
         return xi
 
     def fpi(self, **args):

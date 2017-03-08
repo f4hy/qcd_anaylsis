@@ -54,55 +54,55 @@ def read_data(fit_file):
     return name, df
 
 
-def Lambda3(data):
+def Lambda3(data, label=None):
     lam3 = data.Lambda3
     mean = lam3.mean()
     err =  lam3.std()
     syserr = (data.Lambda3*0.01433447098).mean()
-    logging.info("lam3: mean{} err{} syserr{}".format(mean, err, syserr))
+    logging.info("{} lam3: mean{} err{} syserr{}".format(label, mean, err, syserr))
     return (mean, err, syserr)
 
-def Lambda4(data):
+def Lambda4(data, label=None):
     lam4 = data.Lambda4
     mean = lam4.mean()
     err =  lam4.std()
     syserr = (data.Lambda4*0.01433447098).mean()
-    logging.info("lam4: mean{} err{} syserr{}".format(mean, err, syserr))
+    logging.info("{} lam4: mean{} err{} syserr{}".format(label, mean, err, syserr))
     return (mean, err, syserr)
 
 
 
-def f0(data):
-    F = data.F_0 / np.sqrt(2)
+def f0(data, label=None):
+    F = data.F_0 #/ np.sqrt(2)
     mean = F.mean()
     err =  F.std()
     syserr = ((F*0.01433447098)).mean()
-    logging.info("F: mean{} err{} syserr{}".format(mean, err, syserr))
+    logging.info("{} F: mean{} err{} syserr{}".format(label, mean, err, syserr))
     return (mean, err, syserr)
 
-def l3(data):
+def l3(data, label=None):
     ell3 = np.log(data.Lambda3**2 / phys_pion**2)
     mean = ell3.mean()
     err =  ell3.std()
     syserr = None
-    logging.info("l3: mean{} err{} syserr{}".format(mean, err, syserr))
+    logging.info("{} l3: mean{} err{} syserr{}".format(label, mean, err, syserr))
     return (mean, err, syserr)
 
-def l4(data):
+def l4(data, label=None):
     ell4 = np.log(data.Lambda4**2 / phys_pion**2)
     mean = ell4.mean()
     err =  ell4.std()
     syserr = None
-    logging.info("l4: mean{} err{} syserr{}".format(mean, err, syserr))
+    logging.info("{} l4: mean{} err{} syserr{}".format(label, mean, err, syserr))
     return (mean, err, syserr)
 
-def sigma13(data):
-    sigma = (data.B*(data.F_0)**2)/2.
+def sigma13(data, label=None):
+    sigma = (data.B*(data.F_0)**2) #/2.
     s13 = sigma**(1./3.)
     mean = s13.mean()
     err =  s13.std()
     syserr = ((s13*0.01433447098)).mean()
-    logging.info("sigma3: mean{} err{} syserr{}".format(mean, err, syserr))
+    logging.info("{} sigma3: mean{} err{} syserr{}".format(label, mean, err, syserr))
     return (mean, err, syserr)
 
 def plot_constants(axe, bootstrap_fit_files, options):
@@ -129,17 +129,17 @@ def plot_constants(axe, bootstrap_fit_files, options):
     for k in sorted(alldata.keys()):
         data = alldata[k]
         if options.constant == "Lambda4":
-            xdata, staterr, syserr = Lambda4(data)
+            xdata, staterr, syserr = Lambda4(data, label=k)
         elif options.constant == "Lambda3":
-            xdata, staterr, syserr = Lambda3(data)
+            xdata, staterr, syserr = Lambda3(data, label=k)
         elif options.constant == "l4":
-            xdata, staterr, syserr = l4(data)
+            xdata, staterr, syserr = l4(data, label=k)
         elif options.constant == "l3":
-            xdata, staterr, syserr = l3(data)
+            xdata, staterr, syserr = l3(data, label=k)
         elif options.constant == "sigma13":
-            xdata, staterr, syserr = sigma13(data)
+            xdata, staterr, syserr = sigma13(data, label=k)
         elif options.constant == "f0":
-            xdata, staterr, syserr = f0(data)
+            xdata, staterr, syserr = f0(data, label=k)
         else:
             logging.error("Not a valid constant selection")
             exit(-1)
@@ -282,6 +282,22 @@ if __name__ == "__main__":
         logging.debug("Verbose debuging mode activated")
     else:
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+
+    if args.output_stub is not None:
+        root = logging.getLogger()
+        errfilename = args.output_stub+".err"
+        errfilehandler = logging.FileHandler(errfilename, delay=True)
+        errfilehandler.setLevel(logging.WARNING)
+        formatter = logging.Formatter('%(levelname)s: %(message)s')
+        errfilehandler.setFormatter(formatter)
+        root.addHandler(errfilehandler)
+        logfilename = args.output_stub+".log"
+        logfilehandler = logging.FileHandler(logfilename, delay=True)
+        logfilehandler.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(levelname)s: %(message)s')
+        logfilehandler.setFormatter(formatter)
+        root.addHandler(logfilehandler)
+
 
 
     fig, axe = plt.subplots(1)
