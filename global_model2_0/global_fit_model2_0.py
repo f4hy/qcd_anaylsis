@@ -16,8 +16,8 @@ class Model(object):
         The 'scale_sigma' parameter uses the scale set to offsety by +/- 1 sigma to see the systmatic effect
         """
 
-
-
+        self.evalmodes = []
+        self.evalmode = ""      # May be more than one way to evaluate a model.
         self.each_heavy = each_heavy
         self.eds = ensemble_datas
         if vars(options).get("mpi_cutoff"):
@@ -37,7 +37,7 @@ class Model(object):
         # Model object is created without data, (maybe for plotting)
         # set some defaults
         self.consts = {"a": 0.0, "lat": 0.0, "alphas": 1.0, "m1": 0.0, "m2": 0.0,
-                       "renorm_qmass": np.nan, "qmass": np.nan, "residual_error": 0.0}
+                       "renorm_qmass": np.nan, "qmass": np.nan, "renorm_qs": np.nan, "residual_error": 0.0}
         if len(self.eds) > 1:
             # one data per ensemble
             datas = self.eds
@@ -68,6 +68,8 @@ class Model(object):
                                                     for ed in datas])
             self.consts["qmass"] = np.array([ed.ep.scale*(ed.ep.ud_mass+ed.ep.residual_mass) for ed in datas])
             self.consts["residual_error"] = np.array([ed.ep.scale*(ed.ep.residual_mass_error) for ed in datas])
+            self.consts["renorm_qs"] = np.array([ed.ep.scale*(ed.ep.s_mass+ed.ep.residual_mass) / ed.ep.Zs
+                                                    for ed in datas])
 
         self.data = {}
         self.options = options
