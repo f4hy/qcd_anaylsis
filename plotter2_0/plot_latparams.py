@@ -1,4 +1,4 @@
-from physical_values import phys_pion, phys_kaon, phys_mq, phys_Fpi, phys_FD, phys_FDs, phys_D, phys_Ds
+from physical_values import phys_pion, phys_kaon, phys_mq, flag_mq, phys_Fpi, phys_FD, phys_FDs, phys_D, phys_Ds
 from physical_values import phys_FB, phys_FBs, phys_FBsbyFB, phys_MB, phys_MBs, unphys_etas
 from physical_values import phys_eta, phys_etac, phys_etab, phys_FK, phys_mhq, phys_Jpsi, phys_Upsilon
 from physical_values import phys_mb_2gev, phys_mc_2gev
@@ -46,6 +46,16 @@ def ms(ed, options):
     if ed.ep.scale != 1.0:
         label += " [MeV]"
     return (data, err, label)
+
+def mud_renorm(ed, options):
+    data = (ed.ep.ud_mass + ed.ep.residual_mass)/ed.ep.Zs
+    err = (ed.ep.residual_mass_error)/ed.ep.Zs
+    label = "$m_{ud}/Z_{s}$"
+    data = ed.ep.scale*data
+    if ed.ep.scale != 1.0:
+        label += " [MeV]"
+    return (data, err, label, {"PDG": flag_mq})
+
 
 def ms_renorm(ed, options):
     data = (ed.ep.s_mass + ed.ep.residual_mass)/ed.ep.Zs

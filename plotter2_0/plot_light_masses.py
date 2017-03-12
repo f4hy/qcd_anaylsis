@@ -1,4 +1,4 @@
-from physical_values import phys_pion, phys_kaon, phys_mq, phys_Fpi, phys_FD, phys_FDs, phys_D, phys_Ds
+from physical_values import phys_pion, phys_kaon, phys_mq, flag_mq, phys_Fpi, phys_FD, phys_FDs, phys_D, phys_Ds
 from physical_values import phys_FB, phys_FBs, phys_FBsbyFB, phys_MB, phys_MBs, unphys_etas
 from physical_values import phys_eta, phys_etac, phys_etab, phys_FK, phys_mhq, phys_Jpsi, phys_Upsilon
 import numpy as np
@@ -55,9 +55,9 @@ def mpisqr_mq(ed, options):
     res_err = ed.ep.scale*ed.ep.residual_mass_error
     err = np.sqrt(( mpsqrerr / mq)**2 + (res_err * data.mean() / mq)**2 )
 
-    label = "$m_\pi^2 / m_q$"
+    label = "$m_\pi^2 / \\bar{m}_q$"
     if ed.ep.scale != 1.0:
         label += " [MeV]"
 
     return (data.mean(), err,
-            label, {"PDG": phys_pion**2 / phys_mq})
+            label, {"PDG": phys_pion**2 / flag_mq})
