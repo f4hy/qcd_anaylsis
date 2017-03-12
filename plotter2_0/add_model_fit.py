@@ -36,6 +36,7 @@ from global_model2_0.single_heavy_fd_models import * # noqa
 from global_model2_0.fd_models import * # noqa
 from global_model2_0.pion_chiral_model import * # noqa
 from global_model2_0.kaon_chiral_model import * # noqa
+from global_model2_0.quark_mass_model import * # noqa
 
 from itertools import cycle
 
@@ -116,8 +117,7 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
 
     ponesigma = np.percentile(ys, 84.1, axis=0)
     monesigma = np.percentile(ys, 15.9, axis=0)
-    # axe.fill_between(x, ponesigma, monesigma, alpha=0.1, color="k")
-
+    axe.fill_between(x, ponesigma, monesigma, alpha=0.05, color=c)
 
     if options.model_fit_point:
         point_x = options.model_fit_point

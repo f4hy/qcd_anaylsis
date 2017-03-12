@@ -17,6 +17,7 @@ from global_model2_0.single_heavy_fd_models import * # noqa
 from global_model2_0.fd_models import * # noqa
 from global_model2_0.pion_chiral_model import * # noqa
 from global_model2_0.kaon_chiral_model import * # noqa
+from global_model2_0.quark_mass_model import * # noq
 
 
 def interpolate(data, model_str, options):
@@ -56,6 +57,10 @@ def interpolate(data, model_str, options):
 
     if not mean_m.get_fmin().is_valid:
         logging.error("NOT VALID")
+        logging.error("NOT VALID steat {}".format(mean_results))
+
+        logging.error("Exiting due to invald fit")
+
         exit(-1)
 
     params.update(mean_m.values) # Update the guesses on each
