@@ -41,7 +41,7 @@ def eval_model(options):
         means = df.mean()
         params = [means[i] for i in m.contlim_args]
         y = m.eval_fit(options.xpoint, *params)
-        logging.info("{} on the mean {}".format(mode, y))
+        logging.info("{}{} on the mean {}".format(options.prefix, mode, y))
         values = []
         for i, row in df.iterrows():
             p = [row[n] for n in m.contlim_args]
@@ -49,8 +49,13 @@ def eval_model(options):
 
         ponesigma = np.percentile(values, 84.1)
         monesigma = np.percentile(values, 15.9)
-        logging.info("{}bootstraped mean: {}, std{}, +sigma{}, -sigma{}".format(mode, np.mean(values), np.std(values),
-                                                                  ponesigma, monesigma))
+        ostring = "{}{}bootstraped mean: {}, std{}, +sigma{}, -sigma{}".format(options.prefix, mode, np.mean(values), np.std(values),
+                                                                               ponesigma, monesigma)
+        logging.info(ostring)
+        if options.output_stub:
+            filename = options.output_stub + "_" + mode + ".txt"
+            with open(filename, 'w') as ofile:
+                ofile.write(ostring + "\n")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="evaluate a fit model")
@@ -58,6 +63,8 @@ if __name__ == "__main__":
                         help="increase output verbosity")
     parser.add_argument("-x", "--xpoint", type=float, required=True,
                         help="xvalue to evaluate the model at")
+    parser.add_argument("--prefix", type=str, default="",
+                        help="use this prefix when outputting")
     parser.add_argument("-o", "--output_stub", type=str, required=False,
                         help="stub of name to write output to")
     parser.add_argument('--err', nargs='?', type=argparse.FileType('w'),
