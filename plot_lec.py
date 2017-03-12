@@ -73,7 +73,7 @@ def Lambda4(data, label=None):
 
 
 def f0(data, label=None):
-    F = data.F_0 #/ np.sqrt(2)
+    F = data.F #/ np.sqrt(2)
     mean = F.mean()
     err =  F.std()
     syserr = ((F*0.01433447098)).mean()
@@ -97,7 +97,7 @@ def l4(data, label=None):
     return (mean, err, syserr)
 
 def sigma13(data, label=None):
-    sigma = (data.B*(data.F_0)**2) #/2.
+    sigma = (data.B*(data.F)**2) #/2.
     s13 = sigma**(1./3.)
     mean = s13.mean()
     err =  s13.std()

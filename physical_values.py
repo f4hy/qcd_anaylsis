@@ -36,6 +36,7 @@ phys_FBsbyFB = 1.202  # \pm 0.022 FLAG
 
 # pdg m_u=2.3 m_d = 4.8 , so (m_d+m_d)/2 = 3.55
 phys_mq = 3.55
+flag_mq = 3.373
 
 phys_mhq = 1275                  # at mc(mc)
 
