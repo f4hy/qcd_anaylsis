@@ -364,7 +364,7 @@ def plot_ensemble_data(options):
             axe.set_ylabel("{}".format(options.ylabel), labelpad=10, **fontsettings)
     else:
         axe.set_ylabel("{}".format(ylabel), labelpad=10, **fontsettings)
-        if "MeV^(3/2)" in ylabel:
+        if "MeV\^{}(3/2)" in ylabel:
             import matplotlib.ticker as ticker
             ticks = ticker.FuncFormatter(lambda x, pos: '{0:.6g}'.format(x/(1000**(3.0/2.0))))
             start, end = axe.get_ylim()
@@ -373,7 +373,7 @@ def plot_ensemble_data(options):
             top = np.ceil(100*end/(1000**(3.0/2.0)))/100*(1000**(3.0/2.0))
             axe.yaxis.set_ticks(np.arange(bot, top, (0.1*1000**(3.0/2.0))))
             axe.yaxis.set_major_formatter(ticks)
-            axe.set_ylabel(ylabel.replace("MeV^(3/2)", "GeV^(3/2)"), **fontsettings)
+            axe.set_ylabel(ylabel.replace("MeV\^{}(3/2)", "GeV\^{}(3/2)"), **fontsettings)
             plt.ylim(bot, top)
 
     axe.tick_params(axis='both', which='major', labelsize=35)

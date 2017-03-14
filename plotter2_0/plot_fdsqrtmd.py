@@ -18,7 +18,7 @@ def fDsqrtmD(ed, options, heavy="m0"):
 
     if ed.ep.scale != 1.0:
 
-        label += " [MeV^(3/2)]"
+        label += " [MeV\^{}(3/2)]"
     return (data.mean(), data.std(), label,
             {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)})
 
@@ -47,7 +47,7 @@ def fhlsqrtmhl(ed, options):
     label = "$f_{hl}\, \sqrt{m_{hl}}$"
 
     if ed.ep.scale != 1.0:
-        label += " [MeV^(3/2)]"
+        label += " [MeV\^{}(3/2)]"
 
     phys = {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
     return {m: (d.mean(), d.std(), label, phys ) for m,d in data.iteritems()}
@@ -71,7 +71,7 @@ def fDsqrtmD_ratio(ed, options):
 
     label = "$\\frac{f_{hl}\, \sqrt{m_{hl}}}{f_{h^{-1}l}\, \sqrt{m_{h^{-1}l}}}$"
     # if options.scale:
-    #     label += " [MeV^(3/2)]"
+    #     label += " [MeV\^{}(3/2)]"
     phys =  {"HQL": 1.0}
     return {m: (d.mean(), d.std(), label, phys) for m,d in ratiodata.iteritems()}
 
@@ -108,7 +108,7 @@ def fhlsqrtmhl_hqet(ed, options):
     label = "$\hat{f}_{hl}\, \sqrt{\hat{m}_{hl}} / C(\mu)$"
 
     if ed.ep.scale != 1.0:
-        label += " [MeV^(3/2)]"
+        label += " [MeV\^{}(3/2)]"
 
     phys = {"Charm": phys_FD*np.sqrt(phys_D), "Bottom": phys_FB*np.sqrt(phys_MB)}
     return {m: (d.mean(), d.std(), label, phys ) for m,d in data.iteritems()}
@@ -125,7 +125,7 @@ def fhssqrtmhs_hqet(ed, options):
     label = "$\hat{f}_{hs}\, \sqrt{\hat{m}_{hs}} / C(\mu)$"
 
     if ed.ep.scale != 1.0:
-        label += " [MeV^(3/2)]"
+        label += " [MeV\^{}(3/2)]"
 
     phys = {"Charm": phys_FDs*np.sqrt(phys_Ds), "Bottom": phys_FBs*np.sqrt(phys_MBs)}
     return {m: (d.mean(), d.std(), label, phys ) for m,d in data.iteritems()}
