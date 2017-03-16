@@ -35,6 +35,8 @@ def eval_model(options):
         evalmodes = m.evalmodes
     except AttributeError:
         evalmodes = [""]
+    if evalmodes == []:
+        evalmodes = [""]
 
     for mode in evalmodes:
         m.evalmode = mode
@@ -54,6 +56,7 @@ def eval_model(options):
         logging.info(ostring)
         if options.output_stub:
             filename = options.output_stub + "_" + mode + ".txt"
+            logging.info("writing output to {}".format(filename))
             with open(filename, 'w') as ofile:
                 ofile.write(ostring + "\n")
 

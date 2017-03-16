@@ -6,7 +6,7 @@ used_colors = {}
 
 colorcycle = cycle('brmckg')
 
-markercycle = cycle('o<^>Dp8')
+markercycle = cycle('o<^s>Dp8')
 facecycle = cycle(["white", None])
 
 

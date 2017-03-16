@@ -21,7 +21,7 @@ def ZA_udud(ed, options):
     print data.std()
     print err
 
-    label = "udud:$\\frac{(m+m)<0|P|\pi>}{m_\pi<0|A|P>}$"
+    label = "$\\frac{(m_{ud}+m_{ud})<0|P|\pi>}{m_\pi<0|A|P>}$"
 
     return (data.mean(), err,
             label, {"4.17": (0.9553), "4.35": 0.9636, "4.47": 0.9699})
@@ -33,7 +33,7 @@ def ZA_uds(ed, options):
     print data.std()
     print err
 
-    label = "uds:$\\frac{(m_s+m)<0|P|P>}{m_P<0|A|P>}$"
+    label = "$\\frac{(m_s+m_{ud})<0|P|P>}{m_P<0|A|P>}$"
 
     return (data.mean(), err,
             label, {"4.17": (0.9553), "4.35": 0.9636, "4.47": 0.9699})

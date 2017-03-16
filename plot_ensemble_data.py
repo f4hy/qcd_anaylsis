@@ -25,6 +25,7 @@ from ensemble_data2_0.all_ensemble_data import ensemble_data, MissingData, NoStr
 
 plt.rc('text', usetex=True)
 
+
 def round5(x):
     return int(5 * np.around(x/5.0))
 
@@ -84,6 +85,11 @@ def colors_and_legend(data_properties, legend_mode="betaLs", ylabel=None):
         if float(p.s_mass) in nolegends:
             mfc = "white"
             legend_label = None
+
+    if legend_mode == "beta":
+        cml = {"4.17": ('b','o',r'$a^{-1} = 2.45$GeV'), "4.35": ('r', 's', r'$a^{-1} = 3.61$GeV'), "4.47": ('m', 'd', r'$a^{-1} = 4.50$GeV')}
+        color, mark, legend_label = cml[p.beta]
+
 
     if legend_mode == "betaLs":
         color, mark, mfc = auto_key((p.beta, p.s_mass, p.latsize))
@@ -196,7 +202,7 @@ def plot_ensemble_data(options):
                     # continue
 
                 plotsettings = dict(linestyle="none", c=color, marker=mark,
-                                    label=label, ms=9, elinewidth=4,
+                                    label=label, ms=9, elinewidth=3,
                                     capsize=8, capthick=2, mec=color, mew=2,
                                     aa=True, mfc=mfc, fmt='o', ecolor=color,
                                     alpha=alpha)
@@ -265,28 +271,32 @@ def plot_ensemble_data(options):
         px = float(options.addpoint[1])
         py = float(options.addpoint[2])
         physplot = axe.errorbar(px, py, yerr=0, marker="x",
-                                ecolor="k", color="k", label=options.addpoint[0],
-                                ms=15, elinewidth=3, capsize=8,
+                                ecolor=0.5, color=0.5, label=options.addpoint[0],
+                                ms=5, elinewidth=3, capsize=8, linestyle="none",
                                 capthick=2, mec='k', mew=3, mfc='k',
                                 zorder=100)
-        symbol = mpl.lines.Line2D([], [], color="k", mec="k", marker="x", markersize=15, mew=3,
-                                  linestyle="None", label=options.addpoint[0], mfc="k")
+        symbol = mpl.lines.Line2D([], [], color=0.5, mec=0.5, marker="x", markersize=5, mew=3,
+                                  linestyle="None", label=options.addpoint[0], mfc=0.5)
         legend_handles.append(symbol)
 
     for pt in options.adderrpoint:
 
         logging.info("adding point {}".format(pt))
+        errptlabel = pt[0].replace('"',"")
+
         px = float(pt[1])
         py = float(pt[2])
         pyerr = float(pt[3])
-        physplot = axe.errorbar(px, py, yerr=pyerr, marker="", # noqa
-                                ecolor="k", color="k", label=pt[0],
+        addedplot = axe.errorbar(px, py, yerr=pyerr, marker="x", # noqa
+                                ecolor="k", color="k", label=errptlabel,
                                 ms=15, elinewidth=3, capsize=8, alpha=0.5,
                                 capthick=2, mec='k', mew=3, mfc='k',
                                 zorder=100)
         symbol = mpl.lines.Line2D([], [], color="k", mec="k", marker="x", markersize=15, mew=3,
-                                  linestyle="None", label=pt[0], mfc="k")
-        legend_handles.append(symbol)
+                                  linestyle="None", label=errptlabel, mfc="k")
+
+        if len(errptlabel) > 0:
+            legend_handles.append(symbol)
 
     if options.addpoints:
         logging.info("adding points from {}".format(options.addpoints))
@@ -358,13 +368,10 @@ def plot_ensemble_data(options):
             axe.set_xlabel(xlabel.replace("1/MeV", "1/GeV"), **fontsettings)
 
     if options.ylabel:
-        if options.scale:
-            axe.set_ylabel("{} [MeV]".format(options.ylabel), labelpad=10, **fontsettings)
-        else:
             axe.set_ylabel("{}".format(options.ylabel), labelpad=10, **fontsettings)
     else:
         axe.set_ylabel("{}".format(ylabel), labelpad=10, **fontsettings)
-        if "MeV\^{}(3/2)" in ylabel:
+        if "\mathrm{MeV}^{3/2}" in ylabel:
             import matplotlib.ticker as ticker
             ticks = ticker.FuncFormatter(lambda x, pos: '{0:.6g}'.format(x/(1000**(3.0/2.0))))
             start, end = axe.get_ylim()
@@ -373,7 +380,7 @@ def plot_ensemble_data(options):
             top = np.ceil(100*end/(1000**(3.0/2.0)))/100*(1000**(3.0/2.0))
             axe.yaxis.set_ticks(np.arange(bot, top, (0.1*1000**(3.0/2.0))))
             axe.yaxis.set_major_formatter(ticks)
-            axe.set_ylabel(ylabel.replace("MeV\^{}(3/2)", "GeV\^{}(3/2)"), **fontsettings)
+            axe.set_ylabel(ylabel.replace("\mathrm{MeV}^{3/2}", "\mathrm{GeV}^{3/2}"), **fontsettings)
             plt.ylim(bot, top)
 
     axe.tick_params(axis='both', which='major', labelsize=35)

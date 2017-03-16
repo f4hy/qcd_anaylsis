@@ -5,7 +5,7 @@ from physical_values import phys_eta, phys_etac, phys_etab, phys_FK, phys_mhq, p
 
 def mD(ed, options):
     data = ed.D_mass()
-    label = "$m_{hl}$"
+    label = "$m_{D}$"
     if ed.ep.scale != 1.0:
         label += " [MeV]"
     return (data.mean(), data.std(),
@@ -23,7 +23,7 @@ def inv_mhl(ed, options):
 
 def inv_mD(ed, options):
     data = 1.0 / ed.D_mass()
-    label = "$1/m_{hl}$"
+    label = "$1/m_{D}$"
     if ed.ep.scale != 1.0:
         label += " [1/MeV]"
     return (data.mean(), data.std(),
@@ -32,7 +32,7 @@ def inv_mD(ed, options):
 
 def mDs(ed, options):
     data = ed.Ds_mass()
-    label = "$m_{hs}$"
+    label = "$m_{D_s}$"
     if ed.ep.scale != 1.0:
         label += " [MeV]"
     return (data.mean(), data.std(),
@@ -59,7 +59,7 @@ def inv_mhs(ed, options):
 
 def inv_mDs(ed, options):
     data = 1.0 / ed.Ds_mass()
-    label = "$m_{hs}$"
+    label = "$m_{D_s}$"
     if ed.ep.scale != 1.0:
         label += " [1/MeV]"
     return (data.mean(), data.std(),
