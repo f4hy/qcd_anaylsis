@@ -64,8 +64,6 @@ def addplot(plots, axe, fill, save, x=None, y=None, params=None):
 def determine_eval_mode(modes, datanames):
     for m in modes:
         for name in datanames:
-            print m
-            print name
             if m.lower() in name.lower():
                 logging.info("setting evaluation mode to {}".format(m))
                 return m
@@ -102,7 +100,10 @@ def add_model_fit(axe, xran, boot_fit_file, options=None):
     y = m.eval_fit(x, *params)
     label = m.label
     if "cutoff" in boot_fit_file.name:
-        cutoff = re.search("cutoff([0-9.]*[0-9])", boot_fit_file.name).group(1)
+        try:
+            cutoff = re.search("cutoff([0-9.]*[0-9])", boot_fit_file.name).group(1)
+        except AttributeError:
+            cutoff = np.nan
         if options.xdata in ["chiral_x", "xi"] and float(cutoff) < 600:
             label += ' ${}<{}$'.format("M_{\pi}", cutoff)
     plot_handles = axe.plot(x,y, color=c, lw=2, label=label, linestyle=lstyle)

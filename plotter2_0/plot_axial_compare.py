@@ -18,8 +18,6 @@ def ZA_fpi_fpiA(ed, options):
 def ZA_udud(ed, options):
     data = ed.ZA_est(flavor="ud-ud")
     err = np.sqrt(data.var() + (ed.ep.residual_mass_error * data.mean()/(2*ed.ep.ud_mass))**2)
-    print data.std()
-    print err
 
     label = "$\\frac{(m_{ud}+m_{ud})<0|P|\pi>}{m_\pi<0|A|P>}$"
 
@@ -30,8 +28,6 @@ def ZA_udud(ed, options):
 def ZA_uds(ed, options):
     data = ed.ZA_est(flavor="ud-s")
     err = np.sqrt(data.var() + (ed.ep.residual_mass_error * data.mean()/(ed.ep.ud_mass+ed.ep.s_mass))**2)
-    print data.std()
-    print err
 
     label = "$\\frac{(m_s+m_{ud})<0|P|P>}{m_P<0|A|P>}$"
 
@@ -41,8 +37,6 @@ def ZA_uds(ed, options):
 def ZA_ss(ed, options):
     data = ed.ZA_est(flavor="s-s")
     err = np.sqrt(data.var() + (ed.ep.residual_mass_error * data.mean()/(2*ed.ep.s_mass))**2)
-    print data.std()
-    print err
     label = "ss:$\\frac{(m_s+m_s)<0|P|P>}{m_P<0|A|P>}$"
 
     return (data.mean(), err,
@@ -51,8 +45,6 @@ def ZA_ss(ed, options):
 def ZA_hh(ed, options):
     data = ed.ZA_est(flavor="h-h")
     err = np.sqrt(data.var() + (ed.ep.residual_mass_error * data.mean()/(2*d.dp.heavyq_mass))**2)
-    print data.std()
-    print err
     label = "ss:$\\frac{(m_s+m_s)<0|P|P>}{m_P<0|A|P>}$"
 
     return (data.mean(), err,

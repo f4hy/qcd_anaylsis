@@ -70,8 +70,6 @@ def inv_mD_corrected(ed, options):
     mdata = ed.D_mass()
     m1 = ed.heavy_m1
     m2 = ed.heavy_m2
-    print m1, m2
-    exit(-1)
     data = 1.0/(mdata +(m2 - m1))
     label = "$1/(m_{hl} + m_2 - m_1)$"
     if options.scale:
@@ -84,7 +82,6 @@ def inv_mhl_corrected(ed, options):
     for m, m12s in ed.ep.m12s.iteritems():
         mkey = [k for k in mdata if m in k][0]
         m1,m2 = m12s
-        print m1,m2
         data[m] = (mdata[mkey] + (m2 - m1)*ed.ep.scale )
     label = "$1/(m_{hl} + m_2 - m_1)$"
     if ed.ep.scale != 1.0:
@@ -109,7 +106,6 @@ def inv_mhs_corrected(ed, options):
     for m, m12s in ed.ep.m12s.iteritems():
         mkey = [k for k in mdata if m in k][0]
         m1,m2 = m12s
-        print m1,m2
         data[m] = (mdata[mkey] + (m2 - m1)*ed.ep.scale )
     label = "$1/(m_{hs} + m_2 - m_1)$"
     if ed.ep.scale != 1.0:
