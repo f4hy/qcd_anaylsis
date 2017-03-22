@@ -357,11 +357,13 @@ def plot_ensemble_data(options):
     else:
         axe.set_xlabel(xlabel, labelpad=20, **fontsettings)
         if "MeV^2" in xlabel:
+            logging.warn("Converting MeV^2 to GeV^2")
             import matplotlib.ticker as ticker
             ticks = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/(1000**2)))
             axe.xaxis.set_major_formatter(ticks)
             axe.set_xlabel(xlabel.replace("MeV", "GeV"), **fontsettings)
         if "1/MeV" in xlabel:
+            logging.warn("Converting 1/MeV to 1/GeV")
             import matplotlib.ticker as ticker
             ticks = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(1000*x))
             axe.xaxis.set_major_formatter(ticks)
@@ -372,6 +374,7 @@ def plot_ensemble_data(options):
     else:
         axe.set_ylabel("{}".format(ylabel), labelpad=10, **fontsettings)
         if "\mathrm{MeV}^{3/2}" in ylabel:
+            logging.warn("Converting \mathrm{MeV}^{3/2} to \mathrm{GeV}^{3/2}")
             import matplotlib.ticker as ticker
             ticks = ticker.FuncFormatter(lambda x, pos: '{0:.6g}'.format(x/(1000**(3.0/2.0))))
             start, end = axe.get_ylim()
