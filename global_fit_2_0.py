@@ -180,7 +180,8 @@ def write_bootstrap_data(fit_parameters, boot_fvals, output_stub, suffix, model,
     with open(outfilename, "w") as ofile:
         fvals = boot_fvals
         chisqrbydofs = np.array(fvals) / dof
-        ofile.write("#{} chisqr {}+/-{}, dof {}, chisqr/dof {}+/-{}\n".format(model, np.median(fvals), np.std(fvals), dof, np.median(chisqrbydofs), np.std(chisqrbydofs) ))
+        ofile.write("#{} medians chisqr {}+/-{}, dof {}, chisqr/dof {}+/-{}\n".format(model, np.median(fvals), np.std(fvals), dof, np.median(chisqrbydofs), np.std(chisqrbydofs) ))
+        ofile.write("#{} means chisqr {}+/-{}, dof {}, chisqr/dof {}+/-{}\n".format(model, np.mean(fvals), np.std(fvals), dof, np.mean(chisqrbydofs), np.std(chisqrbydofs) ))
 
         for name in fit_parameters[0].values:
             values = [b.values[name] for b in fit_parameters.values()]
